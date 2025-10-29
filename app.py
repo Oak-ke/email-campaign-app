@@ -7,28 +7,46 @@ import csv
 import io
 import os
 
-app = Flask(__name__, static_folder='frontend', static_url_path='')
+app = Flask(__name__)
+
+# Configure static folder - try multiple possible locations
+static_folders = ['frontend', './frontend', 'static', './static']
+
+for folder in static_folders:
+    if os.path.exists(folder):
+        app.static_folder = folder
+        app.static_url_path = ''
+        print(f"Using static folder: {folder}")
+        break
+else:
+    print("Warning: No static folder found")
+
 CORS(app)
 
 # Serve the main page
 @app.route('/')
 def serve_index():
-    return send_from_directory('frontend', 'index.html')
+    try:
+        return send_from_directory(app.static_folder, 'index.html')
+    except:
+        return "Email Campaign App is running! But frontend files are missing."
 
-# Serve other frontend files (CSS, JS)
+# Serve other frontend files (CSS, JS, etc.)
 @app.route('/<path:path>')
 def serve_static(path):
     if path.startswith('api/'):
-        # Let API routes be handled by their respective functions
         return app.response_class(status=404)
     
-    # Serve static files from frontend directory
     try:
-        return send_from_directory('frontend', path)
+        return send_from_directory(app.static_folder, path)
     except:
-        # If file not found, serve index.html for client-side routing
-        return send_from_directory('frontend', 'index.html')
+        try:
+            # Try to serve index.html for client-side routing
+            return send_from_directory(app.static_folder, 'index.html')
+        except:
+            return f"File {path} not found", 404
 
+# Your existing API routes (keep all your existing routes exactly as they were)
 @app.route('/api/test-connection', methods=['POST'])
 def test_connection():
     data = request.json
@@ -132,6 +150,14 @@ def parse_csv():
 @app.route('/health')
 def health_check():
     return jsonify({"status": "healthy", "message": "Server is running"})
+
+@app.route('/api/debug')
+def debug_info():
+    return jsonify({
+        "static_folder": app.static_folder,
+        "static_url_path": app.static_url_path,
+        "files_in_static": os.listdir(app.static_folder) if app.static_folder and os.path.exists(app.static_folder) else "No static folder"
+    })
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 10000))
