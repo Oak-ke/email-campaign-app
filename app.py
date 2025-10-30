@@ -7,46 +7,52 @@ import csv
 import io
 import os
 
-app = Flask(__name__)
-
-# Configure static folder - try multiple possible locations
-static_folders = ['frontend', './frontend', 'static', './static']
-
-for folder in static_folders:
-    if os.path.exists(folder):
-        app.static_folder = folder
-        app.static_url_path = ''
-        print(f"Using static folder: {folder}")
-        break
-else:
-    print("Warning: No static folder found")
-
+app = Flask(__name__, static_folder='frontend', static_url_path='')
 CORS(app)
+
+# Edgevest Header Function
+def add_edgevest_header(body):
+    header = """
+    <div style="background: linear-gradient(135deg, #d2b48c, #8b7355); color: white; padding: 25px; text-align: center; border-radius: 8px 8px 0 0;">
+        <h1 style="margin: 0; font-size: 28px; font-weight: bold;">EDGEVEST</h1>
+        <p style="margin: 10px 0 0 0; font-size: 16px; opacity: 0.9;">Professional Training & Development</p>
+    </div>
+    <div style="padding: 20px;">
+    """
+    return header + body
+
+# Edgevest Footer Function
+def add_edgevest_footer(body):
+    footer = """
+    </div>
+    <div style="margin-top: 30px; padding: 20px; background: linear-gradient(135deg, #8b7355, #654321); color: white; border-radius: 0 0 8px 8px;">
+        <p style="margin: 0 0 10px 0; font-size: 16px; font-weight: bold;">Edgevest</p>
+        <p style="margin: 0 0 5px 0; font-size: 12px;">Grace land court, Block C, J6 Opp K.U School of Law, Parklands</p>
+        <p style="margin: 0 0 5px 0; font-size: 12px;">Phone: +254 758 314 887 | Email: trainings@edgevest.co.ke</p>
+        <p style="margin: 0; font-size: 11px; opacity: 0.9;">© 2025 Edgevest. All rights reserved.</p>
+    </div>
+    """
+    return body + footer
 
 # Serve the main page
 @app.route('/')
 def serve_index():
-    try:
-        return send_from_directory(app.static_folder, 'index.html')
-    except:
-        return "Email Campaign App is running! But frontend files are missing."
+    return send_from_directory('frontend', 'index.html')
 
-# Serve other frontend files (CSS, JS, etc.)
+# Serve other frontend files (CSS, JS)
 @app.route('/<path:path>')
 def serve_static(path):
     if path.startswith('api/'):
+        # Let API routes be handled by their respective functions
         return app.response_class(status=404)
     
+    # Serve static files from frontend directory
     try:
-        return send_from_directory(app.static_folder, path)
+        return send_from_directory('frontend', path)
     except:
-        try:
-            # Try to serve index.html for client-side routing
-            return send_from_directory(app.static_folder, 'index.html')
-        except:
-            return f"File {path} not found", 404
+        # If file not found, serve index.html for client-side routing
+        return send_from_directory('frontend', 'index.html')
 
-# Your existing API routes (keep all your existing routes exactly as they were)
 @app.route('/api/test-connection', methods=['POST'])
 def test_connection():
     data = request.json
@@ -83,6 +89,10 @@ def send_emails():
                     # Personalize subject and body
                     subject = subject_template.format(**recipient)
                     body = body_template.format(**recipient)
+                    
+                    # Add Edgevest header and footer to every email
+                    body = add_edgevest_header(body)
+                    body = add_edgevest_footer(body)
                     
                     # Create message
                     msg = MIMEMultipart()
@@ -150,14 +160,6 @@ def parse_csv():
 @app.route('/health')
 def health_check():
     return jsonify({"status": "healthy", "message": "Server is running"})
-
-@app.route('/api/debug')
-def debug_info():
-    return jsonify({
-        "static_folder": app.static_folder,
-        "static_url_path": app.static_url_path,
-        "files_in_static": os.listdir(app.static_folder) if app.static_folder and os.path.exists(app.static_folder) else "No static folder"
-    })
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 10000))
