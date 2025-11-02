@@ -7,7 +7,7 @@ import csv
 import io
 import os
 
-app = Flask(__name__, static_folder='frontend', static_url_path='')
+app = Flask(__name__, static_folder='public', static_url_path='')
 CORS(app)
 
 # Edgevest Header Function
@@ -37,7 +37,7 @@ def add_edgevest_footer(body):
 # Serve the main page
 @app.route('/')
 def serve_index():
-    return send_from_directory('frontend', 'index.html')
+    return send_from_directory('public', 'index.html')
 
 # Serve other frontend files (CSS, JS)
 @app.route('/<path:path>')
@@ -48,10 +48,10 @@ def serve_static(path):
     
     # Serve static files from frontend directory
     try:
-        return send_from_directory('frontend', path)
+        return send_from_directory('public', path)
     except:
         # If file not found, serve index.html for client-side routing
-        return send_from_directory('frontend', 'index.html')
+        return send_from_directory('public', 'index.html')
 
 @app.route('/api/test-connection', methods=['POST'])
 def test_connection():
@@ -161,6 +161,6 @@ def parse_csv():
 def health_check():
     return jsonify({"status": "healthy", "message": "Server is running"})
 
-if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 10000))
-    app.run(host='0.0.0.0', port=port, debug=False)
+#if __name__ == '__main__':
+ #   port = int(os.environ.get('PORT', 10000))
+#  app.run(host='0.0.0.0', port=port, debug=False)
