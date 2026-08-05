@@ -19,6 +19,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.application import MIMEApplication
 from email.utils import formataddr
 
+from flask import send_from_directory
 from flask import Flask, request, jsonify, send_from_directory, Response
 from flask_cors import CORS
 from flask_httpauth import HTTPBasicAuth
@@ -26,8 +27,13 @@ from email_validator import validate_email, EmailNotValidError
 
 from config import Config
 
-# Initialize Flask App
-app = Flask(__name__, public_folder="public", static_folder="public")
+# ==========================================
+# FIX 1: Corrected Flask initialization
+#   - Removed invalid 'public_folder' argument.
+#   - 'static_folder' points to 'public'.
+#   - 'static_url_path=""' serves files from 'public' at the root URL.
+# ==========================================
+app = Flask(__name__, static_folder="public", static_url_path="")
 app.config.from_object(Config)
 
 # Enable CORS safely
@@ -371,10 +377,11 @@ def index():
     return send_from_directory("public", "index.html")
 
 
-@app.route("/public/<path:filename>")
-def serve_public_assets(filename):
-    """Static file router for public assets"""
-    return send_from_directory("public", filename)
+# ==========================================
+# FIX 2: Removed the redundant '/public/<path:filename>' route.
+#         The static_folder config now handles all root-level static assets
+#         (e.g., /main.js, /style.css) automatically.
+# ==========================================
 
 
 @app.route("/api/health", methods=["GET"])
@@ -559,7 +566,11 @@ def export_campaign_report():
     )
 
 
-# Error Handlers
+# ==========================================
+# FIX 3: Keep the 404 handler for SPA fallback.
+#         Any unknown route (e.g., /dashboard) serves index.html
+#         so React Router can handle it.
+# ==========================================
 @app.errorhandler(404)
 def not_found(e):
     return send_from_directory("public", "index.html")
