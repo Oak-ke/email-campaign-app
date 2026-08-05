@@ -3,6 +3,12 @@ import path from "path";
 import { createServer as createViteServer } from "vite";
 import fs from "fs";
 import nodemailer from "nodemailer";
+import dns from "dns";
+
+// Force Node to prioritize IPv4 DNS lookups to avoid ENETUNREACH on IPv6 addresses
+if (dns.setDefaultResultOrder) {
+  dns.setDefaultResultOrder("ipv4first");
+}
 
 async function startServer() {
   const app = express();
@@ -54,6 +60,7 @@ async function startServer() {
         port: portNum,
         secure: isSecure,
         requireTLS: portNum === 587 || use_tls || isOffice365,
+        family: 4, // Force IPv4 connection to prevent ENETUNREACH on IPv6 addresses
         auth: {
           user: cleanUser,
           pass: password
@@ -64,7 +71,7 @@ async function startServer() {
         connectionTimeout: 5000, // Fast 5-second connection timeout
         greetingTimeout: 4000,
         socketTimeout: 6000
-      });
+      } as any);
 
       await transporter.verify();
 
@@ -187,12 +194,13 @@ async function startServer() {
           port: portNum,
           secure: isSecure,
           requireTLS: portNum === 587 || smtp.use_tls || isOffice365,
+          family: 4, // Force IPv4 connection to prevent ENETUNREACH on IPv6 addresses
           auth: { user: cleanUser, pass: smtp.password },
           tls: { rejectUnauthorized: false },
           connectionTimeout: 6000,
           greetingTimeout: 5000,
           socketTimeout: 8000
-        });
+        } as any);
       } catch (e: any) {
         currentCampaign.logs.push({
           time: new Date().toLocaleTimeString(),
