@@ -158,7 +158,7 @@ async function startServer() {
       const timeoutPromise = new Promise((_, reject) => {
         setTimeout(() => {
           reject(new Error(`Connection Timeout: Socket connection or response timed out after 5000ms trying to connect to ${cleanHost}:${portNum}`));
-        }, 5200);
+        }, 16000);
       });
 
       await Promise.race([transporter.verify(), timeoutPromise]);
