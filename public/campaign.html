@@ -1,0 +1,1832 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Edgevest Bulk Email Campaign Manager</title>
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <!-- jsPDF for Client-side PDF Receipt Generation -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: #0d0b0a;
+      color: #f7f4ee;
+    }
+    .font-mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Custom Scrollbars */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #140f0c; }
+    ::-webkit-scrollbar-thumb { background: #3d2d20; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #5c4330; }
+
+    /* Step Active and Completed Theme Styling - Edgevest Signature Palette */
+    .step-active {
+      border-color: #c5a059 !important;
+      color: #e2b871 !important;
+      background: rgba(140, 101, 67, 0.25) !important;
+      box-shadow: inset 0 0 12px rgba(197, 160, 89, 0.2);
+    }
+    .step-complete {
+      border-color: #2d5a4c !important;
+      color: #63b39b !important;
+      background: rgba(45, 90, 76, 0.25) !important;
+    }
+    .step-inactive {
+      border-color: #2e241c !important;
+      color: #8c7868 !important;
+      background: rgba(22, 17, 13, 0.5) !important;
+    }
+
+    /* Glassmorphic card & input containers */
+    .glass-panel {
+      background: rgba(26, 20, 16, 0.88);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(163, 120, 84, 0.25);
+    }
+    .glass-input {
+      background: rgba(18, 14, 11, 0.8);
+      border: 1px solid rgba(163, 120, 84, 0.3);
+      color: #f7f4ee;
+    }
+    .glass-input:focus {
+      border-color: #c5a059;
+      box-shadow: 0 0 0 2px rgba(197, 160, 89, 0.25);
+      outline: none;
+    }
+  </style>
+</head>
+<body class="bg-[#0d0b0a] text-[#f7f4ee] min-h-screen font-sans antialiased flex flex-col selection:bg-[#8c6543] selection:text-white">
+
+  <!-- Sleek Edgevest Header Navigation with Brand Palette -->
+  <header class="bg-[#140f0c]/95 backdrop-blur-xl border-b border-[#2e241c] sticky top-0 z-30 shadow-2xl">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <!-- Edgevest Monogram Badge -->
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#8c6543] via-[#a37854] to-[#d4af37] flex items-center justify-center text-white font-extrabold text-lg shadow-lg shadow-[#8c6543]/30 ring-1 ring-[#e2b871]/40">
+          E
+        </div>
+        <div>
+          <div class="flex items-center space-x-2">
+            <h1 class="text-base sm:text-lg font-bold text-white tracking-tight leading-tight">EDGEVEST</h1>
+            <span class="text-xs text-[#e2b871] font-semibold bg-[#261c14] border border-[#8c6543]/60 px-2.5 py-0.5 rounded-full">
+              Campaign Manager
+            </span>
+          </div>
+          <p class="text-xs text-[#a8988a]">Edgevest Training & Consultancy • Professional Enterprise Edition</p>
+        </div>
+      </div>
+      <div class="flex items-center space-x-3">
+        <span id="api-status" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-[#1a2e26] text-[#63b39b] border border-[#2d5a4c] shadow-sm">
+          <span class="w-2 h-2 mr-2 rounded-full bg-[#34d399] animate-pulse"></span> Backend Connected
+        </span>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1">
+
+    <!-- Progress Step Indicators -->
+    <nav aria-label="Progress" class="mb-8">
+      <ol role="list" class="grid grid-cols-2 md:grid-cols-5 gap-3">
+        <li>
+          <div id="step-btn-1" onclick="goToStep(1)" class="step-active group p-3.5 flex flex-col border-l-4 md:border-l-0 md:border-t-4 rounded-xl transition-all cursor-pointer">
+            <span class="text-[11px] font-bold uppercase tracking-wider text-[#e2b871] step-number">Step 1</span>
+            <span class="text-xs sm:text-sm font-bold flex items-center mt-1"><i class="fa-solid fa-server mr-2 text-[#e2b871]"></i> SMTP Setup</span>
+          </div>
+        </li>
+        <li>
+          <div id="step-btn-2" onclick="goToStep(2)" class="step-inactive group p-3.5 flex flex-col border-l-4 md:border-l-0 md:border-t-4 rounded-xl transition-all cursor-pointer">
+            <span class="text-[11px] font-bold uppercase tracking-wider text-[#8c7868] step-number">Step 2</span>
+            <span class="text-xs sm:text-sm font-bold flex items-center mt-1"><i class="fa-solid fa-users mr-2"></i> Recipients List</span>
+          </div>
+        </li>
+        <li>
+          <div id="step-btn-3" onclick="goToStep(3)" class="step-inactive group p-3.5 flex flex-col border-l-4 md:border-l-0 md:border-t-4 rounded-xl transition-all cursor-pointer">
+            <span class="text-[11px] font-bold uppercase tracking-wider text-[#8c7868] step-number">Step 3</span>
+            <span class="text-xs sm:text-sm font-bold flex items-center mt-1"><i class="fa-solid fa-envelope-open-text mr-2"></i> Edgevest Template</span>
+          </div>
+        </li>
+        <li>
+          <div id="step-btn-4" onclick="goToStep(4)" class="step-inactive group p-3.5 flex flex-col border-l-4 md:border-l-0 md:border-t-4 rounded-xl transition-all cursor-pointer">
+            <span class="text-[11px] font-bold uppercase tracking-wider text-[#8c7868] step-number">Step 4</span>
+            <span class="text-xs sm:text-sm font-bold flex items-center mt-1"><i class="fa-solid fa-gauge-high mr-2"></i> Throttle Settings</span>
+          </div>
+        </li>
+        <li class="col-span-2 md:col-span-1">
+          <div id="step-btn-5" onclick="goToStep(5)" class="step-inactive group p-3.5 flex flex-col border-l-4 md:border-l-0 md:border-t-4 rounded-xl transition-all cursor-pointer">
+            <span class="text-[11px] font-bold uppercase tracking-wider text-[#8c7868] step-number">Step 5</span>
+            <span class="text-xs sm:text-sm font-bold flex items-center mt-1"><i class="fa-solid fa-rocket mr-2"></i> Live Monitor</span>
+          </div>
+        </li>
+      </ol>
+    </nav>
+
+    <!-- STEP 1: SMTP CONFIGURATION -->
+    <section id="step-content-1" class="glass-panel rounded-2xl shadow-2xl p-6 sm:p-8">
+      <div class="border-b border-[#2e241c] pb-5 mb-6">
+        <h2 class="text-xl font-bold text-white flex items-center tracking-tight">
+          <div class="w-8 h-8 rounded-lg bg-[#8c6543]/20 border border-[#8c6543]/40 text-[#e2b871] flex items-center justify-center mr-3 text-sm">
+            <i class="fa-solid fa-server"></i>
+          </div>
+          Edgevest SMTP Connection Details
+        </h2>
+        <p class="text-sm text-[#a8988a] mt-1 pl-11">Provide your cPanel, mail.edgevest.co.ke, or custom SMTP server details.</p>
+      </div>
+
+      <!-- Quick Preset Selector -->
+      <div class="mb-6 p-4 bg-[#18120e] border border-[#3d2d20] rounded-xl flex flex-wrap items-center justify-between gap-3">
+        <span class="text-xs font-semibold text-[#d1c4b8] uppercase tracking-wider flex items-center">
+          <i class="fa-solid fa-sliders text-[#e2b871] mr-2"></i> Quick Server Presets:
+        </span>
+        <div class="flex flex-wrap gap-2">
+          <button type="button" onclick="applySmtpPreset('o365_outlook')" class="px-3.5 py-1.5 bg-[#261c17] hover:bg-[#32241d] border border-[#8c6543] text-[#e2b871] text-xs font-bold rounded-lg transition flex items-center shadow-sm">
+            ✉️ Outlook 365 (outlook.office365.com - Port 587)
+          </button>
+          <button type="button" onclick="applySmtpPreset('o365_smtp')" class="px-3.5 py-1.5 bg-[#140f0c] hover:bg-[#261c17] border border-[#3d2d20] hover:border-[#8c6543] text-[#a8988a] hover:text-white text-xs font-medium rounded-lg transition flex items-center">
+            ✉️ Office 365 (smtp.office365.com - Port 587)
+          </button>
+          <button type="button" onclick="applySmtpPreset('edgevest')" class="px-3.5 py-1.5 bg-[#140f0c] hover:bg-[#261c17] border border-[#3d2d20] hover:border-[#8c6543] text-[#a8988a] hover:text-white text-xs font-medium rounded-lg transition flex items-center">
+            🏢 Edgevest Webmail (mail.edgevest.co.ke - Port 465)
+          </button>
+          <button type="button" onclick="applySmtpPreset('gmail')" class="px-3.5 py-1.5 bg-[#140f0c] hover:bg-[#261c17] border border-[#3d2d20] hover:border-[#8c6543] text-[#a8988a] hover:text-white text-xs font-medium rounded-lg transition flex items-center">
+            🔴 Gmail (smtp.gmail.com - Port 465)
+          </button>
+        </div>
+      </div>
+
+      <form id="smtp-form" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label class="block text-xs font-semibold uppercase tracking-wider text-[#d1c4b8] mb-2">SMTP Hostname *</label>
+          <input type="text" id="smtp-host" value="outlook.office365.com" required placeholder="e.g. outlook.office365.com or smtp.office365.com" class="w-full glass-input rounded-xl px-4 py-2.5 text-sm" />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold uppercase tracking-wider text-[#d1c4b8] mb-2">SMTP Port *</label>
+          <input type="number" id="smtp-port" value="587" required class="w-full glass-input rounded-xl px-4 py-2.5 text-sm" />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold uppercase tracking-wider text-[#d1c4b8] mb-2">SMTP Username / Email *</label>
+          <input type="text" id="smtp-user" value="trainings@edgevest.co.ke" required placeholder="yourname@domain.com" class="w-full glass-input rounded-xl px-4 py-2.5 text-sm" />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold uppercase tracking-wider text-[#d1c4b8] mb-2">SMTP Password *</label>
+          <input type="password" id="smtp-pass" value="" required placeholder="Enter your email or app password" class="w-full glass-input rounded-xl px-4 py-2.5 text-sm" />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold uppercase tracking-wider text-[#d1c4b8] mb-2">From Email Address</label>
+          <input type="email" id="smtp-from-email" value="trainings@edgevest.co.ke" placeholder="trainings@edgevest.co.ke" class="w-full glass-input rounded-xl px-4 py-2.5 text-sm" />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold uppercase tracking-wider text-[#d1c4b8] mb-2">From Display Name</label>
+          <input type="text" id="smtp-from-name" placeholder="Edgevest Team" value="Edgevest Team" class="w-full glass-input rounded-xl px-4 py-2.5 text-sm" />
+        </div>
+        <div class="md:col-span-2 flex flex-wrap gap-6 pt-2">
+          <label class="inline-flex items-center text-sm font-medium text-[#d1c4b8] cursor-pointer select-none">
+            <input type="checkbox" id="smtp-tls" checked class="rounded border-[#3d2d20] bg-[#140f0c] text-[#8c6543] focus:ring-[#c5a059] h-4 w-4 mr-2.5" />
+            Enable STARTTLS (Port 587 - Recommended for Outlook/Office365)
+          </label>
+          <label class="inline-flex items-center text-sm font-medium text-[#d1c4b8] cursor-pointer select-none">
+            <input type="checkbox" id="smtp-ssl" class="rounded border-[#3d2d20] bg-[#140f0c] text-[#8c6543] focus:ring-[#c5a059] h-4 w-4 mr-2.5" />
+            Enable Direct SSL/TLS (Port 465)
+          </label>
+        </div>
+      </form>
+
+      <div class="mt-8 flex items-center justify-between border-t border-[#2e241c] pt-6">
+        <button type="button" id="btn-test-smtp" class="px-5 py-2.5 border border-[#3d2d20] hover:border-[#8c6543] rounded-xl text-[#e0d4c8] font-semibold hover:bg-[#1a1410] transition flex items-center text-sm shadow-sm">
+          <i class="fa-solid fa-plug mr-2 text-[#e2b871]"></i> Test Connection
+        </button>
+        <button type="button" onclick="goToStep(2)" class="px-6 py-2.5 bg-gradient-to-r from-[#8c6543] via-[#785338] to-[#5c3d28] hover:from-[#9e7854] hover:to-[#6d4c2d] text-white font-semibold rounded-xl shadow-lg shadow-[#8c6543]/20 active:scale-[0.98] transition flex items-center text-sm border border-[#c5a059]/30">
+          Next: Recipients <i class="fa-solid fa-arrow-right ml-2 text-xs"></i>
+        </button>
+      </div>
+      <div id="smtp-test-result" class="mt-4 hidden p-4 rounded-xl text-sm border"></div>
+    </section>
+
+    <!-- STEP 2: RECIPIENTS LIST & VALIDATION -->
+    <section id="step-content-2" class="glass-panel rounded-2xl shadow-2xl p-6 sm:p-8 hidden">
+      <div class="border-b border-[#2e241c] pb-5 mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h2 class="text-xl font-bold text-white flex items-center tracking-tight">
+            <div class="w-8 h-8 rounded-lg bg-[#8c6543]/20 border border-[#8c6543]/40 text-[#e2b871] flex items-center justify-center mr-3 text-sm">
+              <i class="fa-solid fa-users"></i>
+            </div>
+            Add Campaign Recipients
+          </h2>
+          <p class="text-sm text-[#a8988a] mt-1 pl-11">Upload a CSV file or paste recipient list (email, name, company).</p>
+        </div>
+        <button type="button" id="btn-sample-data" class="self-start sm:self-auto text-xs bg-[#1a1410] hover:bg-[#261c17] text-[#e0d4c8] font-semibold px-4 py-2 rounded-xl border border-[#3d2d20] shadow-sm transition flex items-center">
+          <i class="fa-solid fa-wand-magic-sparkles mr-1.5 text-[#e2b871]"></i> Load Edgevest Demo List
+        </button>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Paste / Text Upload -->
+        <div>
+          <label class="block text-xs font-semibold uppercase tracking-wider text-[#d1c4b8] mb-2">Paste CSV or Raw List (email, name, company)</label>
+          <textarea id="raw-recipients-input" rows="7" placeholder="tina@example.com, Tina Kurunga, Edgevest Training&#10;john@example.com, John Doe, Acme Corp&#10;jane@company.org, Jane Smith, Globex" class="w-full glass-input rounded-xl font-mono text-xs p-3.5 leading-relaxed">tina@example.com, Tina Kurunga, Edgevest Training
+john@example.com, John Doe, Acme Corp
+jane@company.org, Jane Smith, Globex Inc</textarea>
+          <div class="mt-3">
+            <button type="button" id="btn-parse-text" class="px-4 py-2 bg-[#1a1410] hover:bg-[#261c17] text-white text-xs font-bold rounded-xl border border-[#3d2d20] transition shadow-sm">
+              <i class="fa-solid fa-list-check mr-1.5 text-[#e2b871]"></i> Parse & Validate List
+            </button>
+          </div>
+        </div>
+
+        <!-- CSV File Drag & Drop -->
+        <div>
+          <label class="block text-xs font-semibold uppercase tracking-wider text-[#d1c4b8] mb-2">Upload CSV File</label>
+          <div class="border-2 border-dashed border-[#3d2d20] hover:border-[#c5a059] bg-[#120e0c]/60 rounded-xl p-6 text-center transition cursor-pointer group flex flex-col items-center justify-center min-h-[170px]" id="csv-dropzone">
+            <div class="w-12 h-12 rounded-full bg-[#1a1410] border border-[#3d2d20] flex items-center justify-center text-[#a8988a] group-hover:text-[#e2b871] group-hover:scale-110 transition-all mb-3">
+              <i class="fa-solid fa-cloud-arrow-up text-xl"></i>
+            </div>
+            <p class="text-xs sm:text-sm font-semibold text-[#f7f4ee]">Drag & drop CSV file here, or click to browse</p>
+            <p class="text-[11px] text-[#8c7868] mt-1">Headers supported: email, name, company</p>
+            <input type="file" id="csv-file-input" accept=".csv,.txt" class="hidden" />
+          </div>
+          <div id="csv-file-name" class="mt-2 text-xs font-semibold text-[#e2b871] hidden"></div>
+        </div>
+      </div>
+
+      <!-- Validated Recipients Table -->
+      <div class="mt-8">
+        <div class="flex justify-between items-center mb-3">
+          <h3 class="text-sm font-bold text-[#e0d4c8] uppercase tracking-wider">Validated List Summary</h3>
+          <div class="text-xs space-x-3">
+            <span class="inline-flex items-center px-2.5 py-1 rounded-full bg-[#1a2e26] text-[#63b39b] border border-[#2d5a4c] font-semibold" id="count-valid">Valid: 0</span>
+            <span class="inline-flex items-center px-2.5 py-1 rounded-full bg-rose-950/80 text-rose-400 border border-rose-800/60 font-semibold" id="count-invalid">Invalid: 0</span>
+          </div>
+        </div>
+        <div class="max-h-60 overflow-y-auto border border-[#2e241c] rounded-xl bg-[#120e0c]/80">
+          <table class="min-w-full divide-y divide-[#2e241c] text-xs">
+            <thead class="bg-[#18120e] sticky top-0 backdrop-blur-md">
+              <tr>
+                <th class="px-4 py-2.5 text-left font-bold text-[#a8988a] uppercase tracking-wider">#</th>
+                <th class="px-4 py-2.5 text-left font-bold text-[#a8988a] uppercase tracking-wider">Email</th>
+                <th class="px-4 py-2.5 text-left font-bold text-[#a8988a] uppercase tracking-wider">Name</th>
+                <th class="px-4 py-2.5 text-left font-bold text-[#a8988a] uppercase tracking-wider">Company</th>
+                <th class="px-4 py-2.5 text-left font-bold text-[#a8988a] uppercase tracking-wider">Status</th>
+              </tr>
+            </thead>
+            <tbody id="recipients-table-body" class="divide-y divide-[#2e241c]/60">
+              <tr>
+                <td colspan="5" class="px-4 py-8 text-center text-[#8c7868] text-xs">No recipients added yet. Upload a CSV or parse the list above.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="mt-8 flex items-center justify-between border-t border-[#2e241c] pt-6">
+        <button type="button" onclick="goToStep(1)" class="px-5 py-2.5 border border-[#3d2d20] hover:border-[#8c6543] rounded-xl text-[#d1c4b8] font-semibold hover:bg-[#1a1410] transition text-sm">
+          <i class="fa-solid fa-arrow-left mr-2 text-xs"></i> Back
+        </button>
+        <button type="button" onclick="goToStep(3)" class="px-6 py-2.5 bg-gradient-to-r from-[#8c6543] via-[#785338] to-[#5c3d28] hover:from-[#9e7854] hover:to-[#6d4c2d] text-white font-semibold rounded-xl shadow-lg shadow-[#8c6543]/20 active:scale-[0.98] transition flex items-center text-sm border border-[#c5a059]/30">
+          Next: Template <i class="fa-solid fa-arrow-right ml-2 text-xs"></i>
+        </button>
+      </div>
+    </section>
+
+    <!-- STEP 3: TEMPLATE & PERSONALIZATION (EDGEVEST BRANDING & BOOKMAN FONT) -->
+    <section id="step-content-3" class="glass-panel rounded-2xl shadow-2xl p-6 sm:p-8 hidden">
+      <div class="border-b border-[#2e241c] pb-5 mb-6 flex items-center justify-between">
+        <div>
+          <h2 class="text-xl font-bold text-white flex items-center tracking-tight">
+            <div class="w-8 h-8 rounded-lg bg-[#8c6543]/20 border border-[#8c6543]/40 text-[#e2b871] flex items-center justify-center mr-3 text-sm">
+              <i class="fa-solid fa-envelope-open-text"></i>
+            </div>
+            Edgevest Email Template & Tags
+          </h2>
+          <p class="text-sm text-[#a8988a] mt-1 pl-11">Header & Footer are set to Black in Bookman serif font, matching edgevest.co.ke official invitation design.</p>
+        </div>
+        <span class="hidden sm:inline-block px-3.5 py-1 bg-black border border-[#3d2d20] text-[#e2b871] text-xs font-serif rounded-lg">
+          Font: Bookman • Header/Footer: Black
+        </span>
+      </div>
+
+      <div class="space-y-5">
+        <div>
+          <label class="block text-xs font-semibold uppercase tracking-wider text-[#d1c4b8] mb-2">Email Subject Line *</label>
+          <input type="text" id="email-subject" value="Invitation: Professional Training & Development Session for {name}" class="w-full glass-input rounded-xl px-4 py-2.5 text-sm" />
+        </div>
+
+        <div class="flex items-center space-x-2 py-1">
+          <span class="text-xs font-bold text-[#a8988a] uppercase tracking-wider">Insert Merge Tag:</span>
+          <button type="button" onclick="insertTag('{name}')" class="px-3 py-1 bg-[#1a1410] hover:bg-[#261c17] text-[#e2b871] text-xs font-mono font-semibold rounded-lg border border-[#3d2d20] shadow-sm transition">{name}</button>
+          <button type="button" onclick="insertTag('{email}')" class="px-3 py-1 bg-[#1a1410] hover:bg-[#261c17] text-[#e2b871] text-xs font-mono font-semibold rounded-lg border border-[#3d2d20] shadow-sm transition">{email}</button>
+          <button type="button" onclick="insertTag('{company}')" class="px-3 py-1 bg-[#1a1410] hover:bg-[#261c17] text-[#e2b871] text-xs font-mono font-semibold rounded-lg border border-[#3d2d20] shadow-sm transition">{company}</button>
+        </div>
+
+        <!-- Editor & Preview Tabs -->
+        <div>
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#2e241c] pb-3 mb-4">
+            <div class="flex space-x-2">
+              <button type="button" id="tab-btn-visual" onclick="toggleTemplateTab('visual')" class="py-2 px-3.5 bg-[#261c17] border border-[#8c6543] font-bold text-xs text-[#e2b871] rounded-xl flex items-center transition shadow-sm">
+                <i class="fa-solid fa-pen-to-square mr-2 text-amber-400"></i> Visual Text Editor
+              </button>
+              <button type="button" id="tab-btn-preview" onclick="toggleTemplateTab('preview')" class="py-2 px-3.5 bg-[#140f0c] border border-[#3d2d20] hover:border-[#8c6543] font-medium text-xs text-[#a8988a] hover:text-slate-200 rounded-xl flex items-center transition">
+                <i class="fa-solid fa-eye mr-2"></i> Live Render Preview
+              </button>
+            </div>
+
+            <!-- Preset Template Selector -->
+            <div class="flex items-center space-x-2">
+              <span class="text-xs font-semibold text-[#a8988a] whitespace-nowrap"><i class="fa-solid fa-wand-magic-sparkles text-amber-400 mr-1"></i> Preset Layout:</span>
+              <select id="preset-template-select" onchange="applyPresetTemplate(this.value)" class="glass-input rounded-xl px-3 py-1.5 text-xs text-[#e2b871] font-medium bg-[#18120e]">
+                <option value="invitation">Edgevest Training Invitation</option>
+                <option value="receipt">Official Payment Receipt & Invoice</option>
+                <option value="letter">Simple Professional Letter</option>
+                <option value="newsletter">Event Announcement & Newsletter</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- VISUAL RICH TEXT EDITOR PANE (User-Friendly Default) -->
+          <div id="template-visual-pane" class="space-y-3">
+            <!-- Formatting Toolbar -->
+            <div class="bg-[#18120e] border border-[#3d2d20] rounded-xl p-2.5 flex flex-wrap items-center gap-1.5 text-xs">
+              <div class="flex items-center border-r border-[#3d2d20] pr-2 mr-1 space-x-1">
+                <button type="button" onclick="formatText('bold')" class="p-2 hover:bg-[#261c17] text-[#e2b871] rounded-lg transition" title="Bold (Ctrl+B)"><i class="fa-solid fa-bold"></i></button>
+                <button type="button" onclick="formatText('italic')" class="p-2 hover:bg-[#261c17] text-[#e2b871] rounded-lg transition" title="Italic (Ctrl+I)"><i class="fa-solid fa-italic"></i></button>
+                <button type="button" onclick="formatText('underline')" class="p-2 hover:bg-[#261c17] text-[#e2b871] rounded-lg transition" title="Underline (Ctrl+U)"><i class="fa-solid fa-underline"></i></button>
+                <button type="button" onclick="formatText('strikeThrough')" class="p-2 hover:bg-[#261c17] text-[#e2b871] rounded-lg transition" title="Strikethrough"><i class="fa-solid fa-strikethrough"></i></button>
+              </div>
+
+              <div class="flex items-center border-r border-[#3d2d20] pr-2 mr-1 space-x-1">
+                <button type="button" onclick="formatBlock('h1')" class="px-2 py-1 hover:bg-[#261c17] text-[#e2b871] font-bold rounded-lg transition" title="Heading 1">H1</button>
+                <button type="button" onclick="formatBlock('h2')" class="px-2 py-1 hover:bg-[#261c17] text-[#e2b871] font-bold rounded-lg transition" title="Heading 2">H2</button>
+                <button type="button" onclick="formatBlock('h3')" class="px-2 py-1 hover:bg-[#261c17] text-[#e2b871] font-bold rounded-lg transition" title="Heading 3">H3</button>
+                <button type="button" onclick="formatBlock('p')" class="px-2 py-1 hover:bg-[#261c17] text-[#e0d4c8] rounded-lg transition" title="Paragraph">P</button>
+              </div>
+
+              <div class="flex items-center border-r border-[#3d2d20] pr-2 mr-1 space-x-1">
+                <button type="button" onclick="formatText('justifyLeft')" class="p-2 hover:bg-[#261c17] text-[#e0d4c8] rounded-lg transition" title="Align Left"><i class="fa-solid fa-align-left"></i></button>
+                <button type="button" onclick="formatText('justifyCenter')" class="p-2 hover:bg-[#261c17] text-[#e0d4c8] rounded-lg transition" title="Align Center"><i class="fa-solid fa-align-center"></i></button>
+                <button type="button" onclick="formatText('justifyRight')" class="p-2 hover:bg-[#261c17] text-[#e0d4c8] rounded-lg transition" title="Align Right"><i class="fa-solid fa-align-right"></i></button>
+              </div>
+
+              <div class="flex items-center border-r border-[#3d2d20] pr-2 mr-1 space-x-1">
+                <button type="button" onclick="formatText('insertUnorderedList')" class="p-2 hover:bg-[#261c17] text-[#e0d4c8] rounded-lg transition" title="Bulleted List"><i class="fa-solid fa-list-ul"></i></button>
+                <button type="button" onclick="formatText('insertOrderedList')" class="p-2 hover:bg-[#261c17] text-[#e0d4c8] rounded-lg transition" title="Numbered List"><i class="fa-solid fa-list-ol"></i></button>
+              </div>
+
+              <div class="flex items-center border-r border-[#3d2d20] pr-2 mr-1 space-x-1">
+                <button type="button" onclick="insertLinkPrompt()" class="p-2 hover:bg-[#261c17] text-[#e2b871] rounded-lg transition" title="Insert Link"><i class="fa-solid fa-link"></i></button>
+                <button type="button" onclick="insertCtaButton()" class="p-2 hover:bg-[#261c17] text-amber-400 rounded-lg transition flex items-center gap-1 font-bold" title="Insert CTA Button"><i class="fa-solid fa-square-plus"></i> Button</button>
+                <button type="button" onclick="formatText('insertHorizontalRule')" class="p-2 hover:bg-[#261c17] text-[#e0d4c8] rounded-lg transition" title="Horizontal Divider"><i class="fa-solid fa-minus"></i></button>
+              </div>
+
+              <!-- Quick Tag Badges inside toolbar -->
+              <div class="flex items-center space-x-1 ml-auto">
+                <span class="text-[10px] text-[#8c7868] uppercase font-bold mr-1">Tags:</span>
+                <button type="button" onclick="insertTagToVisual('{name}')" class="px-2 py-0.5 bg-[#261c17] hover:bg-[#382820] text-[#e2b871] text-[11px] font-mono rounded border border-[#8c6543]/40 transition">{name}</button>
+                <button type="button" onclick="insertTagToVisual('{email}')" class="px-2 py-0.5 bg-[#261c17] hover:bg-[#382820] text-[#e2b871] text-[11px] font-mono rounded border border-[#8c6543]/40 transition">{email}</button>
+                <button type="button" onclick="insertTagToVisual('{company}')" class="px-2 py-0.5 bg-[#261c17] hover:bg-[#382820] text-[#e2b871] text-[11px] font-mono rounded border border-[#8c6543]/40 transition">{company}</button>
+              </div>
+            </div>
+
+            <!-- Visual Contenteditable Container with Real Email Styling -->
+            <div class="bg-slate-200 border-2 border-[#3d2d20] rounded-xl p-4 sm:p-6 shadow-inner min-h-[380px] overflow-y-auto">
+              <!-- Edgevest Frame Wrapper -->
+              <div class="max-w-xl mx-auto bg-white rounded shadow-xl overflow-hidden border border-slate-300">
+                <div class="bg-black text-white p-6 text-center">
+                  <h1 class="text-2xl font-extrabold tracking-widest text-white uppercase font-serif">EDGEVEST</h1>
+                  <p class="text-xs text-slate-300 font-serif mt-1">Professional Training &amp; Development</p>
+                </div>
+
+                <!-- Editable Main Body Area -->
+                <div id="visual-editor-content" contenteditable="true" class="p-8 text-slate-900 text-sm leading-relaxed outline-none min-h-[220px]" style="font-family: 'Bookman Old Style', Georgia, serif;" oninput="syncVisualToHtml()">
+                  <p style="margin-bottom: 16px;">Dear {name},</p>
+                  <p style="margin-bottom: 16px;">We are excited to invite you to our upcoming professional training session.</p>
+                  
+                  <div style="background-color: #f8f6f2; border-left: 4px solid #c5a059; padding: 12px 16px; margin: 20px 0; border-radius: 4px;">
+                    <p style="margin: 0 0 4px 0; font-weight: bold; color: #8c6543;">Date: 16th January 2026</p>
+                    <p style="margin: 0 0 4px 0;">Location: Nairobi</p>
+                    <p style="margin: 0;">Time: 9:00 AM - 4:00 PM</p>
+                  </div>
+
+                  <p style="margin-bottom: 16px;">This hands-on workshop will equip you with practical skills to excel in your career.</p>
+                  <p style="margin-bottom: 20px;">We look forward to seeing you there!</p>
+                  
+                  <p style="margin: 0;">Best regards,<br/><strong>Edgevest Team</strong></p>
+                </div>
+
+                <div class="bg-black text-white p-6 text-left border-t border-neutral-800">
+                  <h3 class="text-base font-bold text-white font-serif mb-2">Edgevest</h3>
+                  <p class="text-xs text-slate-300 font-serif leading-normal mb-1">Grace land court, Block C, J6 Opp K.U School of Law, Parklands</p>
+                  <p class="text-xs text-slate-300 font-serif mb-2">Phone: +254 758 314 887 | Email: trainings@edgevest.co.ke</p>
+                  <p class="text-[11px] text-slate-400 font-serif border-t border-neutral-800 pt-2">© 2026 Edgevest. All rights reserved.</p>
+                </div>
+              </div>
+            </div>
+            <p class="text-[11px] text-[#a8988a] flex items-center justify-between">
+              <span><i class="fa-solid fa-circle-info text-[#e2b871] mr-1"></i> You are using the <strong>Visual Text Editor</strong>. Changes sync automatically to HTML.</span>
+              <span class="text-[#8c7868]">Edgevest Signature Email Layout</span>
+            </p>
+          </div>
+
+          <!-- Hidden Email Body HTML Field (Auto-Synced from Visual Editor) -->
+          <textarea id="email-body-html" class="hidden"></textarea>
+
+          <div id="template-preview-pane" class="hidden border border-[#2e241c] rounded-xl p-6 bg-[#120e0c] min-h-[300px]">
+            <div class="bg-[#18120e] rounded-xl shadow-xl p-4 max-w-2xl mx-auto border border-[#3d2d20] text-[#f7f4ee]">
+              <div class="border-b border-[#2e241c] pb-3 mb-4 text-xs text-[#a8988a] space-y-1">
+                <div><strong>To:</strong> <span id="preview-to-email" class="font-mono text-[#e2b871]">tina@example.com</span></div>
+                <div><strong>Subject:</strong> <span id="preview-subject-text" class="font-bold text-slate-200"></span></div>
+              </div>
+              <iframe id="preview-iframe" class="w-full h-96 border-0 rounded-lg bg-slate-100"></iframe>
+            </div>
+          </div>
+        </div>
+
+        <!-- ATTACHMENTS & RECEIPT PDF GENERATOR SECTION -->
+        <div class="mt-8 border-t border-[#2e241c] pt-6">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+            <div>
+              <h3 class="text-base font-bold text-white flex items-center">
+                <i class="fa-solid fa-paperclip text-[#e2b871] mr-2"></i>
+                Attachments & Receipt PDF Generator
+              </h3>
+              <p class="text-xs text-[#a8988a] mt-0.5">Attach external PDF files or write and generate official Edgevest PDF receipts with dynamic tags.</p>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              <button type="button" id="btn-open-receipt-builder" class="px-3.5 py-2 bg-[#1a1410] hover:bg-[#261c17] text-[#e2b871] border border-[#8c6543]/50 text-xs font-bold rounded-xl shadow-sm transition flex items-center">
+                <i class="fa-solid fa-file-invoice-dollar mr-1.5 text-amber-400"></i> Write & Generate PDF Receipt
+              </button>
+              <button type="button" id="btn-trigger-file-upload" class="px-3.5 py-2 bg-[#1a1410] hover:bg-[#261c17] text-[#e0d4c8] border border-[#3d2d20] hover:border-[#8c6543] text-xs font-semibold rounded-xl shadow-sm transition flex items-center">
+                <i class="fa-solid fa-cloud-arrow-up mr-1.5 text-[#e2b871]"></i> Upload File / PDF
+              </button>
+              <input type="file" id="attachment-file-input" accept=".pdf,.doc,.docx,.png,.jpg,.jpeg" multiple class="hidden" />
+            </div>
+          </div>
+
+          <!-- Attached Files Container -->
+          <div id="attachments-container" class="space-y-2">
+            <div id="no-attachments-msg" class="p-4 rounded-xl border border-dashed border-[#2e241c] text-center text-xs text-[#8c7868]">
+              No attachments added yet. Click <strong>Write & Generate PDF Receipt</strong> or <strong>Upload File / PDF</strong> to attach documents to this campaign.
+            </div>
+            <div id="attachments-list" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
+          </div>
+        </div>
+      </div>
+      </div>
+
+      <div class="mt-8 flex items-center justify-between border-t border-[#2e241c] pt-6">
+        <button type="button" onclick="goToStep(2)" class="px-5 py-2.5 border border-[#3d2d20] hover:border-[#8c6543] rounded-xl text-[#d1c4b8] font-semibold hover:bg-[#1a1410] transition text-sm">
+          <i class="fa-solid fa-arrow-left mr-2 text-xs"></i> Back
+        </button>
+        <button type="button" onclick="goToStep(4)" class="px-6 py-2.5 bg-gradient-to-r from-[#8c6543] via-[#785338] to-[#5c3d28] hover:from-[#9e7854] hover:to-[#6d4c2d] text-white font-semibold rounded-xl shadow-lg shadow-[#8c6543]/20 active:scale-[0.98] transition flex items-center text-sm border border-[#c5a059]/30">
+          Next: Settings <i class="fa-solid fa-arrow-right ml-2 text-xs"></i>
+        </button>
+      </div>
+    </section>
+
+    <!-- STEP 4: THROTTLE & CAMPAIGN SETTINGS -->
+    <section id="step-content-4" class="glass-panel rounded-2xl shadow-2xl p-6 sm:p-8 hidden">
+      <div class="border-b border-[#2e241c] pb-5 mb-6">
+        <h2 class="text-xl font-bold text-white flex items-center tracking-tight">
+          <div class="w-8 h-8 rounded-lg bg-[#8c6543]/20 border border-[#8c6543]/40 text-[#e2b871] flex items-center justify-center mr-3 text-sm">
+            <i class="fa-solid fa-gauge-high"></i>
+          </div>
+          Rate Limiting & Queue Controls
+        </h2>
+        <p class="text-sm text-[#a8988a] mt-1 pl-11">Protect your SMTP sender reputation and avoid rate limits or spam triggers by throttling send speed.</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label class="block text-xs font-semibold uppercase tracking-wider text-[#d1c4b8] mb-2">Max Emails Per Minute *</label>
+          <input type="number" id="max-per-minute" value="30" min="1" max="300" class="w-full glass-input rounded-xl px-4 py-2.5 text-sm" />
+          <p class="text-xs text-[#8c7868] mt-1">Recommended: 20-40 per minute for shared SMTP. Delay per email will be auto-calculated.</p>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold uppercase tracking-wider text-[#d1c4b8] mb-2">Max Retry Attempts on Network Fault</label>
+          <input type="number" id="max-retries" value="2" min="0" max="5" class="w-full glass-input rounded-xl px-4 py-2.5 text-sm" />
+        </div>
+      </div>
+
+      <div class="mt-6 bg-[#261c14] border border-[#8c6543]/50 rounded-xl p-4 text-xs text-[#e0d4c8] flex items-start space-x-3">
+        <i class="fa-solid fa-triangle-exclamation text-[#e2b871] text-base mt-0.5"></i>
+        <div>
+          <p class="font-bold text-[#e2b871] mb-0.5">cPanel & Shared Hosting Precaution:</p>
+          <p class="leading-relaxed">Many hosting providers limit outgoing mail to 100-500 emails per hour. Keep your rate under 30 emails/min to avoid hosting account suspension.</p>
+        </div>
+      </div>
+
+      <div class="mt-8 flex items-center justify-between border-t border-[#2e241c] pt-6">
+        <button type="button" onclick="goToStep(3)" class="px-5 py-2.5 border border-[#3d2d20] hover:border-[#8c6543] rounded-xl text-[#d1c4b8] font-semibold hover:bg-[#1a1410] transition text-sm">
+          <i class="fa-solid fa-arrow-left mr-2 text-xs"></i> Back
+        </button>
+        <button type="button" id="btn-launch-campaign" class="px-8 py-3.5 bg-gradient-to-r from-[#8c6543] via-[#785338] to-[#5c3d28] hover:from-[#9e7854] hover:to-[#6d4c2d] text-white font-bold rounded-xl shadow-xl shadow-[#8c6543]/30 active:scale-[0.98] transition flex items-center text-base border border-[#c5a059]/40">
+          <i class="fa-solid fa-rocket mr-2.5 text-[#e2b871]"></i> Launch Bulk Campaign
+        </button>
+      </div>
+    </section>
+
+    <!-- STEP 5: LIVE MONITOR & SSE PROGRESS -->
+    <section id="step-content-5" class="glass-panel rounded-2xl shadow-2xl p-6 sm:p-8 hidden">
+      <div class="border-b border-[#2e241c] pb-5 mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h2 class="text-xl font-bold text-white flex items-center tracking-tight">
+            <div class="w-8 h-8 rounded-lg bg-[#8c6543]/20 border border-[#8c6543]/40 text-[#e2b871] flex items-center justify-center mr-3 text-sm">
+              <i class="fa-solid fa-chart-line"></i>
+            </div>
+            Edgevest Live Campaign Monitor
+          </h2>
+          <p class="text-sm text-[#a8988a] mt-1 pl-11">Live background queue updates via Server-Sent Events (SSE).</p>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <button type="button" id="btn-pause-campaign" class="px-3.5 py-2 bg-amber-700 hover:bg-amber-600 text-white text-xs font-bold rounded-xl shadow-sm transition border border-amber-500/30">
+            <i class="fa-solid fa-pause mr-1"></i> Pause
+          </button>
+          <button type="button" id="btn-resume-campaign" class="px-3.5 py-2 bg-[#2d5a4c] hover:bg-[#386d5d] text-white text-xs font-bold rounded-xl shadow-sm transition border border-[#529983]/30">
+            <i class="fa-solid fa-play mr-1"></i> Resume
+          </button>
+          <button type="button" id="btn-cancel-campaign" class="px-3.5 py-2 bg-rose-700 hover:bg-rose-600 text-white text-xs font-bold rounded-xl shadow-sm transition border border-rose-500/30">
+            <i class="fa-solid fa-stop mr-1"></i> Stop Campaign
+          </button>
+        </div>
+      </div>
+
+      <!-- Stats Grid -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <div class="bg-[#18120e] border border-[#3d2d20] p-4 rounded-xl shadow-inner">
+          <div class="text-[11px] text-[#a8988a] uppercase font-bold tracking-wider">Total Queue</div>
+          <div class="text-2xl sm:text-3xl font-extrabold text-white mt-1" id="stat-total">0</div>
+        </div>
+        <div class="bg-[#1a2e26] border border-[#2d5a4c] p-4 rounded-xl shadow-inner">
+          <div class="text-[11px] text-[#63b39b] uppercase font-bold tracking-wider">Sent Successfully</div>
+          <div class="text-2xl sm:text-3xl font-extrabold text-[#63b39b] mt-1" id="stat-sent">0</div>
+        </div>
+        <div class="bg-rose-950/40 border border-rose-800/50 p-4 rounded-xl shadow-inner">
+          <div class="text-[11px] text-rose-400 uppercase font-bold tracking-wider">Failed / Bounced</div>
+          <div class="text-2xl sm:text-3xl font-extrabold text-rose-400 mt-1" id="stat-failed">0</div>
+        </div>
+        <div class="bg-[#261c14] border border-[#8c6543]/60 p-4 rounded-xl shadow-inner">
+          <div class="text-[11px] text-[#e2b871] uppercase font-bold tracking-wider">Progress</div>
+          <div class="text-2xl sm:text-3xl font-extrabold text-[#e2b871] mt-1" id="stat-progress">0%</div>
+        </div>
+      </div>
+
+      <!-- Progress Bar -->
+      <div class="w-full bg-[#120e0c] rounded-full h-3.5 mb-6 overflow-hidden border border-[#3d2d20] p-0.5">
+        <div id="progress-bar-fill" class="bg-gradient-to-r from-[#8c6543] via-[#c5a059] to-[#e2b871] h-2.5 rounded-full transition-all duration-300 shadow-md shadow-[#8c6543]/30" style="width: 0%"></div>
+      </div>
+
+      <!-- Live Event Console Stream & Interactive Log Editor -->
+      <div class="mt-8 border-t border-[#2e241c] pt-6">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-4">
+          <div>
+            <h3 class="text-base font-bold text-white flex items-center">
+              <i class="fa-solid fa-terminal text-[#e2b871] mr-2"></i> Live Log Inspector &amp; Console Editor
+            </h3>
+            <p class="text-xs text-[#a8988a] mt-0.5">Real-time log stream with search, filtering, custom operational notes, and line-item editing.</p>
+          </div>
+
+          <!-- Log Action Bar -->
+          <div class="flex flex-wrap items-center gap-2">
+            <button type="button" onclick="openAddLogModal()" class="px-3 py-1.5 bg-[#1a1410] hover:bg-[#261c17] text-[#e2b871] border border-[#8c6543]/60 text-xs font-bold rounded-xl transition flex items-center shadow-sm">
+              <i class="fa-solid fa-circle-plus mr-1.5 text-amber-400"></i> Add Custom Log
+            </button>
+            <a href="/api/campaign/logs/export?format=txt" target="_blank" class="px-3 py-1.5 bg-[#140f0c] hover:bg-[#1a1410] text-[#e0d4c8] border border-[#3d2d20] hover:border-[#8c6543] text-xs font-semibold rounded-xl transition flex items-center">
+              <i class="fa-solid fa-file-arrow-down mr-1.5 text-[#e2b871]"></i> Export .log
+            </a>
+            <button type="button" onclick="copyAllLogsToClipboard()" class="px-3 py-1.5 bg-[#140f0c] hover:bg-[#1a1410] text-[#e0d4c8] border border-[#3d2d20] hover:border-[#8c6543] text-xs font-semibold rounded-xl transition flex items-center">
+              <i class="fa-solid fa-copy mr-1.5 text-[#e2b871]"></i> Copy Logs
+            </button>
+            <button type="button" onclick="clearLogConsoleServer()" class="px-3 py-1.5 bg-rose-950/60 hover:bg-rose-900/80 text-rose-300 border border-rose-800/50 text-xs font-semibold rounded-xl transition flex items-center">
+              <i class="fa-solid fa-trash-can mr-1.5"></i> Clear
+            </button>
+          </div>
+        </div>
+
+        <!-- Filter & Search Controls -->
+        <div class="bg-[#18120e] border border-[#3d2d20] rounded-xl p-3 mb-4 flex flex-col md:flex-row items-center justify-between gap-3">
+          <!-- Search Bar -->
+          <div class="relative w-full md:w-80">
+            <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-xs text-[#8c7868]"></i>
+            <input type="text" id="log-search-input" placeholder="Search logs by email, status, code..." oninput="filterLogConsole()" class="w-full bg-[#120e0c] border border-[#3d2d20] focus:border-[#8c6543] rounded-xl pl-8 pr-3 py-1.5 text-xs text-[#e2b871] outline-none placeholder-[#8c7868]" />
+          </div>
+
+          <!-- Log Severity Pills -->
+          <div class="flex items-center space-x-1.5 overflow-x-auto w-full md:w-auto text-xs">
+            <button type="button" id="log-filter-all" onclick="setLogFilter('all')" class="px-3 py-1 rounded-lg bg-[#261c17] text-[#e2b871] font-bold border border-[#8c6543] transition">All Logs</button>
+            <button type="button" id="log-filter-info" onclick="setLogFilter('info')" class="px-3 py-1 rounded-lg bg-[#140f0c] text-[#a8988a] hover:text-white border border-[#3d2d20] transition">🟢 Delivered</button>
+            <button type="button" id="log-filter-error" onclick="setLogFilter('error')" class="px-3 py-1 rounded-lg bg-[#140f0c] text-[#a8988a] hover:text-white border border-[#3d2d20] transition">🔴 Bounces / Errors</button>
+            <button type="button" id="log-filter-warning" onclick="setLogFilter('warning')" class="px-3 py-1 rounded-lg bg-[#140f0c] text-[#a8988a] hover:text-white border border-[#3d2d20] transition">🟡 Warnings</button>
+          </div>
+
+          <!-- AutoScroll Lock -->
+          <div class="flex items-center space-x-2 shrink-0">
+            <label class="flex items-center space-x-2 text-xs text-[#a8988a] cursor-pointer">
+              <input type="checkbox" id="log-autoscroll-toggle" checked class="accent-[#e2b871] rounded" />
+              <span>Auto-scroll</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Log Console Stream Output Window -->
+        <div id="sse-log-console" class="bg-[#120e0c] text-[#d1c4b8] p-4 rounded-xl font-mono text-xs h-80 overflow-y-auto border border-[#2e241c] shadow-inner space-y-2 leading-relaxed">
+          <div class="text-[#8c7868] italic">[System] Initializing Edgevest stream console...</div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Edgevest Footer -->
+  <footer class="bg-[#140f0c] border-t border-[#2e241c] py-6 text-center text-xs text-[#a8988a] mt-auto">
+    <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+      <div class="flex items-center space-x-2">
+        <span class="font-bold text-[#f7f4ee]">© 2026 Edgevest Training & Consultancy</span>
+        <span>•</span>
+        <span>Grace land court, Block C, J6 Opp K.U School of Law, Parklands</span>
+      </div>
+      <div class="flex items-center space-x-4 text-[#a8988a]">
+        <a href="tel:+254758314887" class="hover:text-[#e2b871] transition"><i class="fa-solid fa-phone mr-1"></i> +254 758 314 887</a>
+        <a href="mailto:trainings@edgevest.co.ke" class="hover:text-[#e2b871] transition"><i class="fa-solid fa-envelope mr-1"></i> trainings@edgevest.co.ke</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // State Manager
+    let currentStep = 1;
+    let validatedRecipients = [];
+    let sseSource = null;
+
+    function goToStep(stepNum) {
+      currentStep = stepNum;
+      for (let i = 1; i <= 5; i++) {
+        const btn = document.getElementById(`step-btn-${i}`);
+        const content = document.getElementById(`step-content-${i}`);
+        if (i === stepNum) {
+          btn.className = "step-active group p-3.5 flex flex-col border-l-4 md:border-l-0 md:border-t-4 rounded-xl transition-all cursor-pointer";
+          content.classList.remove("hidden");
+        } else if (i < stepNum) {
+          btn.className = "step-complete group p-3.5 flex flex-col border-l-4 md:border-l-0 md:border-t-4 rounded-xl transition-all cursor-pointer";
+          content.classList.add("hidden");
+        } else {
+          btn.className = "step-inactive group p-3.5 flex flex-col border-l-4 md:border-l-0 md:border-t-4 rounded-xl transition-all cursor-pointer";
+          content.classList.add("hidden");
+        }
+      }
+      if (stepNum === 3) updatePreview();
+    }
+
+    // SMTP Presets
+    function applySmtpPreset(type) {
+      const host = document.getElementById("smtp-host");
+      const port = document.getElementById("smtp-port");
+      const tls = document.getElementById("smtp-tls");
+      const ssl = document.getElementById("smtp-ssl");
+
+      if (type === "o365_outlook") {
+        host.value = "outlook.office365.com";
+        port.value = "587";
+        tls.checked = true;
+        ssl.checked = false;
+      } else if (type === "o365_smtp") {
+        host.value = "smtp.office365.com";
+        port.value = "587";
+        tls.checked = true;
+        ssl.checked = false;
+      } else if (type === "edgevest") {
+        host.value = "mail.edgevest.co.ke";
+        port.value = "465";
+        ssl.checked = true;
+        tls.checked = false;
+      } else if (type === "gmail") {
+        host.value = "smtp.gmail.com";
+        port.value = "465";
+        ssl.checked = true;
+        tls.checked = false;
+      }
+    }
+
+    // Auto-sync checkboxes
+    document.getElementById("smtp-tls")?.addEventListener("change", (e) => {
+      if (e.target.checked) document.getElementById("smtp-ssl").checked = false;
+    });
+    document.getElementById("smtp-ssl")?.addEventListener("change", (e) => {
+      if (e.target.checked) document.getElementById("smtp-tls").checked = false;
+    });
+    document.getElementById("smtp-port")?.addEventListener("change", (e) => {
+      const val = parseInt(e.target.value, 10);
+      if (val === 587) {
+        document.getElementById("smtp-tls").checked = true;
+        document.getElementById("smtp-ssl").checked = false;
+      } else if (val === 465) {
+        document.getElementById("smtp-ssl").checked = true;
+        document.getElementById("smtp-tls").checked = false;
+      }
+    });
+
+    let currentSmtpLogs = [];
+
+    function escapeHtml(str) {
+      if (!str) return "";
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function copySmtpLogs() {
+      if (!currentSmtpLogs || currentSmtpLogs.length === 0) return;
+      const text = currentSmtpLogs.join("\n");
+      navigator.clipboard.writeText(text).then(() => {
+        alert("Debug logs copied to clipboard!");
+      }).catch(() => {
+        prompt("Copy debug logs below:", text);
+      });
+    }
+
+    function toggleSmtpDebugLogConsole() {
+      const body = document.getElementById("smtp-debug-log-body");
+      const icon = document.getElementById("smtp-log-toggle-icon");
+      if (!body) return;
+      if (body.classList.contains("hidden")) {
+        body.classList.remove("hidden");
+        if (icon) icon.innerHTML = '<i class="fa-solid fa-chevron-up"></i>';
+      } else {
+        body.classList.add("hidden");
+        if (icon) icon.innerHTML = '<i class="fa-solid fa-chevron-down"></i>';
+      }
+    }
+
+    // SMTP Verification
+    document.getElementById("btn-test-smtp").addEventListener("click", async () => {
+      const resultDiv = document.getElementById("smtp-test-result");
+      resultDiv.classList.remove("hidden");
+      resultDiv.className = "mt-4 p-4 rounded-xl text-sm bg-[#1a2e26] text-[#63b39b] border border-[#2d5a4c]";
+      resultDiv.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Testing connection to SMTP server & gathering diagnostic logs...';
+
+      const payload = {
+        host: document.getElementById("smtp-host").value,
+        port: document.getElementById("smtp-port").value,
+        username: document.getElementById("smtp-user").value,
+        password: document.getElementById("smtp-pass").value,
+        use_tls: document.getElementById("smtp-tls").checked,
+        use_ssl: document.getElementById("smtp-ssl").checked,
+      };
+
+      try {
+        const res = await fetch("/api/smtp/verify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        currentSmtpLogs = data.logs || [];
+
+        let logsHtml = "";
+        if (currentSmtpLogs.length > 0) {
+          const formattedLogs = currentSmtpLogs.map(line => {
+            let color = "text-slate-300";
+            if (line.includes("[ERROR]") || line.includes("[FAIL]")) color = "text-rose-400 font-bold";
+            else if (line.includes("[SUCCESS]") || line.includes("[DNS SUCCESS]")) color = "text-emerald-400 font-bold";
+            else if (line.includes("[WARN]")) color = "text-amber-400";
+            else if (line.includes("[INIT]") || line.includes("[CONFIG]") || line.includes("[DNS]")) color = "text-sky-300 font-semibold";
+            else if (line.includes("[DEBUG]") || line.includes("[TRACE]")) color = "text-slate-400";
+            return `<div class="${color}">${escapeHtml(line)}</div>`;
+          }).join("");
+
+          logsHtml = `
+            <div class="mt-4 border border-[#3d2d20] rounded-xl bg-[#0b0806] overflow-hidden text-left">
+              <div class="flex items-center justify-between px-4 py-2.5 bg-[#18120e] border-b border-[#3d2d20] cursor-pointer" onclick="toggleSmtpDebugLogConsole()">
+                <span class="text-xs font-mono font-bold text-[#e2b871] flex items-center">
+                  <i class="fa-solid fa-terminal mr-2 text-[#c5a059]"></i> Live Diagnostic & Handshake Logs (${currentSmtpLogs.length} entries)
+                </span>
+                <div class="flex items-center gap-2">
+                  <button type="button" onclick="event.stopPropagation(); copySmtpLogs()" class="px-2.5 py-1 bg-[#261c17] hover:bg-[#32241d] border border-[#3d2d20] hover:border-[#8c6543] text-[11px] font-mono text-[#d1c4b8] rounded transition flex items-center">
+                    <i class="fa-solid fa-copy mr-1 text-[#e2b871]"></i> Copy Logs
+                  </button>
+                  <span id="smtp-log-toggle-icon" class="text-xs text-[#a8988a] ml-1"><i class="fa-solid fa-chevron-up"></i></span>
+                </div>
+              </div>
+              <div id="smtp-debug-log-body" class="p-3.5 text-xs font-mono max-h-72 overflow-y-auto space-y-1 bg-black/90">
+                ${formattedLogs}
+              </div>
+            </div>
+          `;
+        }
+
+        if (data.success) {
+          resultDiv.className = "mt-4 p-4 rounded-xl text-sm bg-[#1a2e26] text-[#63b39b] border border-[#2d5a4c]";
+          resultDiv.innerHTML = `<i class="fa-solid fa-circle-check mr-2 text-[#63b39b]"></i> ${escapeHtml(data.message)} ${logsHtml}`;
+        } else {
+          resultDiv.className = "mt-4 p-4 rounded-xl text-sm bg-rose-950/60 text-rose-300 border border-rose-800/60";
+          resultDiv.innerHTML = `<i class="fa-solid fa-circle-xmark mr-2 text-rose-400"></i> ${escapeHtml(data.error || '').replace(/\n/g, '<br/>')} ${logsHtml}`;
+        }
+      } catch (err) {
+        resultDiv.className = "mt-4 p-4 rounded-xl text-sm bg-rose-950/60 text-rose-300 border border-rose-800/60";
+        resultDiv.innerHTML = `<i class="fa-solid fa-circle-xmark mr-2 text-rose-400"></i> Network error connecting to backend API: ${escapeHtml(err.message)}`;
+      }
+    });
+
+    // Sample Data Loader
+    document.getElementById("btn-sample-data").addEventListener("click", () => {
+      const sample = "tina@example.com, Tina Kurunga, Edgevest Training\njohn@example.com, John Doe, Acme Corp\njane@company.org, Jane Smith, Globex Inc\ninvalid-email-here, Bad Record, Unknown";
+      document.getElementById("raw-recipients-input").value = sample;
+      parseRecipientText();
+    });
+
+    document.getElementById("btn-parse-text").addEventListener("click", parseRecipientText);
+
+    // CSV File Upload / Dropzone handlers
+    const csvDropzone = document.getElementById("csv-dropzone");
+    const csvFileInput = document.getElementById("csv-file-input");
+
+    csvDropzone.addEventListener("click", () => csvFileInput.click());
+    csvDropzone.addEventListener("dragover", (e) => { e.preventDefault(); csvDropzone.classList.add("border-[#c5a059]"); });
+    csvDropzone.addEventListener("dragleave", () => csvDropzone.classList.remove("border-[#c5a059]"));
+    csvDropzone.addEventListener("drop", (e) => {
+      e.preventDefault();
+      csvDropzone.classList.remove("border-[#c5a059]");
+      if (e.dataTransfer.files.length) handleCSVFile(e.dataTransfer.files[0]);
+    });
+    csvFileInput.addEventListener("change", (e) => {
+      if (e.target.files.length) handleCSVFile(e.target.files[0]);
+    });
+
+    function handleCSVFile(file) {
+      const fileNameDiv = document.getElementById("csv-file-name");
+      fileNameDiv.innerText = `Selected File: ${file.name} (${(file.size/1024).toFixed(1)} KB)`;
+      fileNameDiv.classList.remove("hidden");
+
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        document.getElementById("raw-recipients-input").value = evt.target.result;
+        parseRecipientText();
+      };
+      reader.readAsText(file);
+    }
+
+    async function parseRecipientText() {
+      const text = document.getElementById("raw-recipients-input").value;
+      const lines = text.split("\n");
+      const raw = [];
+
+      lines.forEach(l => {
+        const parts = l.split(",").map(p => p.trim());
+        if (parts[0]) {
+          raw.push({
+            email: parts[0],
+            name: parts[1] || parts[0].split("@")[0],
+            company: parts[2] || "Valued Client"
+          });
+        }
+      });
+
+      try {
+        const res = await fetch("/api/recipients/validate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ recipients: raw })
+        });
+        const data = await res.json();
+
+        validatedRecipients = data.valid_recipients || [];
+        document.getElementById("count-valid").innerText = `Valid: ${data.valid_count || 0}`;
+        document.getElementById("count-invalid").innerText = `Invalid: ${data.invalid_count || 0}`;
+
+        const tbody = document.getElementById("recipients-table-body");
+        tbody.innerHTML = "";
+
+        if (data.valid_recipients && data.valid_recipients.length > 0) {
+          data.valid_recipients.forEach((r, idx) => {
+            const tr = document.createElement("tr");
+            tr.className = "hover:bg-[#1a1410] transition-colors";
+            tr.innerHTML = `
+              <td class="px-4 py-2.5 text-xs text-[#8c7868] font-mono">${idx + 1}</td>
+              <td class="px-4 py-2.5 font-mono text-xs text-[#f7f4ee]">${r.email}</td>
+              <td class="px-4 py-2.5 text-xs text-[#d1c4b8]">${r.name}</td>
+              <td class="px-4 py-2.5 text-xs text-[#a8988a]">${r.company || "-"}</td>
+              <td class="px-4 py-2.5 text-xs text-[#63b39b] font-bold"><i class="fa-solid fa-circle-check mr-1"></i> Valid</td>
+            `;
+            tbody.appendChild(tr);
+          });
+        }
+
+        if (data.invalid_recipients && data.invalid_recipients.length > 0) {
+          data.invalid_recipients.forEach((r) => {
+            const tr = document.createElement("tr");
+            tr.className = "hover:bg-[#1a1410] transition-colors bg-rose-950/20";
+            tr.innerHTML = `
+              <td class="px-4 py-2.5 text-xs text-rose-500 font-mono">!</td>
+              <td class="px-4 py-2.5 font-mono text-xs text-rose-400">${r.email}</td>
+              <td class="px-4 py-2.5 text-xs text-slate-400">${r.name || "-"}</td>
+              <td class="px-4 py-2.5 text-xs text-slate-500">-</td>
+              <td class="px-4 py-2.5 text-xs text-rose-400 font-bold"><i class="fa-solid fa-circle-xmark mr-1"></i> ${r.error}</td>
+            `;
+            tbody.appendChild(tr);
+          });
+        }
+      } catch (err) {
+        console.error("Recipient validation failed:", err);
+      }
+    }
+
+    // Template Helpers
+    function insertTag(tag) {
+      const area = document.getElementById("email-body-html");
+      area.value += " " + tag;
+      updatePreview();
+    }
+
+    function toggleTemplateTab(tab) {
+      const edPane = document.getElementById("template-editor-pane");
+      const prevPane = document.getElementById("template-preview-pane");
+      const edBtn = document.getElementById("tab-btn-editor");
+      const prevBtn = document.getElementById("tab-btn-preview");
+
+      if (tab === "editor") {
+        edPane.classList.remove("hidden");
+        prevPane.classList.add("hidden");
+        edBtn.className = "py-2.5 px-3 border-b-2 border-[#c5a059] font-bold text-xs text-[#e2b871] flex items-center";
+        prevBtn.className = "py-2.5 px-3 border-b-2 border-transparent font-medium text-xs text-[#a8988a] hover:text-slate-200 flex items-center";
+      } else {
+        edPane.classList.add("hidden");
+        prevPane.classList.remove("hidden");
+        prevBtn.className = "py-2.5 px-3 border-b-2 border-[#c5a059] font-bold text-xs text-[#e2b871] flex items-center";
+        edBtn.className = "py-2.5 px-3 border-b-2 border-transparent font-medium text-xs text-[#a8988a] hover:text-slate-200 flex items-center";
+        updatePreview();
+      }
+    }
+
+    function updatePreview() {
+      const sample = validatedRecipients[0] || { email: "tina@example.com", name: "Tina Kurunga", company: "Edgevest Training" };
+      let subject = document.getElementById("email-subject").value;
+      let body = document.getElementById("email-body-html").value;
+
+      subject = subject.replace(/\{name\}/g, sample.name).replace(/\{company\}/g, sample.company).replace(/\{email\}/g, sample.email);
+      body = body.replace(/\{name\}/g, sample.name).replace(/\{company\}/g, sample.company).replace(/\{email\}/g, sample.email);
+
+      document.getElementById("preview-to-email").innerText = sample.email;
+      document.getElementById("preview-subject-text").innerText = subject;
+
+      const iframe = document.getElementById("preview-iframe");
+      const doc = iframe.contentDocument || iframe.contentWindow.document;
+      doc.open();
+      doc.write(body);
+      doc.close();
+    }
+
+    // Launch Campaign
+    document.getElementById("btn-launch-campaign").addEventListener("click", async () => {
+      if (validatedRecipients.length === 0) {
+        alert("Please add at least one valid recipient in Step 2.");
+        goToStep(2);
+        return;
+      }
+
+      const payload = {
+        smtp: {
+          host: document.getElementById("smtp-host").value,
+          port: document.getElementById("smtp-port").value,
+          username: document.getElementById("smtp-user").value,
+          password: document.getElementById("smtp-pass").value,
+          from_email: document.getElementById("smtp-from-email").value,
+          from_name: document.getElementById("smtp-from-name").value,
+          use_tls: document.getElementById("smtp-tls").checked,
+          use_ssl: document.getElementById("smtp-ssl").checked,
+        },
+        recipients: validatedRecipients,
+        template: {
+          subject: document.getElementById("email-subject").value,
+          body_html: document.getElementById("email-body-html").value,
+          attachments: campaignAttachments
+        },
+        settings: {
+          max_per_minute: document.getElementById("max-per-minute").value,
+        }
+      };
+
+      try {
+        const res = await fetch("/api/campaign/start", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          goToStep(5);
+          startSSEStream();
+        } else {
+          alert("Error launching campaign: " + data.error);
+        }
+      } catch (err) {
+        alert("Error connecting to backend API: " + err.message);
+      }
+    });
+
+    // SSE Progress Tracker
+    function startSSEStream() {
+      if (sseSource) sseSource.close();
+      const logDiv = document.getElementById("sse-log-console");
+      logDiv.innerHTML = '<div class="text-[#e2b871]">[SSE] Connected to Edgevest event stream.</div>';
+
+      sseSource = new EventSource("/api/campaign/stream");
+
+      sseSource.onmessage = (e) => {
+        const eventData = JSON.parse(e.data);
+        if (eventData.type === "progress" || eventData.type === "status" || eventData.type === "init") {
+          const status = eventData.data;
+          document.getElementById("stat-total").innerText = status.total;
+          document.getElementById("stat-sent").innerText = status.sent;
+          document.getElementById("stat-failed").innerText = status.failed;
+          document.getElementById("stat-progress").innerText = `${status.progress_percent}%`;
+          document.getElementById("progress-bar-fill").style.width = `${status.progress_percent}%`;
+
+          if (status.logs) {
+            status.logs.forEach(l => {
+              const entry = document.createElement("div");
+              entry.className = l.level === "error" ? "text-rose-400" : (l.level === "warning" ? "text-amber-300" : "text-[#63b39b]");
+              entry.innerText = `[${l.time}] ${l.message}`;
+              logDiv.appendChild(entry);
+            });
+            logDiv.scrollTop = logDiv.scrollHeight;
+          }
+        }
+      };
+    }
+
+    // Campaign Controls
+    document.getElementById("btn-pause-campaign").addEventListener("click", () => fetch("/api/campaign/pause", { method: "POST" }));
+    document.getElementById("btn-resume-campaign").addEventListener("click", () => fetch("/api/campaign/resume", { method: "POST" }));
+    document.getElementById("btn-cancel-campaign").addEventListener("click", () => fetch("/api/campaign/cancel", { method: "POST" }));
+
+    // Auto Parse initial demo list on load
+    window.addEventListener("DOMContentLoaded", () => {
+      parseRecipientText();
+    });
+
+    // ==========================================
+    // ATTACHMENTS & RECEIPT GENERATOR ENGINE
+    // ==========================================
+    let campaignAttachments = [];
+
+    // File Upload Trigger
+    document.getElementById("btn-trigger-file-upload").addEventListener("click", () => {
+      document.getElementById("attachment-file-input").click();
+    });
+
+    document.getElementById("attachment-file-input").addEventListener("change", (e) => {
+      const files = e.target.files;
+      if (!files || files.length === 0) return;
+
+      Array.from(files).forEach(file => {
+        const reader = new FileReader();
+        reader.onload = (evt) => {
+          campaignAttachments.push({
+            id: 'att_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
+            name: file.name,
+            size: formatBytes(file.size),
+            type: file.type || 'application/pdf',
+            data: evt.target.result,
+            isReceipt: false
+          });
+          renderAttachmentsList();
+        };
+        reader.readAsDataURL(file);
+      });
+    });
+
+    // Receipt Modal Controls
+    const receiptModal = document.getElementById("receipt-modal");
+    document.getElementById("btn-open-receipt-builder").addEventListener("click", () => {
+      receiptModal.classList.remove("hidden");
+    });
+    document.getElementById("btn-close-receipt-modal").addEventListener("click", () => {
+      receiptModal.classList.add("hidden");
+    });
+    document.getElementById("btn-cancel-receipt-modal").addEventListener("click", () => {
+      receiptModal.classList.add("hidden");
+    });
+
+    // Generate PDF Receipt using jsPDF
+    document.getElementById("btn-generate-receipt-pdf").addEventListener("click", () => {
+      try {
+        const filename = document.getElementById("receipt-filename").value.trim() || "Receipt_Edgevest_{name}.pdf";
+        const receiptNo = document.getElementById("receipt-no").value.trim() || "EV-2026-0018";
+        const receiptDate = document.getElementById("receipt-date").value.trim() || "16th January 2026";
+        const amount = document.getElementById("receipt-amount").value.trim() || "KES 15,000";
+        const method = document.getElementById("receipt-method").value.trim() || "M-PESA / Bank Transfer";
+        const client = document.getElementById("receipt-client").value.trim() || "{name} ({company})";
+        const desc = document.getElementById("receipt-desc").value.trim() || "Payment for Professional Training";
+        const notes = document.getElementById("receipt-notes").value.trim() || "Official receipt generated by Edgevest.";
+
+        if (!window.jspdf || !window.jspdf.jsPDF) {
+          alert("jsPDF library loading... Please try again in a moment.");
+          return;
+        }
+
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({ unit: 'pt', format: 'letter' });
+
+        // Background & Header Bar (Edgevest Dark Signature)
+        doc.setFillColor(13, 11, 10);
+        doc.rect(0, 0, 612, 90, 'F');
+
+        // Header Title
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(22);
+        doc.setTextColor(226, 184, 113); // Gold #e2b871
+        doc.text("EDGEVEST", 40, 50);
+
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(224, 212, 200);
+        doc.text("Professional Training & Development", 40, 68);
+
+        doc.setFontSize(14);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(255, 255, 255);
+        doc.text("OFFICIAL RECEIPT", 440, 50);
+
+        // Gold Accent Border Line
+        doc.setDrawColor(197, 160, 89);
+        doc.setLineWidth(3);
+        doc.line(0, 90, 612, 90);
+
+        // Receipt Meta Box
+        doc.setFillColor(248, 246, 242);
+        doc.roundedRect(40, 115, 532, 70, 6, 6, 'F');
+        doc.setDrawColor(220, 210, 195);
+        doc.setLineWidth(1);
+        doc.roundedRect(40, 115, 532, 70, 6, 6, 'D');
+
+        doc.setFontSize(10);
+        doc.setTextColor(80, 70, 60);
+        doc.setFont('helvetica', 'bold');
+        doc.text("RECEIPT NO:", 60, 142);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(15, 15, 15);
+        doc.text(receiptNo, 140, 142);
+
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(80, 70, 60);
+        doc.text("DATE:", 60, 165);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(15, 15, 15);
+        doc.text(receiptDate, 140, 165);
+
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(80, 70, 60);
+        doc.text("PAYMENT METHOD:", 320, 142);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(15, 15, 15);
+        doc.text(method, 440, 142);
+
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(80, 70, 60);
+        doc.text("RECEIVED FROM:", 320, 165);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(15, 15, 15);
+        doc.text(client, 440, 165);
+
+        // Table Header
+        doc.setFillColor(24, 18, 14);
+        doc.rect(40, 210, 532, 28, 'F');
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(10);
+        doc.setTextColor(226, 184, 113);
+        doc.text("ITEM / DESCRIPTION", 55, 227);
+        doc.text("AMOUNT", 480, 227);
+
+        // Table Row
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(30, 30, 30);
+        doc.text(desc, 55, 260);
+        doc.setFont('helvetica', 'bold');
+        doc.text(amount, 480, 260);
+
+        doc.setDrawColor(220, 220, 220);
+        doc.setLineWidth(0.5);
+        doc.line(40, 280, 572, 280);
+
+        // Total Paid Highlight Box
+        doc.setFillColor(245, 238, 225);
+        doc.roundedRect(350, 300, 222, 45, 4, 4, 'F');
+        doc.setDrawColor(197, 160, 89);
+        doc.setLineWidth(1);
+        doc.roundedRect(350, 300, 222, 45, 4, 4, 'D');
+
+        doc.setFontSize(11);
+        doc.setTextColor(80, 60, 30);
+        doc.setFont('helvetica', 'bold');
+        doc.text("TOTAL PAID:", 365, 328);
+        doc.setFontSize(12);
+        doc.setTextColor(140, 101, 67);
+        doc.text(amount, 455, 328);
+
+        // Terms & Footer
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'italic');
+        doc.setTextColor(100, 100, 100);
+        doc.text("Notes: " + notes, 40, 370);
+
+        // Signature Line
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(10);
+        doc.setTextColor(13, 11, 10);
+        doc.text("Authorized Stamp & Signature:", 40, 440);
+        doc.line(40, 480, 220, 480);
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(9);
+        doc.setTextColor(100, 100, 100);
+        doc.text("Edgevest Accounts & Finance Department", 40, 495);
+
+        // Footer Bar
+        doc.setFillColor(13, 11, 10);
+        doc.rect(0, 742, 612, 50, 'F');
+        doc.setFontSize(8);
+        doc.setTextColor(200, 190, 180);
+        doc.text("Edgevest • Grace land court, Block C, J6 Opp K.U School of Law, Parklands", 130, 762);
+        doc.text("Phone: +254 758 314 887 | Email: trainings@edgevest.co.ke | Website: edgevest.co.ke", 125, 776);
+
+        const pdfDataUri = doc.output('datauristring');
+
+        campaignAttachments.push({
+          id: 'att_rcpt_' + Date.now(),
+          name: filename,
+          size: '~85 KB (Generated PDF)',
+          type: 'application/pdf',
+          data: pdfDataUri,
+          isReceipt: true
+        });
+
+        renderAttachmentsList();
+        receiptModal.classList.add("hidden");
+      } catch (err) {
+        alert("Error generating PDF receipt: " + err.message);
+      }
+    });
+
+    function renderAttachmentsList() {
+      const container = document.getElementById("attachments-list");
+      const noMsg = document.getElementById("no-attachments-msg");
+
+      if (campaignAttachments.length === 0) {
+        noMsg.classList.remove("hidden");
+        container.innerHTML = "";
+        return;
+      }
+
+      noMsg.classList.add("hidden");
+      container.innerHTML = "";
+
+      campaignAttachments.forEach((att, idx) => {
+        const card = document.createElement("div");
+        card.className = "bg-[#18120e] border border-[#3d2d20] hover:border-[#8c6543] rounded-xl p-3 flex items-center justify-between shadow-sm transition";
+        card.innerHTML = `
+          <div class="flex items-center space-x-3 overflow-hidden">
+            <div class="w-9 h-9 rounded-lg bg-[#261c17] border border-[#3d2d20] flex items-center justify-center text-[#e2b871] shrink-0">
+              <i class="fa-solid ${att.isReceipt ? 'fa-receipt text-amber-400' : 'fa-file-pdf'} text-sm"></i>
+            </div>
+            <div class="truncate">
+              <p class="text-xs font-bold text-slate-100 truncate">${att.name}</p>
+              <p class="text-[10px] text-[#a8988a] flex items-center gap-1.5 mt-0.5">
+                <span>${att.size}</span>
+                ${att.isReceipt ? '<span class="px-1.5 py-0.2 bg-amber-950/80 text-amber-300 border border-amber-800/60 rounded text-[9px] font-bold">PDF RECEIPT</span>' : ''}
+              </p>
+            </div>
+          </div>
+          <div class="flex items-center space-x-1 shrink-0 ml-2">
+            <button type="button" onclick="previewAttachment(${idx})" class="p-1.5 hover:bg-[#261c17] text-[#e2b871] rounded-lg transition" title="Preview File">
+              <i class="fa-solid fa-eye text-xs"></i>
+            </button>
+            <button type="button" onclick="removeAttachment(${idx})" class="p-1.5 hover:bg-rose-950 text-rose-400 rounded-lg transition" title="Remove Attachment">
+              <i class="fa-solid fa-trash-can text-xs"></i>
+            </button>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function removeAttachment(index) {
+      campaignAttachments.splice(index, 1);
+      renderAttachmentsList();
+    }
+
+    function previewAttachment(index) {
+      const att = campaignAttachments[index];
+      if (!att) return;
+      const win = window.open();
+      win.document.write('<iframe src="' + att.data + '" frameborder="0" style="border:0; top:0px; left:0px; bottom:0px; right:0px; width:100%; height:100%;" allowfullscreen></iframe>');
+    }
+
+    function formatBytes(bytes) {
+      if (bytes === 0) return '0 Bytes';
+      const k = 1024;
+      const sizes = ['Bytes', 'KB', 'MB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+    }
+
+    // ==========================================
+    // RICH TEXT VISUAL EDITOR & TEMPLATES LOGIC
+    // ==========================================
+    function formatText(command) {
+      document.execCommand(command, false, null);
+      syncVisualToHtml();
+    }
+
+    function formatBlock(tag) {
+      document.execCommand('formatBlock', false, '<' + tag + '>');
+      syncVisualToHtml();
+    }
+
+    function insertLinkPrompt() {
+      const url = prompt("Enter hyperlink URL (e.g. https://edgevest.co.ke):", "https://");
+      if (url) {
+        document.execCommand("createLink", false, url);
+        syncVisualToHtml();
+      }
+    }
+
+    function insertCtaButton() {
+      const label = prompt("Enter Button Label:", "Register / Confirm Attendance");
+      const url = prompt("Enter Button Link URL:", "https://edgevest.co.ke/register");
+      if (label && url) {
+        const btnHtml = `<div style="margin: 24px 0; text-align: center;"><a href="${url}" style="background-color: #000000; color: #ffffff; padding: 12px 24px; font-weight: bold; font-size: 14px; text-decoration: none; border-radius: 4px; display: inline-block; border: 1px solid #c5a059;">${label}</a></div>`;
+        document.execCommand("insertHTML", false, btnHtml);
+        syncVisualToHtml();
+      }
+    }
+
+    function insertTagToVisual(tag) {
+      const visualEl = document.getElementById("visual-editor-content");
+      visualEl.focus();
+      document.execCommand("insertText", false, " " + tag + " ");
+      syncVisualToHtml();
+    }
+
+    function syncVisualToHtml() {
+      const visualContent = document.getElementById("visual-editor-content").innerHTML;
+      const fullHtml = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body { font-family: 'Bookman Old Style', Bookman, 'URW Bookman L', Georgia, serif; line-height: 1.6; color: #111827; background-color: #f3f4f6; margin: 0; padding: 20px; }
+    .email-container { max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 4px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+    .header { background-color: #000000; padding: 32px 24px; text-align: center; color: #ffffff; }
+    .header h1 { font-family: 'Bookman Old Style', Georgia, serif; font-size: 26px; font-weight: bold; letter-spacing: 2px; margin: 0 0 6px 0; color: #ffffff; text-transform: uppercase; }
+    .header p { font-family: 'Bookman Old Style', Georgia, serif; font-size: 15px; color: #e5e7eb; margin: 0; }
+    .body-content { font-family: 'Bookman Old Style', Georgia, serif; padding: 32px 28px; font-size: 14px; color: #1a1a1a; line-height: 1.65; }
+    .footer { background-color: #000000; padding: 26px 24px; text-align: left; color: #ffffff; font-family: 'Bookman Old Style', Georgia, serif; }
+    .footer h3 { font-size: 18px; font-weight: bold; margin: 0 0 10px 0; color: #ffffff; }
+    .footer p { font-size: 13px; color: #d1d5db; margin: 0 0 8px 0; line-height: 1.4; }
+    .footer a { color: #60a5fa; text-decoration: underline; }
+    .footer .copyright { font-size: 12px; color: #9ca3af; margin-top: 12px; border-top: 1px solid #262626; padding-top: 12px; }
+  </style>
+</head>
+<body>
+  <div class="email-container">
+    <div class="header">
+      <h1>EDGEVEST</h1>
+      <p>Professional Training &amp; Development</p>
+    </div>
+    <div class="body-content">
+${visualContent}
+    </div>
+    <div class="footer">
+      <h3>Edgevest</h3>
+      <p>Grace land court, Block C, J6 Opp K.U School of Law, Parklands</p>
+      <p>Phone: +254 758 314 887 | Email: <a href="mailto:trainings@edgevest.co.ke">trainings@edgevest.co.ke</a></p>
+      <p class="copyright">© 2026 Edgevest. All rights reserved.</p>
+    </div>
+  </div>
+</body>
+</html>`;
+
+      document.getElementById("email-body-html").value = fullHtml;
+      updatePreview();
+    }
+
+    function syncHtmlToVisual() {
+      const rawHtml = document.getElementById("email-body-html").value;
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(rawHtml, "text/html");
+      const bodyContent = doc.querySelector(".body-content");
+      if (bodyContent) {
+        document.getElementById("visual-editor-content").innerHTML = bodyContent.innerHTML;
+      }
+      updatePreview();
+    }
+
+    function applyPresetTemplate(type) {
+      const visualEl = document.getElementById("visual-editor-content");
+      const subjEl = document.getElementById("email-subject");
+
+      if (type === "invitation") {
+        subjEl.value = "Invitation: Professional Training & Development Session for {name}";
+        visualEl.innerHTML = `
+          <p style="margin-bottom: 16px;">Dear {name},</p>
+          <p style="margin-bottom: 16px;">We are excited to invite you to our upcoming professional training session.</p>
+          <div style="background-color: #f8f6f2; border-left: 4px solid #c5a059; padding: 12px 16px; margin: 20px 0; border-radius: 4px;">
+            <p style="margin: 0 0 4px 0; font-weight: bold; color: #8c6543;">Date: 16th January 2026</p>
+            <p style="margin: 0 0 4px 0;">Location: Nairobi</p>
+            <p style="margin: 0;">Time: 9:00 AM - 4:00 PM</p>
+          </div>
+          <p style="margin-bottom: 16px;">This hands-on workshop will equip you with practical skills to excel in your career.</p>
+          <p style="margin-bottom: 20px;">We look forward to seeing you there!</p>
+          <p style="margin: 0;">Best regards,<br/><strong>Edgevest Team</strong></p>
+        `;
+      } else if (type === "receipt") {
+        subjEl.value = "Official Payment Receipt from Edgevest for {name}";
+        visualEl.innerHTML = `
+          <p style="margin-bottom: 16px;">Dear {name},</p>
+          <p style="margin-bottom: 16px;">Thank you for your payment. Please find your official payment summary details below:</p>
+          <div style="background-color: #111827; color: #ffffff; padding: 20px; border-radius: 6px; margin: 20px 0;">
+            <h3 style="margin: 0 0 10px 0; color: #e2b871; border-b: 1px solid #374151; padding-bottom: 8px;">PAYMENT RECEIPT CONFIRMATION</h3>
+            <p style="margin: 4px 0;"><strong>Receipt No:</strong> EV-2026-{name}</p>
+            <p style="margin: 4px 0;"><strong>Client Name:</strong> {name} ({company})</p>
+            <p style="margin: 4px 0;"><strong>Amount Paid:</strong> KES 15,000</p>
+            <p style="margin: 4px 0;"><strong>Status:</strong> <span style="color: #34d399; font-weight: bold;">VERIFIED & COMPLETED</span></p>
+          </div>
+          <p style="margin-bottom: 16px;">A copy of your PDF receipt has also been attached to this email.</p>
+          <p style="margin: 0;">Warm regards,<br/><strong>Edgevest Accounts Department</strong></p>
+        `;
+      } else if (type === "letter") {
+        subjEl.value = "Executive Update for {name} - Edgevest Consultancy";
+        visualEl.innerHTML = `
+          <p style="margin-bottom: 16px;">Dear {name},</p>
+          <p style="margin-bottom: 16px;">I hope this message finds you well at {company}.</p>
+          <p style="margin-bottom: 16px;">We are reaching out to share key strategic insights and upcoming consultancy modules designed specifically for leaders in your industry.</p>
+          <p style="margin-bottom: 20px;">Please let us know a convenient time to connect for a brief introduction.</p>
+          <p style="margin: 0;">Sincerely,<br/><strong>Edgevest Advisory Services</strong></p>
+        `;
+      } else if (type === "newsletter") {
+        subjEl.value = "Edgevest Quarterly Newsletter & Special Industry Brief";
+        visualEl.innerHTML = `
+          <h2 style="color: #8c6543; margin-top: 0;">Quarterly Professional Briefing</h2>
+          <p style="margin-bottom: 16px;">Dear {name},</p>
+          <p style="margin-bottom: 16px;">Welcome to the latest edition of Edgevest Professional Insights for {company}.</p>
+          <ul style="margin-bottom: 20px; padding-left: 20px;">
+            <li style="margin-bottom: 8px;"><strong>Executive Leadership Trends 2026:</strong> Adapting to rapid growth.</li>
+            <li style="margin-bottom: 8px;"><strong>Financial Compliance Workshops:</strong> Registrations now open.</li>
+            <li style="margin-bottom: 8px;"><strong>Special Offers:</strong> Corporate group rates for early registrants.</li>
+          </ul>
+          <p style="margin: 0;">Warm regards,<br/><strong>The Edgevest Team</strong></p>
+        `;
+      }
+      syncVisualToHtml();
+    }
+
+    function toggleTemplateTab(tab) {
+      const visPane = document.getElementById("template-visual-pane");
+      const edPane = document.getElementById("template-editor-pane");
+      const prevPane = document.getElementById("template-preview-pane");
+
+      const visBtn = document.getElementById("tab-btn-visual");
+      const edBtn = document.getElementById("tab-btn-editor");
+      const prevBtn = document.getElementById("tab-btn-preview");
+
+      if (tab === "visual") {
+        if (visPane) visPane.classList.remove("hidden");
+        if (edPane) edPane.classList.add("hidden");
+        if (prevPane) prevPane.classList.add("hidden");
+
+        if (visBtn) visBtn.className = "py-2 px-3.5 bg-[#261c17] border border-[#8c6543] font-bold text-xs text-[#e2b871] rounded-xl flex items-center transition shadow-sm";
+        if (edBtn) edBtn.className = "py-2 px-3.5 bg-[#140f0c] border border-[#3d2d20] hover:border-[#8c6543] font-medium text-xs text-[#a8988a] hover:text-slate-200 rounded-xl flex items-center transition";
+        if (prevBtn) prevBtn.className = "py-2 px-3.5 bg-[#140f0c] border border-[#3d2d20] hover:border-[#8c6543] font-medium text-xs text-[#a8988a] hover:text-slate-200 rounded-xl flex items-center transition";
+      } else {
+        if (visPane) visPane.classList.add("hidden");
+        if (edPane) edPane.classList.add("hidden");
+        if (prevPane) prevPane.classList.remove("hidden");
+
+        if (prevBtn) prevBtn.className = "py-2 px-3.5 bg-[#261c17] border border-[#8c6543] font-bold text-xs text-[#e2b871] rounded-xl flex items-center transition shadow-sm";
+        if (visBtn) visBtn.className = "py-2 px-3.5 bg-[#140f0c] border border-[#3d2d20] hover:border-[#8c6543] font-medium text-xs text-[#a8988a] hover:text-slate-200 rounded-xl flex items-center transition";
+        if (edBtn) edBtn.className = "py-2 px-3.5 bg-[#140f0c] border border-[#3d2d20] hover:border-[#8c6543] font-medium text-xs text-[#a8988a] hover:text-slate-200 rounded-xl flex items-center transition";
+        updatePreview();
+      }
+    }
+
+    // ==========================================
+    // LOG INSPECTOR & LOG EDITOR LOGIC
+    // ==========================================
+    let cachedLogsList = [];
+    let activeLogFilterLevel = 'all';
+
+    function setLogFilter(level) {
+      activeLogFilterLevel = level;
+      ['all', 'info', 'error', 'warning'].forEach(l => {
+        const btn = document.getElementById(`log-filter-${l}`);
+        if (btn) {
+          if (l === level) {
+            btn.className = "px-3 py-1 rounded-lg bg-[#261c17] text-[#e2b871] font-bold border border-[#8c6543] transition";
+          } else {
+            btn.className = "px-3 py-1 rounded-lg bg-[#140f0c] text-[#a8988a] hover:text-white border border-[#3d2d20] transition";
+          }
+        }
+      });
+      renderLogConsole();
+    }
+
+    function filterLogConsole() {
+      renderLogConsole();
+    }
+
+    function renderLogConsole() {
+      const consoleDiv = document.getElementById("sse-log-console");
+      if (!consoleDiv) return;
+
+      const searchQuery = (document.getElementById("log-search-input")?.value || "").toLowerCase();
+
+      if (!cachedLogsList || cachedLogsList.length === 0) {
+        consoleDiv.innerHTML = '<div class="text-[#8c7868] italic p-2">[Console] Ready. No log records found.</div>';
+        return;
+      }
+
+      consoleDiv.innerHTML = "";
+
+      cachedLogsList.forEach((logItem, index) => {
+        const level = logItem.level || "info";
+        const msg = logItem.message || "";
+        const note = logItem.note || "";
+        const time = logItem.time || "";
+
+        // Level Filter
+        if (activeLogFilterLevel !== 'all' && level !== activeLogFilterLevel) {
+          return;
+        }
+
+        // Search Filter
+        if (searchQuery) {
+          const matchMsg = msg.toLowerCase().includes(searchQuery);
+          const matchNote = note.toLowerCase().includes(searchQuery);
+          const matchTime = time.toLowerCase().includes(searchQuery);
+          if (!matchMsg && !matchNote && !matchTime) return;
+        }
+
+        const logCard = document.createElement("div");
+        logCard.className = "group bg-[#18120e] hover:bg-[#211813] border border-[#2e241c] rounded-lg p-2.5 flex items-start justify-between gap-3 transition";
+
+        let badgeHtml = '<span class="px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-[#2d5a4c]/40 text-[#63b39b] border border-[#2d5a4c]">INFO</span>';
+        if (level === "error") {
+          badgeHtml = '<span class="px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-rose-950/60 text-rose-400 border border-rose-800/60">ERROR</span>';
+        } else if (level === "warning") {
+          badgeHtml = '<span class="px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-amber-950/60 text-amber-300 border border-amber-800/60">WARN</span>';
+        }
+
+        logCard.innerHTML = `
+          <div class="space-y-1 flex-1">
+            <div class="flex items-center space-x-2">
+              <span class="text-[#8c7868] text-[10px] font-mono">[${time}]</span>
+              ${badgeHtml}
+              <span class="text-[#e0d4c8] font-mono text-xs">${msg}</span>
+            </div>
+            ${note ? `<div class="text-xs text-[#e2b871] bg-[#261c14] border-l-2 border-[#e2b871] pl-2 py-0.5 rounded-r mt-1 font-sans"><strong>Note:</strong> ${note}</div>` : ''}
+          </div>
+          <div class="opacity-0 group-hover:opacity-100 flex items-center space-x-1 shrink-0 transition">
+            <button type="button" onclick="editLogEntry(${index})" class="p-1 hover:bg-[#3d2d20] text-[#e2b871] rounded transition" title="Edit / Annotate Log Entry"><i class="fa-solid fa-pen-to-square"></i></button>
+            <button type="button" onclick="deleteLogEntry(${index})" class="p-1 hover:bg-rose-950 text-rose-400 rounded transition" title="Delete Log Line"><i class="fa-solid fa-trash-can"></i></button>
+          </div>
+        `;
+        consoleDiv.appendChild(logCard);
+      });
+
+      const autoScroll = document.getElementById("log-autoscroll-toggle")?.checked;
+      if (autoScroll) {
+        consoleDiv.scrollTop = consoleDiv.scrollHeight;
+      }
+    }
+
+    // Modal Control & Log Actions
+    function openAddLogModal() {
+      document.getElementById("log-modal").classList.remove("hidden");
+    }
+    function closeAddLogModal() {
+      document.getElementById("log-modal").classList.add("hidden");
+    }
+
+    async function saveCustomLog() {
+      const message = document.getElementById("new-log-msg").value;
+      const level = document.getElementById("new-log-level").value;
+      const note = document.getElementById("new-log-note").value;
+
+      if (!message) return alert("Log message is required.");
+
+      try {
+        const res = await fetch("/api/campaign/log/add", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message, level, note })
+        });
+        const data = await res.json();
+        if (data.success) {
+          closeAddLogModal();
+          document.getElementById("new-log-msg").value = "";
+          document.getElementById("new-log-note").value = "";
+          fetchStatusOnce();
+        }
+      } catch (err) {
+        alert("Failed to save custom log: " + err.message);
+      }
+    }
+
+    async function editLogEntry(index) {
+      const current = cachedLogsList[index];
+      if (!current) return;
+      const newMsg = prompt("Edit Log Message:", current.message || "");
+      if (newMsg === null) return;
+      const newNote = prompt("Add Operational Admin Note:", current.note || "");
+      if (newNote === null) return;
+
+      try {
+        const res = await fetch("/api/campaign/log/edit", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ index, message: newMsg, note: newNote })
+        });
+        const data = await res.json();
+        if (data.success) fetchStatusOnce();
+      } catch (err) {
+        alert("Failed to update log: " + err.message);
+      }
+    }
+
+    async function deleteLogEntry(index) {
+      if (!confirm("Are you sure you want to remove this log line?")) return;
+      try {
+        const res = await fetch("/api/campaign/log/delete", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ index })
+        });
+        const data = await res.json();
+        if (data.success) fetchStatusOnce();
+      } catch (err) {
+        alert("Failed to delete log entry: " + err.message);
+      }
+    }
+
+    async function clearLogConsoleServer() {
+      if (!confirm("Clear all logs from the console?")) return;
+      try {
+        const res = await fetch("/api/campaign/log/clear", { method: "POST" });
+        const data = await res.json();
+        if (data.success) fetchStatusOnce();
+      } catch (err) {
+        alert("Failed to clear logs: " + err.message);
+      }
+    }
+
+    function copyAllLogsToClipboard() {
+      if (!cachedLogsList || cachedLogsList.length === 0) return alert("No logs to copy.");
+      let text = "EDGEVEST CAMPAIGN EXECUTION LOGS\n----------------------------------\n";
+      cachedLogsList.forEach((l, i) => {
+        text += `[${i+1}] [${l.time}] [${(l.level || "INFO").toUpperCase()}] ${l.message}`;
+        if (l.note) text += ` (Note: ${l.note})`;
+        text += "\n";
+      });
+      navigator.clipboard.writeText(text).then(() => {
+        alert("All logs successfully copied to clipboard!");
+      });
+    }
+
+    async function fetchStatusOnce() {
+      try {
+        const res = await fetch("/api/campaign/status");
+        const data = await res.json();
+        if (data.logs) {
+          cachedLogsList = data.logs;
+          renderLogConsole();
+        }
+      } catch (err) {
+        console.error("Error fetching status logs:", err);
+      }
+    }
+  </script>
+
+  <!-- ADD / EDIT CUSTOM LOG MODAL -->
+  <div id="log-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="glass-panel max-w-md w-full rounded-2xl border border-[#8c6543]/50 shadow-2xl p-6 relative">
+      <div class="flex items-center justify-between border-b border-[#2e241c] pb-4 mb-4">
+        <h3 class="text-base font-bold text-white flex items-center">
+          <i class="fa-solid fa-terminal text-[#e2b871] mr-2"></i> Add Custom Operational Log
+        </h3>
+        <button type="button" onclick="closeAddLogModal()" class="text-[#a8988a] hover:text-white p-1">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold uppercase tracking-wider text-[#d1c4b8] mb-1">Log Level *</label>
+          <select id="new-log-level" class="w-full glass-input rounded-xl px-3.5 py-2 text-xs text-[#e2b871] bg-[#18120e]">
+            <option value="info">🟢 Info / Delivered</option>
+            <option value="warning">🟡 Warning / Rate limit</option>
+            <option value="error">🔴 Error / Bounce</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold uppercase tracking-wider text-[#d1c4b8] mb-1">Log Message *</label>
+          <input type="text" id="new-log-msg" placeholder="e.g. Verified recipient domain with Office365 server" class="w-full glass-input rounded-xl px-3.5 py-2 text-xs font-mono" />
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold uppercase tracking-wider text-[#d1c4b8] mb-1">Admin Operational Note</label>
+          <textarea id="new-log-note" rows="2" placeholder="Optional notes or follow-up instructions..." class="w-full glass-input rounded-xl px-3.5 py-2 text-xs leading-relaxed"></textarea>
+        </div>
+
+        <div class="flex items-center justify-end space-x-3 pt-3 border-t border-[#2e241c]">
+          <button type="button" onclick="closeAddLogModal()" class="px-4 py-2 border border-[#3d2d20] hover:bg-[#1a1410] rounded-xl text-xs font-semibold text-[#d1c4b8]">
+            Cancel
+          </button>
+          <button type="button" onclick="saveCustomLog()" class="px-5 py-2 bg-gradient-to-r from-[#8c6543] via-[#785338] to-[#5c3d28] hover:from-[#9e7854] hover:to-[#6d4c2d] text-white font-bold rounded-xl text-xs border border-[#c5a059]/40 flex items-center shadow-lg">
+            <i class="fa-solid fa-plus mr-1.5 text-amber-300"></i> Add Log Entry
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RECEIPT BUILDER MODAL -->
+  <div id="receipt-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="glass-panel max-w-2xl w-full rounded-2xl border border-[#8c6543]/50 shadow-2xl p-6 relative max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-[#2e241c] pb-4 mb-5">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-xl bg-black border border-[#8c6543] flex items-center justify-center text-[#e2b871] text-lg">
+            <i class="fa-solid fa-receipt"></i>
+          </div>
+          <div>
+            <h3 class="text-lg font-bold text-white">Edgevest Receipt PDF Generator</h3>
+            <p class="text-xs text-[#a8988a]">Customize receipt details to generate and attach a PDF receipt for each recipient.</p>
+          </div>
+        </div>
+        <button type="button" id="btn-close-receipt-modal" class="text-[#a8988a] hover:text-white text-lg p-1">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <form id="receipt-builder-form" class="space-y-4" onsubmit="return false;">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-[#d1c4b8] mb-1.5">Receipt Document Name *</label>
+            <input type="text" id="receipt-filename" value="Receipt_Edgevest_{name}.pdf" required class="w-full glass-input rounded-xl px-3.5 py-2 text-xs font-mono" />
+            <p class="text-[10px] text-[#8c7868] mt-1">Supports merge tags like {name}, {company}</p>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-[#d1c4b8] mb-1.5">Receipt / Invoice Number *</label>
+            <input type="text" id="receipt-no" value="EV-2026-0018" required class="w-full glass-input rounded-xl px-3.5 py-2 text-xs" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-[#d1c4b8] mb-1.5">Payment Date *</label>
+            <input type="text" id="receipt-date" value="16th January 2026" required class="w-full glass-input rounded-xl px-3.5 py-2 text-xs" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-[#d1c4b8] mb-1.5">Amount Paid (KES) *</label>
+            <input type="text" id="receipt-amount" value="KES 15,000" required class="w-full glass-input rounded-xl px-3.5 py-2 text-xs font-bold text-[#e2b871]" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-[#d1c4b8] mb-1.5">Payment Method</label>
+            <input type="text" id="receipt-method" value="M-PESA / Bank Transfer" class="w-full glass-input rounded-xl px-3.5 py-2 text-xs" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-[#d1c4b8] mb-1.5">Received From (Client)</label>
+            <input type="text" id="receipt-client" value="{name} ({company})" class="w-full glass-input rounded-xl px-3.5 py-2 text-xs" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold uppercase tracking-wider text-[#d1c4b8] mb-1.5">Description / Item Particulars *</label>
+          <textarea id="receipt-desc" rows="2" class="w-full glass-input rounded-xl px-3.5 py-2 text-xs leading-relaxed">Payment for Professional Training & Development Session - Edgevest</textarea>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold uppercase tracking-wider text-[#d1c4b8] mb-1.5">Notes / Terms & Conditions</label>
+          <input type="text" id="receipt-notes" value="Official receipt generated by Edgevest. Thank you for your business." class="w-full glass-input rounded-xl px-3.5 py-2 text-xs text-[#a8988a]" />
+        </div>
+
+        <div class="flex items-center justify-end space-x-3 pt-4 border-t border-[#2e241c]">
+          <button type="button" id="btn-cancel-receipt-modal" class="px-4 py-2 border border-[#3d2d20] hover:bg-[#1a1410] rounded-xl text-xs font-semibold text-[#d1c4b8]">
+            Cancel
+          </button>
+          <button type="button" id="btn-generate-receipt-pdf" class="px-5 py-2 bg-gradient-to-r from-[#8c6543] via-[#785338] to-[#5c3d28] hover:from-[#9e7854] hover:to-[#6d4c2d] text-white font-bold rounded-xl text-xs border border-[#c5a059]/40 flex items-center shadow-lg">
+            <i class="fa-solid fa-file-pdf mr-1.5 text-amber-300"></i> Generate & Attach PDF Receipt
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</body>
+</html>
