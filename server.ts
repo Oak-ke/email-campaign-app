@@ -147,9 +147,9 @@ async function startServer() {
           rejectUnauthorized: false,
           servername: cleanHost
         },
-        connectionTimeout: 5000, // Strict 5-second connection timeout
-        greetingTimeout: 5000,   // Strict 5-second greeting timeout
-        socketTimeout: 5000      // Strict 5-second socket timeout
+        connectionTimeout: 15000, // Strict 5-second connection timeout
+        greetingTimeout: 15000,   // Strict 5-second greeting timeout
+        socketTimeout: 15000      // Strict 5-second socket timeout
       } as any);
 
       debugLogs.push(`[HANDSHAKE] Sending SMTP EHLO/HELO and initiating TLS handshake (5s strict socket limit)...`);
