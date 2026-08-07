@@ -169,7 +169,6 @@ async function startServer() {
         lookup: forceIPv4CustomLookup,
         logger: customLogger,
         debug: true,
-        authMethod: "LOGIN", // Explicitly use AUTH LOGIN (matching standard Office 365 socket behavior)
         auth: {
           user: cleanUser,
           pass: password
@@ -353,7 +352,6 @@ async function startServer() {
           requireTLS: portNum === 587 || smtp.use_tls || isOffice365,
           family: 4,
           lookup: forceIPv4CustomLookup,
-          authMethod: "LOGIN",
           auth: { user: cleanUser, pass: smtp.password },
           tls: {
             rejectUnauthorized: false,
@@ -401,6 +399,8 @@ async function startServer() {
     const intervalMs = Math.max(Math.floor(60000 / speed), 300);
     const attachments = template?.attachments || [];
     const attNames = attachments.map((a: any) => a.name).join(", ");
+    const fromEmail = (smtp?.from_email || smtp?.username || "no-reply@edgevest.com").trim();
+    const fromName = (smtp?.from_name || "Edgevest").trim();
 
     while (
       currentCampaign.status === "running" &&
@@ -458,7 +458,7 @@ async function startServer() {
           const fromName = smtp?.from_name || "Edgevest";
 
           const mailOptions = {
-            from: `"${fromName}" <${fromEmail}>`,
+            from: { name: fromName, address: fromEmail },
             to: rec.email,
             subject: personalizedSubject,
             html: personalizedBody,
