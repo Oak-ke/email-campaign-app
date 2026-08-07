@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bulk Email Campaign Manager</title>
+  <!-- Tailwind CSS via CDN for standalone cPanel deployment -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    .step-active { border-color: #3b82f6; color: #1d4ed8; background-color: #eff6ff; }
+    .step-complete { border-color: #10b981; color: #047857; background-color: #ecfdf5; }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen font-sans antialiased">
+
+  <!-- Navigation Header -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-[#faf8f5] flex items-center justify-center p-1 border border-[#e2b871] shadow-md shadow-amber-900/10">
+          <img src="edgevest_emblem.jpg" alt="Edgevest Emblem" class="w-8 h-8 object-contain rounded-lg" onerror="this.onerror=null; this.src='assets/edgevest_emblem.jpg';" />
+        </div>
+        <div>
+          <h1 class="text-lg font-bold text-slate-900 leading-tight">Edgevest Campaign Manager</h1>
+          <p class="text-xs text-slate-500">cPanel / Passenger WSGI Edition</p>
+        </div>
+      </div>
+      <div class="flex items-center space-x-3">
+        <span id="api-status" class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
+          <span class="w-2 h-2 mr-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Backend Connected
+        </span>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+    <!-- Progress Step Indicators (Fixed Issue #9) -->
+    <nav aria-label="Progress" class="mb-8">
+      <ol role="list" class="space-y-4 md:flex md:space-y-0 md:space-x-4">
+        <li class="md:flex-1">
+          <div id="step-btn-1" class="step-active group pl-4 py-3 flex flex-col border-l-4 md:border-l-0 md:border-t-4 md:pl-0 md:pt-4 md:pb-0 rounded-r-md md:rounded-none transition-all">
+            <span class="text-xs font-semibold uppercase tracking-wider text-blue-600">Step 1</span>
+            <span class="text-sm font-bold flex items-center"><i class="fa-solid fa-server mr-2"></i> SMTP Setup</span>
+          </div>
+        </li>
+        <li class="md:flex-1">
+          <div id="step-btn-2" class="text-slate-400 group pl-4 py-3 flex flex-col border-l-4 border-slate-200 md:border-l-0 md:border-t-4 md:pl-0 md:pt-4 md:pb-0 rounded-r-md md:rounded-none transition-all">
+            <span class="text-xs font-semibold uppercase tracking-wider">Step 2</span>
+            <span class="text-sm font-bold flex items-center"><i class="fa-solid fa-users mr-2"></i> Recipients List</span>
+          </div>
+        </li>
+        <li class="md:flex-1">
+          <div id="step-btn-3" class="text-slate-400 group pl-4 py-3 flex flex-col border-l-4 border-slate-200 md:border-l-0 md:border-t-4 md:pl-0 md:pt-4 md:pb-0 rounded-r-md md:rounded-none transition-all">
+            <span class="text-xs font-semibold uppercase tracking-wider">Step 3</span>
+            <span class="text-sm font-bold flex items-center"><i class="fa-solid fa-envelope-open-text mr-2"></i> Template & Tags</span>
+          </div>
+        </li>
+        <li class="md:flex-1">
+          <div id="step-btn-4" class="text-slate-400 group pl-4 py-3 flex flex-col border-l-4 border-slate-200 md:border-l-0 md:border-t-4 md:pl-0 md:pt-4 md:pb-0 rounded-r-md md:rounded-none transition-all">
+            <span class="text-xs font-semibold uppercase tracking-wider">Step 4</span>
+            <span class="text-sm font-bold flex items-center"><i class="fa-solid fa-gauge-high mr-2"></i> Throttle Settings</span>
+          </div>
+        </li>
+        <li class="md:flex-1">
+          <div id="step-btn-5" class="text-slate-400 group pl-4 py-3 flex flex-col border-l-4 border-slate-200 md:border-l-0 md:border-t-4 md:pl-0 md:pt-4 md:pb-0 rounded-r-md md:rounded-none transition-all">
+            <span class="text-xs font-semibold uppercase tracking-wider">Step 5</span>
+            <span class="text-sm font-bold flex items-center"><i class="fa-solid fa-rocket mr-2"></i> Live Monitor</span>
+          </div>
+        </li>
+      </ol>
+    </nav>
+
+    <!-- STEP 1: SMTP CONFIGURATION -->
+    <section id="step-content-1" class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+      <div class="border-b border-slate-200 pb-4 mb-6">
+        <h2 class="text-xl font-bold text-slate-900 flex items-center">
+          <i class="fa-solid fa-server text-blue-600 mr-2"></i> Configure SMTP Server Credentials
+        </h2>
+        <p class="text-sm text-slate-500 mt-1">Provide your cPanel, SendGrid, Amazon SES, or custom SMTP server connection details.</p>
+      </div>
+
+      <form id="smtp-form" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">SMTP Hostname *</label>
+          <input type="text" id="smtp-host" required placeholder="e.g. mail.yourdomain.com or smtp.gmail.com" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">SMTP Port *</label>
+          <input type="number" id="smtp-port" value="587" required class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">SMTP Username / Email *</label>
+          <input type="text" id="smtp-user" required placeholder="newsletter@yourdomain.com" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">SMTP Password *</label>
+          <input type="password" id="smtp-pass" required placeholder="••••••••••••" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">From Email Address</label>
+          <input type="email" id="smtp-from-email" placeholder="Optional (defaults to SMTP username)" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">From Display Name</label>
+          <input type="text" id="smtp-from-name" placeholder="e.g. Marketing Team" value="Marketing Team" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" />
+        </div>
+        <div class="md:col-span-2 flex items-center space-x-6 pt-2">
+          <label class="inline-flex items-center text-sm font-medium text-slate-700 cursor-pointer">
+            <input type="checkbox" id="smtp-tls" checked class="rounded border-slate-300 text-blue-600 focus:ring-blue-500 h-4 w-4 mr-2" />
+            Enable STARTTLS (Recommended for Port 587)
+          </label>
+          <label class="inline-flex items-center text-sm font-medium text-slate-700 cursor-pointer">
+            <input type="checkbox" id="smtp-ssl" class="rounded border-slate-300 text-blue-600 focus:ring-blue-500 h-4 w-4 mr-2" />
+            Enable SSL/TLS Direct (Port 465)
+          </label>
+        </div>
+      </form>
+
+      <div class="mt-8 flex items-center justify-between border-t border-slate-200 pt-6">
+        <button type="button" id="btn-test-smtp" class="px-4 py-2 border border-slate-300 rounded-lg text-slate-700 font-medium hover:bg-slate-50 transition flex items-center">
+          <i class="fa-solid fa-plug mr-2 text-blue-600"></i> Test Connection
+        </button>
+        <button type="button" onclick="goToStep(2)" class="px-6 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 shadow-sm transition flex items-center">
+          Next: Recipients <i class="fa-solid fa-arrow-right ml-2"></i>
+        </button>
+      </div>
+      <div id="smtp-test-result" class="mt-4 hidden p-3 rounded-lg text-sm"></div>
+    </section>
+
+    <!-- STEP 2: RECIPIENTS LIST & VALIDATION -->
+    <section id="step-content-2" class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 hidden">
+      <div class="border-b border-slate-200 pb-4 mb-6 flex justify-between items-center">
+        <div>
+          <h2 class="text-xl font-bold text-slate-900 flex items-center">
+            <i class="fa-solid fa-users text-blue-600 mr-2"></i> Add Campaign Recipients
+          </h2>
+          <p class="text-sm text-slate-500 mt-1">Upload a CSV file or paste emails directly. Invalid formats will be flagged automatically.</p>
+        </div>
+        <button type="button" id="btn-sample-data" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-3 py-1.5 rounded-lg border border-slate-300">
+          <i class="fa-solid fa-magic mr-1"></i> Load Demo CSV
+        </button>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Paste / Text Upload -->
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">Paste CSV or Raw List (email, name, company)</label>
+          <textarea id="raw-recipients-input" rows="8" placeholder="john@example.com, John Doe, Acme Corp&#10;jane@company.com, Jane Smith, Globex" class="w-full px-3 py-2 border border-slate-300 rounded-lg font-mono text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none"></textarea>
+          <div class="mt-2 flex space-x-2">
+            <button type="button" id="btn-parse-text" class="px-3 py-1.5 bg-slate-800 text-white text-xs font-semibold rounded hover:bg-slate-900">
+              Parse & Validate List
+            </button>
+          </div>
+        </div>
+
+        <!-- CSV File Drag & Drop -->
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">Upload CSV File</label>
+          <div class="border-2 border-dashed border-slate-300 rounded-lg p-6 text-center hover:border-blue-500 transition cursor-pointer bg-slate-50" id="csv-dropzone">
+            <i class="fa-solid fa-cloud-arrow-up text-3xl text-slate-400 mb-2"></i>
+            <p class="text-sm font-medium text-slate-700">Drag & drop CSV file here, or click to browse</p>
+            <p class="text-xs text-slate-400 mt-1">Headers should include: email, name, company (optional)</p>
+            <input type="file" id="csv-file-input" accept=".csv,.txt" class="hidden" />
+          </div>
+          <div id="csv-file-name" class="mt-2 text-xs font-semibold text-slate-600 hidden"></div>
+        </div>
+      </div>
+
+      <!-- Validated Recipients Table -->
+      <div class="mt-8">
+        <div class="flex justify-between items-center mb-3">
+          <h3 class="text-base font-bold text-slate-900">Validated List Summary</h3>
+          <div class="text-xs space-x-3">
+            <span class="text-emerald-600 font-semibold" id="count-valid">Valid: 0</span>
+            <span class="text-rose-600 font-semibold" id="count-invalid">Invalid: 0</span>
+          </div>
+        </div>
+        <div class="max-h-60 overflow-y-auto border border-slate-200 rounded-lg">
+          <table class="min-w-full divide-y divide-slate-200 text-sm">
+            <thead class="bg-slate-50 sticky top-0">
+              <tr>
+                <th class="px-4 py-2 text-left text-xs font-bold text-slate-500 uppercase">#</th>
+                <th class="px-4 py-2 text-left text-xs font-bold text-slate-500 uppercase">Email</th>
+                <th class="px-4 py-2 text-left text-xs font-bold text-slate-500 uppercase">Name</th>
+                <th class="px-4 py-2 text-left text-xs font-bold text-slate-500 uppercase">Company</th>
+                <th class="px-4 py-2 text-left text-xs font-bold text-slate-500 uppercase">Status</th>
+              </tr>
+            </thead>
+            <tbody id="recipients-table-body" class="divide-y divide-slate-100 bg-white">
+              <tr>
+                <td colspan="5" class="px-4 py-6 text-center text-slate-400 text-xs">No recipients added yet. Upload a CSV or paste emails above.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="mt-8 flex items-center justify-between border-t border-slate-200 pt-6">
+        <button type="button" onclick="goToStep(1)" class="px-4 py-2 border border-slate-300 rounded-lg text-slate-700 font-medium hover:bg-slate-50">
+          <i class="fa-solid fa-arrow-left mr-2"></i> Back
+        </button>
+        <button type="button" onclick="goToStep(3)" class="px-6 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 shadow-sm transition">
+          Next: Template <i class="fa-solid fa-arrow-right ml-2"></i>
+        </button>
+      </div>
+    </section>
+
+    <!-- STEP 3: TEMPLATE & PERSONALIZATION -->
+    <section id="step-content-3" class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 hidden">
+      <div class="border-b border-slate-200 pb-4 mb-6">
+        <h2 class="text-xl font-bold text-slate-900 flex items-center">
+          <i class="fa-solid fa-envelope-open-text text-blue-600 mr-2"></i> Personalization & Email Template
+        </h2>
+        <p class="text-sm text-slate-500 mt-1">Draft your message using HTML or Plain Text. Insert dynamic merge tags like <code>{name}</code>, <code>{company}</code>, <code>{email}</code>.</p>
+      </div>
+
+      <div class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">Email Subject Line *</label>
+          <input type="text" id="email-subject" value="Exclusive Update for {name} from {company}" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" />
+        </div>
+
+        <div class="flex items-center space-x-2 py-1">
+          <span class="text-xs font-bold text-slate-500">Insert Tag:</span>
+          <button type="button" onclick="insertTag('{name}')" class="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-xs rounded border border-slate-300">{name}</button>
+          <button type="button" onclick="insertTag('{email}')" class="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-xs rounded border border-slate-300">{email}</button>
+          <button type="button" onclick="insertTag('{company}')" class="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-xs rounded border border-slate-300">{company}</button>
+        </div>
+
+        <!-- Editor & Preview Tabs -->
+        <div>
+          <div class="border-b border-slate-200 flex space-x-4 mb-3">
+            <button type="button" id="tab-btn-editor" onclick="toggleTemplateTab('editor')" class="py-2 px-1 border-b-2 border-blue-600 font-bold text-sm text-blue-600">
+              HTML Body Editor
+            </button>
+            <button type="button" id="tab-btn-preview" onclick="toggleTemplateTab('preview')" class="py-2 px-1 border-b-2 border-transparent font-medium text-sm text-slate-500 hover:text-slate-700">
+              Live Preview (Rendered)
+            </button>
+          </div>
+
+          <div id="template-editor-pane">
+            <textarea id="email-body-html" rows="12" class="w-full px-3 py-2 border border-slate-300 rounded-lg font-mono text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none"><!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+    .card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; max-width: 600px; margin: 0 auto; }
+    .btn { background: #2563eb; color: #ffffff !important; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2 style="color: #1e293b;">Hello {name},</h2>
+    <p>We are excited to share an exclusive update tailored for you at <strong>{company}</strong>.</p>
+    <p>Our team has prepared personalized resources for <code>{email}</code>.</p>
+    <br/>
+    <p style="text-align: center;">
+      <a href="https://example.com" class="btn">View Personalized Portal</a>
+    </p>
+    <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 24px 0;" />
+    <p style="font-size: 12px; color: #64748b;">If you wish to unsubscribe, reply to this email.</p>
+  </div>
+</body>
+</html></textarea>
+          </div>
+
+          <div id="template-preview-pane" class="hidden border border-slate-300 rounded-lg p-6 bg-slate-100 min-h-[300px]">
+            <div class="bg-white rounded-lg shadow p-4 max-w-2xl mx-auto border border-slate-200">
+              <div class="border-b pb-2 mb-4 text-xs text-slate-500">
+                <div><strong>To:</strong> <span id="preview-to-email">john@example.com</span></div>
+                <div><strong>Subject:</strong> <span id="preview-subject-text" class="font-bold text-slate-800"></span></div>
+              </div>
+              <iframe id="preview-iframe" class="w-full h-80 border-0"></iframe>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-8 flex items-center justify-between border-t border-slate-200 pt-6">
+        <button type="button" onclick="goToStep(2)" class="px-4 py-2 border border-slate-300 rounded-lg text-slate-700 font-medium hover:bg-slate-50">
+          <i class="fa-solid fa-arrow-left mr-2"></i> Back
+        </button>
+        <button type="button" onclick="goToStep(4)" class="px-6 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 shadow-sm transition">
+          Next: Settings <i class="fa-solid fa-arrow-right ml-2"></i>
+        </button>
+      </div>
+    </section>
+
+    <!-- STEP 4: THROTTLE & CAMPAIGN SETTINGS -->
+    <section id="step-content-4" class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 hidden">
+      <div class="border-b border-slate-200 pb-4 mb-6">
+        <h2 class="text-xl font-bold text-slate-900 flex items-center">
+          <i class="fa-solid fa-gauge-high text-blue-600 mr-2"></i> Rate Limiting & Queue Controls
+        </h2>
+        <p class="text-sm text-slate-500 mt-1">Protect your SMTP sender reputation and avoid rate limits or spam triggers by throttling send speed.</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">Max Emails Per Minute *</label>
+          <input type="number" id="max-per-minute" value="30" min="1" max="300" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" />
+          <p class="text-xs text-slate-500 mt-1">Recommended: 20-40 per minute for shared SMTP. Delay per email will be auto-calculated.</p>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">Max Retry Attempts on Network Fault</label>
+          <input type="number" id="max-retries" value="2" min="0" max="5" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" />
+        </div>
+      </div>
+
+      <div class="mt-6 bg-amber-50 border border-amber-200 rounded-lg p-4 text-xs text-amber-800">
+        <p class="font-bold mb-1"><i class="fa-solid fa-triangle-exclamation mr-1"></i> cPanel & Shared Hosting Precaution:</p>
+        <p>Many hosting providers limit outgoing mail to 100-500 emails per hour. Keep your rate under 30 emails/min to avoid hosting account suspension.</p>
+      </div>
+
+      <div class="mt-8 flex items-center justify-between border-t border-slate-200 pt-6">
+        <button type="button" onclick="goToStep(3)" class="px-4 py-2 border border-slate-300 rounded-lg text-slate-700 font-medium hover:bg-slate-50">
+          <i class="fa-solid fa-arrow-left mr-2"></i> Back
+        </button>
+        <button type="button" id="btn-launch-campaign" class="px-8 py-3 bg-emerald-600 text-white font-bold rounded-lg hover:bg-emerald-700 shadow-lg shadow-emerald-600/20 transition flex items-center text-base">
+          <i class="fa-solid fa-rocket mr-2"></i> Launch Bulk Campaign
+        </button>
+      </div>
+    </section>
+
+    <!-- STEP 5: LIVE MONITOR & SSE PROGRESS -->
+    <section id="step-content-5" class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 hidden">
+      <div class="border-b border-slate-200 pb-4 mb-6 flex justify-between items-center">
+        <div>
+          <h2 class="text-xl font-bold text-slate-900 flex items-center">
+            <i class="fa-solid fa-chart-line text-blue-600 mr-2"></i> Real-time Campaign Monitor
+          </h2>
+          <p class="text-sm text-slate-500 mt-1">Live background queue updates via Server-Sent Events (SSE).</p>
+        </div>
+        <div class="space-x-2">
+          <button type="button" id="btn-pause-campaign" class="px-3 py-1.5 bg-amber-500 text-white text-xs font-bold rounded hover:bg-amber-600">
+            <i class="fa-solid fa-pause mr-1"></i> Pause
+          </button>
+          <button type="button" id="btn-resume-campaign" class="px-3 py-1.5 bg-blue-600 text-white text-xs font-bold rounded hover:bg-blue-700">
+            <i class="fa-solid fa-play mr-1"></i> Resume
+          </button>
+          <button type="button" id="btn-cancel-campaign" class="px-3 py-1.5 bg-rose-600 text-white text-xs font-bold rounded hover:bg-rose-700">
+            <i class="fa-solid fa-stop mr-1"></i> Stop Campaign
+          </button>
+        </div>
+      </div>
+
+      <!-- Stats Grid -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <div class="bg-slate-50 border border-slate-200 p-4 rounded-lg">
+          <div class="text-xs text-slate-500 uppercase font-semibold">Total Queue</div>
+          <div class="text-2xl font-bold text-slate-900 mt-1" id="stat-total">0</div>
+        </div>
+        <div class="bg-emerald-50 border border-emerald-200 p-4 rounded-lg">
+          <div class="text-xs text-emerald-700 uppercase font-semibold">Sent Successfully</div>
+          <div class="text-2xl font-bold text-emerald-700 mt-1" id="stat-sent">0</div>
+        </div>
+        <div class="bg-rose-50 border border-rose-200 p-4 rounded-lg">
+          <div class="text-xs text-rose-700 uppercase font-semibold">Failed / Bounced</div>
+          <div class="text-2xl font-bold text-rose-700 mt-1" id="stat-failed">0</div>
+        </div>
+        <div class="bg-blue-50 border border-blue-200 p-4 rounded-lg">
+          <div class="text-xs text-blue-700 uppercase font-semibold">Progress</div>
+          <div class="text-2xl font-bold text-blue-700 mt-1" id="stat-progress">0%</div>
+        </div>
+      </div>
+
+      <!-- Progress Bar -->
+      <div class="w-full bg-slate-200 rounded-full h-4 mb-6 overflow-hidden">
+        <div id="progress-bar-fill" class="bg-blue-600 h-4 rounded-full transition-all duration-300" style="width: 0%"></div>
+      </div>
+
+      <!-- Live Event Console Stream -->
+      <div>
+        <div class="flex justify-between items-center mb-2">
+          <h3 class="text-sm font-bold text-slate-700 flex items-center">
+            <i class="fa-solid fa-terminal mr-2"></i> Live Event Logs
+          </h3>
+          <a href="/api/campaign/export-report" target="_blank" class="text-xs font-bold text-blue-600 hover:underline">
+            <i class="fa-solid fa-download mr-1"></i> Download CSV Report
+          </a>
+        </div>
+        <div id="sse-log-console" class="bg-slate-950 text-slate-200 p-4 rounded-lg font-mono text-xs h-64 overflow-y-auto border border-slate-800">
+          <div class="text-slate-500">[System] Initializing stream...</div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    // State Manager
+    let currentStep = 1;
+    let validatedRecipients = [];
+    let sseSource = null;
+
+    function goToStep(stepNum) {
+      currentStep = stepNum;
+      for (let i = 1; i <= 5; i++) {
+        const btn = document.getElementById(`step-btn-${i}`);
+        const content = document.getElementById(`step-content-${i}`);
+        if (i === stepNum) {
+          btn.className = "step-active group pl-4 py-3 flex flex-col border-l-4 md:border-l-0 md:border-t-4 md:pl-0 md:pt-4 md:pb-0 rounded-r-md md:rounded-none transition-all";
+          content.classList.remove("hidden");
+        } else if (i < stepNum) {
+          btn.className = "step-complete group pl-4 py-3 flex flex-col border-l-4 md:border-l-0 md:border-t-4 md:pl-0 md:pt-4 md:pb-0 rounded-r-md md:rounded-none transition-all";
+          content.classList.add("hidden");
+        } else {
+          btn.className = "text-slate-400 group pl-4 py-3 flex flex-col border-l-4 border-slate-200 md:border-l-0 md:border-t-4 md:pl-0 md:pt-4 md:pb-0 rounded-r-md md:rounded-none transition-all";
+          content.classList.add("hidden");
+        }
+      }
+      if (stepNum === 3) updatePreview();
+    }
+
+    // SMTP Verification
+    document.getElementById("btn-test-smtp").addEventListener("click", async () => {
+      const resultDiv = document.getElementById("smtp-test-result");
+      resultDiv.classList.remove("hidden");
+      resultDiv.className = "mt-4 p-3 rounded-lg text-sm bg-blue-50 text-blue-800";
+      resultDiv.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Testing connection to SMTP server...';
+
+      const payload = {
+        host: document.getElementById("smtp-host").value,
+        port: document.getElementById("smtp-port").value,
+        username: document.getElementById("smtp-user").value,
+        password: document.getElementById("smtp-pass").value,
+        use_tls: document.getElementById("smtp-tls").checked,
+        use_ssl: document.getElementById("smtp-ssl").checked,
+      };
+
+      try {
+        const res = await fetch("/api/smtp/verify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (data.success) {
+          resultDiv.className = "mt-4 p-3 rounded-lg text-sm bg-emerald-100 text-emerald-900 border border-emerald-300";
+          resultDiv.innerHTML = `<i class="fa-solid fa-circle-check mr-2 text-emerald-600"></i> ${data.message}`;
+        } else {
+          resultDiv.className = "mt-4 p-3 rounded-lg text-sm bg-rose-100 text-rose-900 border border-rose-300";
+          resultDiv.innerHTML = `<i class="fa-solid fa-circle-xmark mr-2 text-rose-600"></i> ${data.error}`;
+        }
+      } catch (err) {
+        resultDiv.className = "mt-4 p-3 rounded-lg text-sm bg-rose-100 text-rose-900 border border-rose-300";
+        resultDiv.innerHTML = `<i class="fa-solid fa-circle-xmark mr-2 text-rose-600"></i> Network error connecting to backend API: ${err.message}`;
+      }
+    });
+
+    // Sample Data Loader
+    document.getElementById("btn-sample-data").addEventListener("click", () => {
+      const sample = "john@example.com, John Doe, Acme Corp\njane@company.org, Jane Smith, Globex Inc\ncontact@techlead.io, Alex Rivera, TechLead\ninvalid-email-here, Bad Record, Unknown";
+      document.getElementById("raw-recipients-input").value = sample;
+      parseRecipientText();
+    });
+
+    document.getElementById("btn-parse-text").addEventListener("click", parseRecipientText);
+
+    async function parseRecipientText() {
+      const text = document.getElementById("raw-recipients-input").value;
+      const lines = text.split("\n");
+      const raw = [];
+
+      lines.forEach(l => {
+        const parts = l.split(",").map(p => p.trim());
+        if (parts[0]) {
+          raw.push({
+            email: parts[0],
+            name: parts[1] || parts[0].split("@")[0],
+            company: parts[2] || "Valued Client"
+          });
+        }
+      });
+
+      const res = await fetch("/api/recipients/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ recipients: raw })
+      });
+      const data = await res.json();
+
+      validatedRecipients = data.valid_recipients;
+      document.getElementById("count-valid").innerText = `Valid: ${data.valid_count}`;
+      document.getElementById("count-invalid").innerText = `Invalid: ${data.invalid_count}`;
+
+      const tbody = document.getElementById("recipients-table-body");
+      tbody.innerHTML = "";
+
+      data.valid_recipients.forEach((r, idx) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td class="px-4 py-2 text-xs text-slate-400">${idx + 1}</td>
+          <td class="px-4 py-2 font-mono text-xs text-slate-800">${r.email}</td>
+          <td class="px-4 py-2 text-xs text-slate-600">${r.name}</td>
+          <td class="px-4 py-2 text-xs text-slate-600">${r.company || "-"}</td>
+          <td class="px-4 py-2 text-xs text-emerald-600 font-bold"><i class="fa-solid fa-check-circle"></i> Valid</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      data.invalid_recipients.forEach((r, idx) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td class="px-4 py-2 text-xs text-slate-400">!</td>
+          <td class="px-4 py-2 font-mono text-xs text-rose-600">${r.email}</td>
+          <td class="px-4 py-2 text-xs text-slate-600">${r.name}</td>
+          <td class="px-4 py-2 text-xs text-slate-600">-</td>
+          <td class="px-4 py-2 text-xs text-rose-600 font-bold"><i class="fa-solid fa-circle-exmark"></i> ${r.error}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // Template Helpers
+    function insertTag(tag) {
+      const area = document.getElementById("email-body-html");
+      area.value += " " + tag;
+      updatePreview();
+    }
+
+    function toggleTemplateTab(tab) {
+      const edPane = document.getElementById("template-editor-pane");
+      const prevPane = document.getElementById("template-preview-pane");
+      const edBtn = document.getElementById("tab-btn-editor");
+      const prevBtn = document.getElementById("tab-btn-preview");
+
+      if (tab === "editor") {
+        edPane.classList.remove("hidden");
+        prevPane.classList.add("hidden");
+        edBtn.className = "py-2 px-1 border-b-2 border-blue-600 font-bold text-sm text-blue-600";
+        prevBtn.className = "py-2 px-1 border-b-2 border-transparent font-medium text-sm text-slate-500 hover:text-slate-700";
+      } else {
+        edPane.classList.add("hidden");
+        prevPane.classList.remove("hidden");
+        prevBtn.className = "py-2 px-1 border-b-2 border-blue-600 font-bold text-sm text-blue-600";
+        edBtn.className = "py-2 px-1 border-b-2 border-transparent font-medium text-sm text-slate-500 hover:text-slate-700";
+        updatePreview();
+      }
+    }
+
+    function updatePreview() {
+      const sample = validatedRecipients[0] || { email: "john@example.com", name: "John Doe", company: "Acme Corp" };
+      let subject = document.getElementById("email-subject").value;
+      let body = document.getElementById("email-body-html").value;
+
+      subject = subject.replace(/\{name\}/g, sample.name).replace(/\{company\}/g, sample.company).replace(/\{email\}/g, sample.email);
+      body = body.replace(/\{name\}/g, sample.name).replace(/\{company\}/g, sample.company).replace(/\{email\}/g, sample.email);
+
+      document.getElementById("preview-to-email").innerText = sample.email;
+      document.getElementById("preview-subject-text").innerText = subject;
+
+      const iframe = document.getElementById("preview-iframe");
+      const doc = iframe.contentDocument || iframe.contentWindow.document;
+      doc.open();
+      doc.write(body);
+      doc.close();
+    }
+
+    // Launch Campaign
+    document.getElementById("btn-launch-campaign").addEventListener("click", async () => {
+      if (validatedRecipients.length === 0) {
+        alert("Please add at least one valid recipient in Step 2.");
+        goToStep(2);
+        return;
+      }
+
+      const payload = {
+        smtp: {
+          host: document.getElementById("smtp-host").value,
+          port: document.getElementById("smtp-port").value,
+          username: document.getElementById("smtp-user").value,
+          password: document.getElementById("smtp-pass").value,
+          from_email: document.getElementById("smtp-from-email").value,
+          from_name: document.getElementById("smtp-from-name").value,
+          use_tls: document.getElementById("smtp-tls").checked,
+          use_ssl: document.getElementById("smtp-ssl").checked,
+        },
+        recipients: validatedRecipients,
+        template: {
+          subject: document.getElementById("email-subject").value,
+          body_html: document.getElementById("email-body-html").value,
+        },
+        settings: {
+          max_per_minute: document.getElementById("max-per-minute").value,
+        }
+      };
+
+      const res = await fetch("/api/campaign/start", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        goToStep(5);
+        startSSEStream();
+      } else {
+        alert("Error launching campaign: " + data.error);
+      }
+    });
+
+    // SSE Progress Tracker
+    function startSSEStream() {
+      if (sseSource) sseSource.close();
+      const logDiv = document.getElementById("sse-log-console");
+      logDiv.innerHTML = '<div class="text-blue-400">[SSE] Connected to event stream.</div>';
+
+      sseSource = new EventSource("/api/campaign/stream");
+
+      sseSource.onmessage = (e) => {
+        const eventData = JSON.parse(e.data);
+        if (eventData.type === "progress" || eventData.type === "status" || eventData.type === "init") {
+          const status = eventData.data;
+          document.getElementById("stat-total").innerText = status.total;
+          document.getElementById("stat-sent").innerText = status.sent;
+          document.getElementById("stat-failed").innerText = status.failed;
+          document.getElementById("stat-progress").innerText = `${status.progress_percent}%`;
+          document.getElementById("progress-bar-fill").style.width = `${status.progress_percent}%`;
+
+          if (status.logs) {
+            status.logs.forEach(l => {
+              const entry = document.createElement("div");
+              entry.className = l.level === "error" ? "text-rose-400" : (l.level === "warning" ? "text-amber-300" : "text-emerald-300");
+              entry.innerText = `[${l.time}] ${l.message}`;
+              logDiv.appendChild(entry);
+            });
+            logDiv.scrollTop = logDiv.scrollHeight;
+          }
+        }
+      };
+    }
+
+    // Campaign Controls
+    document.getElementById("btn-pause-campaign").addEventListener("click", () => fetch("/api/campaign/pause", { method: "POST" }));
+    document.getElementById("btn-resume-campaign").addEventListener("click", () => fetch("/api/campaign/resume", { method: "POST" }));
+    document.getElementById("btn-cancel-campaign").addEventListener("click", () => fetch("/api/campaign/cancel", { method: "POST" }));
+  </script>
+</body>
+</html>
