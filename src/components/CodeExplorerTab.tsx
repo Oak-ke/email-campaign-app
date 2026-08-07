@@ -1,4 +1,12 @@
-"""
+import React, { useState } from 'react';
+import { Copy, Download, Check, FileCode } from 'lucide-react';
+
+const fileContents: Record<string, { label: string; desc: string; code: string; lang: string }> = {
+  'app.py': {
+    label: 'app.py',
+    desc: 'Main Flask application backend with Threading Campaign Engine, Rate Limiter & SSE Stream',
+    lang: 'python',
+    code: `"""
 Bulk Email Campaign Manager - Corrected Flask Backend.
 Provides multi-threaded background email queueing, rate limiting,
 SSE progress streaming, SMTP connection testing, and email validation.
@@ -40,8 +48,7 @@ auth = HTTPBasicAuth()
 class SensitiveFilter(logging.Filter):
     def filter(self, record):
         if hasattr(record, 'msg') and isinstance(record.msg, str):
-            # Redact password patterns
-            record.msg = re.sub(r'(password["\']?\s*:\s*["\']?)[^"\']+', r'\1****', record.msg, flags=re.IGNORECASE)
+            record.msg = re.sub(r'(password["\\']?\\s*:\\s*["\\']?)[^"\\']+', r'\\1****', record.msg, flags=re.IGNORECASE)
         return True
 
 logging.basicConfig(
@@ -83,7 +90,7 @@ class CampaignEngine:
         self.template = {}
         self.settings = {}
         self.logs = []
-        self.subscribers = []  # SSE queue listeners
+        self.subscribers = []  # SSE listeners
         self.worker_thread = None
         self.stop_requested = False
         self.pause_requested = False
@@ -102,7 +109,7 @@ class CampaignEngine:
             logger.info(message)
 
     def broadcast_sse(self, data):
-        data_str = f"data: {json.dumps(data)}\n\n"
+        data_str = f"data: {json.dumps(data)}\\n\\n"
         with self.lock:
             for q in list(self.subscribers):
                 try:
@@ -188,11 +195,10 @@ class CampaignEngine:
         if not text:
             return ""
         result = text
-        # Replace common merge tags: {email}, {name}, {company}, etc.
         for key, val in recipient.items():
             if isinstance(val, str):
-                result = re.sub(r'\{\{\s*' + re.escape(key) + r'\s*\}\}', val, result)
-                result = re.sub(r'\{\s*' + re.escape(key) + r'\s*\}', val, result)
+                result = re.sub(r'\\{\\{\\s*' + re.escape(key) + r'\\s*\\}\\}', val, result)
+                result = re.sub(r'\\{\\s*' + re.escape(key) + r'\\s*\\}', val, result)
         return result
 
     def _run_campaign(self):
@@ -251,7 +257,6 @@ class CampaignEngine:
             self.current_index = idx + 1
             email = recipient.get("email", "").strip()
 
-            # Email Validation
             try:
                 valid_info = validate_email(email, check_deliverability=False)
                 normalized_email = valid_info.normalized
@@ -263,7 +268,6 @@ class CampaignEngine:
                 self.broadcast_sse({"type": "progress", "data": self.get_status_payload()})
                 continue
 
-            # Prepare Message
             subject = self._format_template(self.template.get("subject", ""), recipient)
             body_html = self._format_template(self.template.get("body_html", ""), recipient)
             body_text = self._format_template(self.template.get("body_text", ""), recipient)
@@ -306,7 +310,6 @@ class CampaignEngine:
                 if body_html:
                     msg.attach(MIMEText(body_html, "html", "utf-8"))
 
-            # Send Email with Retry Logic
             sent_successfully = False
             retries = 2
             for attempt in range(retries + 1):
@@ -339,10 +342,8 @@ class CampaignEngine:
 
             self.broadcast_sse({"type": "progress", "data": self.get_status_payload()})
 
-            # Throttle Delay
             time.sleep(delay_between_emails)
 
-        # Close SMTP Server
         if server:
             try:
                 server.quit()
@@ -357,39 +358,23 @@ class CampaignEngine:
         self.broadcast_sse({"type": "status", "data": self.get_status_payload()})
 
 
-# Singleton Engine Instance
 campaign_engine = CampaignEngine()
 
 
 # ==========================================
-# FLASK ROUTES & API ENDPOINTS
+# FLASK ROUTES
 # ==========================================
 
 @app.route("/")
 def index():
-    """Serves the main single page web app UI"""
     return send_from_directory("public", "index.html")
-
 
 @app.route("/public/<path:filename>")
 def serve_public_assets(filename):
-    """Static file router for public assets"""
     return send_from_directory("public", filename)
-
-
-@app.route("/api/health", methods=["GET"])
-def health_check():
-    """Health check endpoint"""
-    return jsonify({
-        "status": "online",
-        "service": "Bulk Email Campaign Manager",
-        "timestamp": time.time()
-    })
-
 
 @app.route("/api/smtp/verify", methods=["POST"])
 def verify_smtp_connection():
-    """Tests SMTP credentials without sending emails"""
     data = request.get_json() or {}
     host = data.get("host")
     port = int(data.get("port", 587))
@@ -398,9 +383,6 @@ def verify_smtp_connection():
     use_ssl = data.get("use_ssl", False)
     use_tls = data.get("use_tls", True)
 
-    if not host or not port:
-        return jsonify({"success": False, "error": "SMTP Host and Port are required."}), 400
-
     try:
         if use_ssl:
             server = smtplib.SMTP_SSL(host, port, timeout=10)
@@ -408,169 +390,253 @@ def verify_smtp_connection():
             server = smtplib.SMTP(host, port, timeout=10)
             if use_tls:
                 server.starttls()
-
         if user and password:
             server.login(user, password)
-
         server.quit()
-        return jsonify({"success": True, "message": "SMTP Connection test successful!"})
+        return jsonify({"success": True, "message": "SMTP Connection successful!"})
     except Exception as e:
-        logger.error(f"SMTP Verification Error: {str(e)}")
-        return jsonify({"success": False, "error": f"SMTP Connection Failed: {str(e)}"}), 400
-
-
-@app.route("/api/recipients/validate", methods=["POST"])
-def validate_recipient_list():
-    """Validates list of recipients and returns clean list + syntax errors"""
-    data = request.get_json() or {}
-    raw_recipients = data.get("recipients", [])
-
-    valid_list = []
-    invalid_list = []
-
-    for r in raw_recipients:
-        email = r.get("email", "").strip() if isinstance(r, dict) else str(r).strip()
-        name = r.get("name", "") if isinstance(r, dict) else ""
-
-        if not email:
-            continue
-
-        try:
-            valid_info = validate_email(email, check_deliverability=False)
-            item = r if isinstance(r, dict) else {"email": valid_info.normalized, "name": name}
-            item["email"] = valid_info.normalized
-            item["status"] = "valid"
-            valid_list.append(item)
-        except EmailNotValidError as err:
-            invalid_list.append({
-                "email": email,
-                "name": name,
-                "error": str(err)
-            })
-
-    return jsonify({
-        "total_submitted": len(raw_recipients),
-        "valid_count": len(valid_list),
-        "invalid_count": len(invalid_list),
-        "valid_recipients": valid_list,
-        "invalid_recipients": invalid_list
-    })
-
+        return jsonify({"success": False, "error": str(e)}), 400
 
 @app.route("/api/campaign/start", methods=["POST"])
 def start_campaign():
-    """Launches the bulk email campaign background queue"""
     data = request.get_json() or {}
-
-    recipients = data.get("recipients", [])
-    template = data.get("template", {})
-    smtp_config = data.get("smtp", {})
-    settings = data.get("settings", {})
-
-    if not recipients or len(recipients) == 0:
-        return jsonify({"success": False, "error": "Recipient list cannot be empty."}), 400
-
-    if not template.get("subject") or not (template.get("body_html") or template.get("body_text")):
-        return jsonify({"success": False, "error": "Email template subject and content are required."}), 400
-
-    if not smtp_config.get("host"):
-        return jsonify({"success": False, "error": "SMTP server host is required."}), 400
-
-    success, msg = campaign_engine.start(recipients, template, smtp_config, settings)
+    success, msg = campaign_engine.start(
+        data.get("recipients", []),
+        data.get("template", {}),
+        data.get("smtp", {}),
+        data.get("settings", {})
+    )
     if not success:
         return jsonify({"success": False, "error": msg}), 400
-
-    return jsonify({"success": True, "message": msg, "total": len(recipients)})
-
-
-@app.route("/api/campaign/pause", methods=["POST"])
-def pause_campaign():
-    """Pauses active campaign"""
-    success, msg = campaign_engine.pause()
-    return jsonify({"success": success, "message": msg})
-
-
-@app.route("/api/campaign/resume", methods=["POST"])
-def resume_campaign():
-    """Resumes paused campaign"""
-    success, msg = campaign_engine.resume()
-    return jsonify({"success": success, "message": msg})
-
-
-@app.route("/api/campaign/cancel", methods=["POST"])
-def cancel_campaign():
-    """Cancels running campaign"""
-    success, msg = campaign_engine.cancel()
-    return jsonify({"success": success, "message": msg})
-
-
-@app.route("/api/campaign/status", methods=["GET"])
-def get_campaign_status():
-    """Polls current campaign progress & logs"""
-    return jsonify(campaign_engine.get_status_payload())
-
+    return jsonify({"success": True, "message": msg})
 
 @app.route("/api/campaign/stream", methods=["GET"])
 def stream_campaign_progress():
-    """Server-Sent Events (SSE) stream for live real-time campaign progress"""
     def event_stream():
         q = queue.Queue(maxsize=50)
         with campaign_engine.lock:
             campaign_engine.subscribers.append(q)
-
-        # Initial status broadcast
-        init_data = f"data: {json.dumps({'type': 'init', 'data': campaign_engine.get_status_payload()})}\n\n"
-        yield init_data
-
+        yield f"data: {json.dumps({'type': 'init', 'data': campaign_engine.get_status_payload()})}\\n\\n"
         try:
             while True:
-                msg = q.get()
-                yield msg
+                yield q.get()
         except GeneratorExit:
             with campaign_engine.lock:
                 if q in campaign_engine.subscribers:
                     campaign_engine.subscribers.remove(q)
 
-    return Response(event_stream(), mimetype="text/event-stream", headers={
-        "Cache-Control": "no-cache",
-        "X-Accel-Buffering": "no"  # Disable proxy buffering for cPanel Nginx
-    })
-
-
-@app.route("/api/campaign/export-report", methods=["GET"])
-def export_campaign_report():
-    """Exports CSV report of sent/failed recipients"""
-    status_data = campaign_engine.get_status_payload()
-    recipients = campaign_engine.recipients
-
-    output = "Email,Name,Status,Error,SentAt\n"
-    for r in recipients:
-        email = r.get("email", "").replace(",", "")
-        name = r.get("name", "").replace(",", "")
-        st = r.get("status", "pending")
-        err = r.get("error", "").replace(",", ";")
-        sent_at = r.get("sent_at", "")
-        output += f"{email},{name},{st},{err},{sent_at}\n"
-
-    return Response(
-        output,
-        mimetype="text/csv",
-        headers={"Content-Disposition": "attachment; filename=campaign_report.csv"}
-    )
-
-
-# Error Handlers
-@app.errorhandler(404)
-def not_found(e):
-    return send_from_directory("public", "index.html")
-
-
-@app.errorhandler(500)
-def server_error(e):
-    logger.error(f"Internal Server Error: {str(e)}")
-    return jsonify({"error": "Internal Server Error", "details": str(e)}), 500
-
+    return Response(event_stream(), mimetype="text/event-stream")
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port, debug=app.config["DEBUG"])
+    app.run(host="0.0.0.0", port=5000)
+`
+  },
+  'config.py': {
+    label: 'config.py',
+    desc: 'Environment variable loader using python-dotenv with cPanel fallback defaults',
+    lang: 'python',
+    code: `"""
+Configuration settings for the Bulk Email Campaign Manager.
+Loads environment variables using python-dotenv.
+"""
+
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+class Config:
+    SECRET_KEY = os.getenv("FLASK_SECRET_KEY", "default-dev-secret-change-in-production-12345")
+    DEBUG = os.getenv("FLASK_DEBUG", "False").lower() in ("true", "1", "t")
+
+    ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "admin")
+    ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "admin123")
+
+    DEFAULT_MAX_EMAILS_PER_MINUTE = int(os.getenv("MAX_EMAILS_PER_MINUTE", 30))
+    MAX_ALLOWED_EMAILS_PER_MINUTE = 300
+    DEFAULT_BATCH_DELAY_SECONDS = float(os.getenv("BATCH_DELAY_SECONDS", 1.0))
+
+    DEFAULT_SMTP_HOST = os.getenv("DEFAULT_SMTP_HOST", "")
+    DEFAULT_SMTP_PORT = int(os.getenv("DEFAULT_SMTP_PORT", 587))
+    DEFAULT_SMTP_USER = os.getenv("DEFAULT_SMTP_USER", "")
+    DEFAULT_SMTP_PASS = os.getenv("DEFAULT_SMTP_PASS", "")
+
+    CORS_ALLOWED_ORIGINS = os.getenv("CORS_ALLOWED_ORIGINS", "*")
+    MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16 MB max upload
+`
+  },
+  'passenger_wsgi.py': {
+    label: 'passenger_wsgi.py',
+    desc: 'Phusion Passenger WSGI bootstrapper with cPanel virtualenv path resolution',
+    lang: 'python',
+    code: `"""
+Passenger WSGI Entry Point for cPanel / CloudLinux Deployment.
+Bridges Phusion Passenger with Flask, auto-detecting Python virtualenv site-packages.
+"""
+
+import sys
+import os
+
+INTERPRETER = sys.executable
+APP_DIR = os.path.dirname(os.path.abspath(__file__))
+
+if APP_DIR not in sys.path:
+    sys.path.insert(0, APP_DIR)
+
+VENV_DIRS = [
+    os.path.join(APP_DIR, "venv"),
+    os.path.join(APP_DIR, "env"),
+    os.path.join(APP_DIR, ".venv"),
+]
+
+HOME = os.path.expanduser("~")
+CPANEL_VENV_BASE = os.path.join(HOME, "virtualenv")
+if os.path.exists(CPANEL_VENV_BASE):
+    for root, dirs, files in os.walk(CPANEL_VENV_BASE):
+        if "site-packages" in root and root not in sys.path:
+            sys.path.insert(0, root)
+
+for venv in VENV_DIRS:
+    site_packages_py = os.path.join(venv, "lib", f"python{sys.version_info.major}.{sys.version_info.minor}", "site-packages")
+    if os.path.exists(site_packages_py) and site_packages_py not in sys.path:
+        sys.path.insert(0, site_packages_py)
+
+try:
+    from app import app as application
+except Exception as e:
+    def application(environ, start_response):
+        status = '500 Internal Server Error'
+        output = f"Passenger WSGI Startup Error: {str(e)}\\n".encode('utf-8')
+        response_headers = [('Content-type', 'text/plain'), ('Content-Length', str(len(output)))]
+        start_response(status, response_headers)
+        return [output]
+`
+  },
+  'requirements.txt': {
+    label: 'requirements.txt',
+    desc: 'Pinned Python packages for virtualenv installation on cPanel',
+    lang: 'text',
+    code: `Flask==3.0.3
+Flask-Cors==4.0.1
+Flask-HTTPAuth==4.8.0
+python-dotenv==1.0.1
+email-validator==2.1.1
+gunicorn==22.0.0
+`
+  },
+  '.env.example': {
+    label: '.env.example',
+    desc: 'Environment template for cPanel environment variables panel or local .env file',
+    lang: 'ini',
+    code: `# Flask & Campaign Server Configuration
+FLASK_SECRET_KEY="generate_a_random_secret_key_here"
+ADMIN_USERNAME="admin"
+ADMIN_PASSWORD="secure_password_here"
+
+# SMTP Server Defaults
+DEFAULT_SMTP_HOST="mail.yourdomain.com"
+DEFAULT_SMTP_PORT=587
+DEFAULT_SMTP_USER="newsletter@yourdomain.com"
+DEFAULT_SMTP_PASS="smtp_password_here"
+
+# Throttle Limit (Emails per minute)
+MAX_EMAILS_PER_MINUTE=30
+LOG_LEVEL="INFO"
+`
+  }
+};
+
+export const CodeExplorerTab: React.FC = () => {
+  const [activeFile, setActiveFile] = useState<string>('app.py');
+  const [copied, setCopied] = useState<boolean>(false);
+
+  const fileData = fileContents[activeFile];
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(fileData.code);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleDownload = () => {
+    const element = document.createElement('a');
+    const file = new Blob([fileData.code], { type: 'text/plain' });
+    element.href = URL.createObjectURL(file);
+    element.download = activeFile;
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 pb-4 mb-6">
+          <div>
+            <h2 className="text-xl font-bold text-slate-900 flex items-center">
+              <FileCode className="w-5 h-5 text-blue-600 mr-2" /> Production-Ready Codebase Explorer
+            </h2>
+            <p className="text-sm text-slate-500 mt-1">
+              Complete, corrected Python Flask & Passenger WSGI files ready for direct deployment to cPanel subdomains.
+            </p>
+          </div>
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={handleCopy}
+              className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold flex items-center transition border border-slate-300"
+            >
+              {copied ? <Check className="w-3.5 h-3.5 text-emerald-600 mr-1.5" /> : <Copy className="w-3.5 h-3.5 mr-1.5" />}
+              {copied ? 'Copied to Clipboard!' : 'Copy File'}
+            </button>
+            <button
+              onClick={handleDownload}
+              className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold flex items-center transition shadow-sm"
+            >
+              <Download className="w-3.5 h-3.5 mr-1.5" /> Download File
+            </button>
+          </div>
+        </div>
+
+        {/* File Tabs */}
+        <div className="flex items-center space-x-2 border-b border-slate-200 overflow-x-auto pb-1 mb-4">
+          {Object.keys(fileContents).map(fileName => (
+            <button
+              key={fileName}
+              onClick={() => setActiveFile(fileName)}
+              className={`px-4 py-2 font-mono text-xs rounded-t-lg font-bold transition flex items-center space-x-1.5 whitespace-nowrap ${
+                activeFile === fileName
+                  ? 'bg-slate-900 text-blue-400 border-t-2 border-blue-500'
+                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+              }`}
+            >
+              <FileCode className="w-3.5 h-3.5" />
+              <span>{fileName}</span>
+            </button>
+          ))}
+        </div>
+
+        {/* File Description */}
+        <div className="bg-blue-50/60 border border-blue-100 rounded-lg p-3 text-xs text-blue-900 mb-4 flex items-center justify-between">
+          <span><strong>Description:</strong> {fileData.desc}</span>
+          <span className="font-mono text-[10px] bg-blue-200 text-blue-800 font-bold px-2 py-0.5 rounded uppercase">{fileData.lang}</span>
+        </div>
+
+        {/* Code Editor Frame */}
+        <div className="relative rounded-xl overflow-hidden border border-slate-800 shadow-xl bg-slate-950">
+          <div className="bg-slate-900 px-4 py-2 flex items-center justify-between border-b border-slate-800 text-xs font-mono text-slate-400">
+            <div className="flex items-center space-x-2">
+              <span className="w-3 h-3 rounded-full bg-rose-500/80 inline-block"></span>
+              <span className="w-3 h-3 rounded-full bg-amber-500/80 inline-block"></span>
+              <span className="w-3 h-3 rounded-full bg-emerald-500/80 inline-block"></span>
+              <span className="ml-2 font-bold text-slate-300">{activeFile}</span>
+            </div>
+            <span>UTF-8</span>
+          </div>
+          <pre className="p-4 text-xs font-mono text-slate-200 overflow-x-auto max-h-[500px] leading-relaxed select-all">
+            {fileData.code}
+          </pre>
+        </div>
+      </div>
+    </div>
+  );
+};

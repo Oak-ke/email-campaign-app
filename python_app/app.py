@@ -13,10 +13,9 @@ import threading
 import smtplib
 import logging
 import re
-import base64
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from email.mime.application import MIMEApplication
+from email.mime.image import MIMEImage
 from email.utils import formataddr
 
 from flask import Flask, request, jsonify, send_from_directory, Response
@@ -263,48 +262,37 @@ class CampaignEngine:
                 self.broadcast_sse({"type": "progress", "data": self.get_status_payload()})
                 continue
 
-            # Prepare Message
+            # Prepare Message with CID Embedded Logo Support
             subject = self._format_template(self.template.get("subject", ""), recipient)
             body_html = self._format_template(self.template.get("body_html", ""), recipient)
             body_text = self._format_template(self.template.get("body_text", ""), recipient)
-            attachments = self.template.get("attachments", [])
 
-            if attachments:
-                msg = MIMEMultipart("mixed")
-                msg["Subject"] = subject
-                msg["From"] = formataddr((from_name, from_email))
-                msg["To"] = normalized_email
+            msg = MIMEMultipart("related")
+            msg["Subject"] = subject
+            msg["From"] = formataddr((from_name, from_email))
+            msg["To"] = normalized_email
 
-                msg_alt = MIMEMultipart("alternative")
-                if body_text:
-                    msg_alt.attach(MIMEText(body_text, "plain", "utf-8"))
-                if body_html:
-                    msg_alt.attach(MIMEText(body_html, "html", "utf-8"))
-                msg.attach(msg_alt)
+            msg_alt = MIMEMultipart("alternative")
+            if body_text:
+                msg_alt.attach(MIMEText(body_text, "plain", "utf-8"))
+            if body_html:
+                msg_alt.attach(MIMEText(body_html, "html", "utf-8"))
+            msg.attach(msg_alt)
 
-                for att in attachments:
-                    try:
-                        filename = self._format_template(att.get("name", "attachment.pdf"), recipient)
-                        raw_data = att.get("data", "")
-                        if "," in raw_data:
-                            raw_data = raw_data.split(",", 1)[1]
-                        file_bytes = base64.b64decode(raw_data)
-                        
-                        part = MIMEApplication(file_bytes, Name=filename, _subtype="pdf" if filename.lower().endswith(".pdf") else "octet-stream")
-                        part.add_header('Content-Disposition', 'attachment', filename=filename)
-                        msg.attach(part)
-                    except Exception as att_err:
-                        self.log_event(f"Error attaching file '{att.get('name')}': {str(att_err)}", "warning")
-            else:
-                msg = MIMEMultipart("alternative")
-                msg["Subject"] = subject
-                msg["From"] = formataddr((from_name, from_email))
-                msg["To"] = normalized_email
-
-                if body_text:
-                    msg.attach(MIMEText(body_text, "plain", "utf-8"))
-                if body_html:
-                    msg.attach(MIMEText(body_html, "html", "utf-8"))
+            # Attach inline CID emblem image
+            emblem_path = os.path.join(os.path.dirname(__file__), "public", "edgevest_emblem.jpg")
+            if not os.path.exists(emblem_path):
+                emblem_path = os.path.join(os.path.dirname(__file__), "..", "assets", "edgevest_emblem.jpg")
+            if os.path.exists(emblem_path):
+                try:
+                    with open(emblem_path, "rb") as img_f:
+                        img_data = img_f.read()
+                        img_mime = MIMEImage(img_data)
+                        img_mime.add_header("Content-ID", "<edgevest_emblem>")
+                        img_mime.add_header("Content-Disposition", "inline", filename="edgevest_emblem.jpg")
+                        msg.attach(img_mime)
+                except Exception as img_err:
+                    pass
 
             # Send Email with Retry Logic
             sent_successfully = False
