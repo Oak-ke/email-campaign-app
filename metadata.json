@@ -1,0 +1,6 @@
+{
+  "name": "Edgevest Email Campaign Manager",
+  "description": "Comprehensive Bulk Email Sender with rate limiting, background email queue, progress tracking, template personalization, and cPanel/Passenger WSGI deployment bundle.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
