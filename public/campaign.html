@@ -754,7 +754,26 @@ jane@company.org, Jane Smith, Globex Inc</textarea>
         });
         const data = await res.json();
         if (data.authenticated) {
-          hideAuthOverlay(data.username || "admin");
+          window.sessionData = data;
+          const userEmail = data.email || data.username || "admin";
+          hideAuthOverlay(userEmail);
+
+          if (data.hasSmtpConfig && data.email) {
+            const userBadge = document.getElementById("user-display-name");
+            if (userBadge) userBadge.innerHTML = `<span class="text-emerald-400 font-semibold mr-1">Connected as</span> ${data.email}`;
+
+            // Auto-fill Step 1 inputs
+            const smtpHost = document.getElementById("smtp-host");
+            const smtpPort = document.getElementById("smtp-port");
+            const smtpUser = document.getElementById("smtp-username");
+            const fromEmail = document.getElementById("smtp-from-email");
+
+            if (smtpHost) smtpHost.value = "outlook.office365.com";
+            if (smtpPort) smtpPort.value = "587";
+            if (smtpUser) smtpUser.value = data.email;
+            if (fromEmail) fromEmail.value = data.email;
+          }
+
           return true;
         } else {
           localStorage.removeItem("edgevest_auth_token");
@@ -777,7 +796,7 @@ jane@company.org, Jane Smith, Globex Inc</textarea>
       const btnText = document.getElementById("auth-btn-text");
 
       errBox.classList.add("hidden");
-      btnText.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i> Verifying...`;
+      btnText.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i> Verifying Office 365 SMTP...`;
 
       try {
         const res = await fetch("/api/auth/login", {
@@ -785,25 +804,28 @@ jane@company.org, Jane Smith, Globex Inc</textarea>
           headers: { "Content-Type": "application/json" },
           credentials: "include",
           body: JSON.stringify({
-            username: userEl.value.trim(),
-            password: passEl.value.trim()
+            email: userEl.value.trim(),
+            appPassword: passEl.value.trim()
           })
         });
         const data = await res.json();
         if (data.success && data.token) {
           localStorage.setItem("edgevest_auth_token", data.token);
-          hideAuthOverlay(data.username || userEl.value.trim());
+          hideAuthOverlay(data.email || userEl.value.trim());
           parseRecipientText();
           fetchCampaignStatus();
+          if (data.hasSmtpConfig) {
+            goToStep(2);
+          }
         } else {
-          errText.textContent = data.error || "Authentication failed. Invalid username or password.";
+          errText.textContent = data.error || "Authentication failed. Invalid email or App Password.";
           errBox.classList.remove("hidden");
         }
       } catch (err) {
         errText.textContent = "Network error connecting to authentication server.";
         errBox.classList.remove("hidden");
       } finally {
-        btnText.innerHTML = `<i class="fa-solid fa-lock-open mr-2 text-amber-300"></i> Sign In to Dashboard`;
+        btnText.innerHTML = `<i class="fa-solid fa-lock-open mr-2 text-amber-300"></i> Connect Office 365 SMTP`;
       }
     }
 
@@ -1329,6 +1351,10 @@ jane@company.org, Jane Smith, Globex Inc</textarea>
         parseRecipientText();
         syncVisualToHtml();
         fetchCampaignStatus();
+
+        if (window.sessionData && window.sessionData.hasSmtpConfig) {
+          goToStep(2);
+        }
       }
     }
 
@@ -2359,24 +2385,25 @@ ${visualContent}
       <form id="auth-form" onsubmit="handleLoginSubmit(event)" class="space-y-4">
         <div>
           <label class="block text-xs font-semibold uppercase tracking-wider text-[#d1c4b8] mb-1.5">
-            <i class="fa-solid fa-user text-[#e2b871] mr-1"></i> Username *
+            <i class="fa-solid fa-envelope text-[#e2b871] mr-1"></i> Office 365 / Outlook Email *
           </label>
-          <input type="text" id="auth-username" required placeholder="e.g. admin" value="admin" class="w-full glass-input rounded-xl px-4 py-2.5 text-sm" />
+          <input type="email" id="auth-username" required placeholder="user@outlook.com or user@company.com" class="w-full glass-input rounded-xl px-4 py-2.5 text-sm" />
         </div>
 
         <div>
           <label class="block text-xs font-semibold uppercase tracking-wider text-[#d1c4b8] mb-1.5 flex justify-between items-center">
-            <span><i class="fa-solid fa-key text-[#e2b871] mr-1"></i> Password *</span>
+            <span><i class="fa-solid fa-key text-[#e2b871] mr-1"></i> Microsoft App Password *</span>
             <button type="button" onclick="toggleAuthPasswordVisibility()" class="text-[11px] text-[#a8988a] hover:text-[#e2b871] transition lowercase">
               <i id="pwd-toggle-icon" class="fa-solid fa-eye mr-1"></i> show
             </button>
           </label>
-          <input type="password" id="auth-password" required placeholder="Enter password" value="edgevest2026" class="w-full glass-input rounded-xl px-4 py-2.5 text-sm" />
+          <input type="password" id="auth-password" required placeholder="Enter 16-character App Password" class="w-full glass-input rounded-xl px-4 py-2.5 text-sm" />
+          <p class="text-[11px] text-stone-400 mt-1">Requires a 16-character Microsoft App Password.</p>
         </div>
 
         <button type="submit" id="btn-auth-submit" class="w-full py-3 bg-gradient-to-r from-[#8c6543] via-[#785338] to-[#5c3d28] hover:from-[#9e7854] hover:to-[#6d4c2d] text-white font-bold rounded-xl text-sm border border-[#c5a059]/40 transition flex items-center justify-center shadow-lg shadow-[#8c6543]/20">
           <span id="auth-btn-text" class="flex items-center">
-            <i class="fa-solid fa-lock-open mr-2 text-amber-300"></i> Sign In to Dashboard
+            <i class="fa-solid fa-right-to-bracket mr-2 text-amber-300"></i> Authenticate & Connect SMTP
           </span>
         </button>
       </form>

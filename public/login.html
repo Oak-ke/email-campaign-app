@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sign In - Edgevest Campaign Manager</title>
+  <title>Office 365 Sign In - Edgevest Campaign Manager</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <style>
@@ -34,7 +34,7 @@
     <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#8c6543] via-[#e2b871] to-[#8c6543]"></div>
 
     <!-- Header & Logo -->
-    <div class="text-center mb-8">
+    <div class="text-center mb-6">
       <div class="h-16 w-16 mx-auto p-1.5 rounded-2xl bg-[#faf8f5] flex items-center justify-center shadow-xl shadow-[#8c6543]/30 ring-1 ring-[#e2b871]/60 mb-4">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="100%" height="100%">
           <defs>
@@ -55,49 +55,55 @@
         </svg>
       </div>
       <h1 class="text-2xl font-bold tracking-tight text-white serif-title">EDGEVEST</h1>
-      <p class="text-xs text-[#e2b871] font-medium tracking-widest uppercase mt-1">Campaign Manager Login</p>
+      <p class="text-xs text-[#e2b871] font-medium tracking-widest uppercase mt-1">Office 365 / Outlook Campaign Login</p>
+    </div>
+
+    <div class="mb-5 p-3.5 bg-[#1a1410] border border-[#8c6543]/40 rounded-xl text-xs text-amber-200/90 leading-relaxed">
+      <i class="fa-solid fa-circle-info text-[#e2b871] mr-1.5"></i>
+      Sign in with your <strong>Office 365 / Outlook</strong> email and <strong>App Password</strong>. Credentials will be verified against <code class="text-amber-300 font-mono">outlook.office365.com:587</code>.
     </div>
 
     <!-- Error Alert -->
-    <div id="error-box" class="hidden mb-6 p-4 bg-rose-950/80 border border-rose-800/90 rounded-xl text-rose-200 text-xs flex items-center shadow-lg">
+    <div id="error-box" class="hidden mb-5 p-4 bg-rose-950/80 border border-rose-800/90 rounded-xl text-rose-200 text-xs flex items-center shadow-lg">
       <i class="fa-solid fa-triangle-exclamation text-rose-400 text-base mr-3 shrink-0"></i>
       <span id="error-msg">Invalid credentials. Please try again.</span>
     </div>
 
     <!-- Login Form -->
-    <form id="login-form" onsubmit="handleLogin(event)" class="space-y-5">
+    <form id="login-form" onsubmit="handleLogin(event)" class="space-y-4">
       <div>
-        <label class="block text-xs font-semibold uppercase tracking-wider text-[#d1c4b8] mb-2">
-          <i class="fa-solid fa-user text-[#e2b871] mr-1.5"></i> Username
+        <label class="block text-xs font-semibold uppercase tracking-wider text-[#d1c4b8] mb-1.5">
+          <i class="fa-solid fa-envelope text-[#e2b871] mr-1.5"></i> Office 365 / Outlook Email
         </label>
-        <input type="text" id="username" required placeholder="Enter username" value="admin" class="w-full glass-input rounded-xl px-4 py-3 text-sm transition" />
+        <input type="email" id="email" required placeholder="e.g. user@outlook.com or user@company.com" class="w-full glass-input rounded-xl px-4 py-3 text-sm transition" />
       </div>
 
       <div>
-        <label class="block text-xs font-semibold uppercase tracking-wider text-[#d1c4b8] mb-2 flex justify-between items-center">
-          <span><i class="fa-solid fa-lock text-[#e2b871] mr-1.5"></i> Password</span>
+        <label class="block text-xs font-semibold uppercase tracking-wider text-[#d1c4b8] mb-1.5 flex justify-between items-center">
+          <span><i class="fa-solid fa-key text-[#e2b871] mr-1.5"></i> Microsoft App Password</span>
           <button type="button" onclick="togglePassword()" class="text-[11px] text-[#a8988a] hover:text-[#e2b871] transition lowercase">
             <i id="pwd-icon" class="fa-solid fa-eye mr-1"></i> show
           </button>
         </label>
-        <input type="password" id="password" required placeholder="Enter password" value="edgevest2026" class="w-full glass-input rounded-xl px-4 py-3 text-sm transition" />
+        <input type="password" id="appPassword" required placeholder="Enter 16-character App Password" class="w-full glass-input rounded-xl px-4 py-3 text-sm transition" />
+        <p class="text-[11px] text-stone-400 mt-1">Generate an App Password in your Microsoft account security settings if 2FA is enabled.</p>
       </div>
 
-      <button type="submit" id="btn-submit" class="w-full py-3.5 bg-gradient-to-r from-[#8c6543] via-[#785338] to-[#5c3d28] hover:from-[#9e7854] hover:to-[#6d4c2d] text-white font-bold rounded-xl text-sm border border-[#c5a059]/40 transition flex items-center justify-center shadow-xl shadow-[#8c6543]/20">
+      <button type="submit" id="btn-submit" class="w-full py-3.5 mt-2 bg-gradient-to-r from-[#8c6543] via-[#785338] to-[#5c3d28] hover:from-[#9e7854] hover:to-[#6d4c2d] text-white font-bold rounded-xl text-sm border border-[#c5a059]/40 transition flex items-center justify-center shadow-xl shadow-[#8c6543]/20">
         <span id="btn-text" class="flex items-center">
-          <i class="fa-solid fa-right-to-bracket mr-2 text-amber-300"></i> Sign In to Dashboard
+          <i class="fa-solid fa-right-to-bracket mr-2 text-amber-300"></i> Authenticate & Connect SMTP
         </span>
       </button>
     </form>
 
-    <div class="mt-8 text-center border-t border-[#3d2d20]/60 pt-4">
+    <div class="mt-6 text-center border-t border-[#3d2d20]/60 pt-4">
       <p class="text-[11px] text-stone-500">Edgevest Enterprise Session Security &bull; Protected Access</p>
     </div>
   </div>
 
   <script>
     function togglePassword() {
-      const p = document.getElementById("password");
+      const p = document.getElementById("appPassword");
       const i = document.getElementById("pwd-icon");
       if (p.type === "password") {
         p.type = "text";
@@ -110,40 +116,39 @@
 
     async function handleLogin(e) {
       e.preventDefault();
-      const user = document.getElementById("username").value.trim();
-      const pass = document.getElementById("password").value.trim();
+      const email = document.getElementById("email").value.trim();
+      const appPassword = document.getElementById("appPassword").value.trim();
       const errBox = document.getElementById("error-box");
       const errText = document.getElementById("error-msg");
       const btnText = document.getElementById("btn-text");
 
       errBox.classList.add("hidden");
-      btnText.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i> Authenticating...`;
+      btnText.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i> Verifying Office 365 SMTP...`;
 
       try {
         const res = await fetch("/api/auth/login", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
-          body: JSON.stringify({ username: user, password: pass })
+          body: JSON.stringify({ email, appPassword })
         });
 
         const data = await res.json();
         if (data.success && data.token) {
           localStorage.setItem("edgevest_auth_token", data.token);
           
-          // Get next redirect parameter safely
           const urlParams = new URLSearchParams(window.location.search);
           const nextUrl = urlParams.get("next") || "/campaign.html";
           window.location.href = nextUrl;
         } else {
-          errText.textContent = data.error || "Authentication failed. Invalid username or password.";
+          errText.textContent = data.error || "SMTP Authentication failed. Please check your email and App Password.";
           errBox.classList.remove("hidden");
         }
       } catch (err) {
         errText.textContent = "Network error connecting to authentication server.";
         errBox.classList.remove("hidden");
       } finally {
-        btnText.innerHTML = `<i class="fa-solid fa-right-to-bracket mr-2 text-amber-300"></i> Sign In to Dashboard`;
+        btnText.innerHTML = `<i class="fa-solid fa-right-to-bracket mr-2 text-amber-300"></i> Authenticate & Connect SMTP`;
       }
     }
   </script>

@@ -1,22 +1,58 @@
 import crypto from "crypto";
-import express from "express";
 
 export const SESSION_COOKIE_NAME = "ev_session";
 
-// Secret key for signing cookies and tokens
-export function getSessionSecret(): string {
-  return process.env.SESSION_SECRET || process.env.APP_PASSWORD || process.env.ADMIN_PASSWORD || "edgevest_session_secret_default_2026";
+export interface SmtpSessionConfig {
+  host: string;
+  port: number;
+  username: string;
+  password: string;
+  fromEmail: string;
+  fromName: string;
+  use_tls: boolean;
+  use_ssl: boolean;
+  authenticatedAt: string;
 }
 
-// Configured admin credentials
-export function getAdminCredentials() {
-  const username = (process.env.ADMIN_USERNAME || "admin").trim();
-  const password = (process.env.APP_PASSWORD || process.env.ADMIN_PASSWORD || "edgevest2026").trim();
-  return { username, password };
+// In-memory store mapping session tokens to verified SMTP credentials
+const sessionSmtpStore = new Map<string, SmtpSessionConfig>();
+
+export function setSessionSmtp(token: string, config: SmtpSessionConfig): void {
+  if (token) {
+    sessionSmtpStore.set(token, config);
+  }
+}
+
+export function getSessionSmtp(token: string): SmtpSessionConfig | undefined {
+  if (!token) return undefined;
+  return sessionSmtpStore.get(token);
+}
+
+export function removeSessionSmtp(token: string): void {
+  if (token) {
+    sessionSmtpStore.delete(token);
+  }
+}
+
+let hasWarnedMissingSecret = false;
+
+/**
+ * Secret key for signing cookies and tokens.
+ * Warns if SESSION_SECRET is missing from environment.
+ */
+export function getSessionSecret(): string {
+  if (process.env.SESSION_SECRET) {
+    return process.env.SESSION_SECRET;
+  }
+  if (!hasWarnedMissingSecret) {
+    console.warn("⚠️ [SECURITY WARNING] SESSION_SECRET environment variable is missing. Using default secret. Please configure SESSION_SECRET in production.");
+    hasWarnedMissingSecret = true;
+  }
+  return "edgevest_default_generated_session_secret_2026_x89a";
 }
 
 /**
- * Timing-safe string comparison to prevent timing side-channel attacks on password verification.
+ * Timing-safe string comparison to prevent timing side-channel attacks.
  */
 export function timingSafeCompare(a: string, b: string): boolean {
   try {
@@ -83,14 +119,13 @@ export function verifySessionToken(token: string): { valid: boolean; username: s
 }
 
 /**
- * Prevents open-redirect vulnerabilities by validating that redirect paths start with '/' and do not contain protocol/host specifiers.
+ * Prevents open-redirect vulnerabilities by validating that redirect paths start with '/'.
  */
 export function sanitizeRedirectUrl(nextUrl?: string): string {
   if (!nextUrl || typeof nextUrl !== "string") {
     return "/campaign.html";
   }
   const clean = nextUrl.trim();
-  // Ensure it starts with a single '/' and not '//' or 'http:'
   if (clean.startsWith("/") && !clean.startsWith("//") && !clean.includes(":\\") && !clean.includes(":/")) {
     return clean;
   }

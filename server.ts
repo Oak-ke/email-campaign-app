@@ -13,7 +13,6 @@ import rateLimit from "express-rate-limit";
 
 import { suppressionStore } from "./src/storage.js";
 import {
-  createUnsubscribeToken,
   verifyUnsubscribeToken,
   buildUnsubscribeUrl,
   injectUnsubscribeFooter
@@ -21,19 +20,29 @@ import {
 import {
   SESSION_COOKIE_NAME,
   getSessionSecret,
-  getAdminCredentials,
-  timingSafeCompare,
   generateSessionToken,
   verifySessionToken,
-  sanitizeRedirectUrl
+  sanitizeRedirectUrl,
+  setSessionSmtp,
+  getSessionSmtp,
+  removeSessionSmtp,
+  SmtpSessionConfig
 } from "./src/auth-session.js";
 import {
   smtpSchema,
   recipientValidationSchema,
   campaignStartSchema,
-  loginSchema,
-  unsubscribeSchema
+  loginSchema
 } from "./src/validation.js";
+
+// Global process error handling
+process.on("unhandledRejection", (reason, promise) => {
+  console.error("⚠️ Unhandled Rejection at:", promise, "reason:", reason);
+});
+
+process.on("uncaughtException", (err) => {
+  console.error("⚠️ Uncaught Exception:", err);
+});
 
 // Force Node to prioritize IPv4 DNS lookups to avoid ENETUNREACH on IPv6 addresses
 if (dns.setDefaultResultOrder) {
@@ -80,7 +89,7 @@ async function startServer() {
   const app = express();
   const PORT = Number(process.env.PORT) || 3000;
 
-  // Security Headers Middleware via Helmet (configured to allow Tailwind CDN, FontAwesome, & iframe embedding)
+  // Security Headers Middleware via Helmet
   app.use(
     helmet({
       frameguard: false,
@@ -118,13 +127,13 @@ async function startServer() {
   // In-memory active bearer tokens
   const activeTokens = new Set<string>();
 
-  // Rate limiters for sensitive endpoints
+  // Rate limiters
   const authLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 20, // 20 attempts per window
+    windowMs: 15 * 60 * 1000,
+    max: 20,
     standardHeaders: true,
     legacyHeaders: false,
-    message: { success: false, error: "Too many login attempts. Please try again in 15 minutes." }
+    message: { success: false, error: "Too many authentication attempts. Please try again in 15 minutes." }
   });
 
   const smtpLimiter = rateLimit({
@@ -174,45 +183,44 @@ async function startServer() {
     isProcessing: false
   };
 
-  // Helper to extract session or token from request
-  const checkAuthentication = (req: express.Request): { authenticated: boolean; username: string | null } => {
-    // 1. Check signed cookie session
+  // Helper to extract session token from cookie or headers
+  const getAuthTokenFromReq = (req: express.Request): string | null => {
     const sessionCookie = req.signedCookies?.[SESSION_COOKIE_NAME] || req.cookies?.[SESSION_COOKIE_NAME];
-    if (sessionCookie) {
-      const verified = verifySessionToken(sessionCookie);
-      if (verified.valid) {
-        return { authenticated: true, username: verified.username };
-      }
-    }
+    if (sessionCookie) return sessionCookie;
 
-    // 2. Check Bearer token or x-auth-token or query.token
     const authHeader = req.headers.authorization;
-    let token: string | null = null;
     if (authHeader && authHeader.startsWith("Bearer ")) {
-      token = authHeader.substring(7).trim();
-    } else if (typeof req.headers["x-auth-token"] === "string") {
-      token = req.headers["x-auth-token"].trim();
-    } else if (typeof req.query?.token === "string") {
-      token = req.query.token.trim();
+      return authHeader.substring(7).trim();
+    }
+    if (typeof req.headers["x-auth-token"] === "string") {
+      return req.headers["x-auth-token"].trim();
+    }
+    if (typeof req.query?.token === "string") {
+      return req.query.token.trim();
+    }
+    return null;
+  };
+
+  const checkAuthentication = (req: express.Request): { authenticated: boolean; username: string | null; token: string | null } => {
+    const token = getAuthTokenFromReq(req);
+    if (!token) return { authenticated: false, username: null, token: null };
+
+    if (activeTokens.has(token)) {
+      const verified = verifySessionToken(token);
+      return { authenticated: true, username: verified.username || "admin", token };
     }
 
-    if (token) {
-      if (activeTokens.has(token)) {
-        return { authenticated: true, username: getAdminCredentials().username };
-      }
-      const verifiedToken = verifySessionToken(token);
-      if (verifiedToken.valid) {
-        activeTokens.add(token);
-        return { authenticated: true, username: verifiedToken.username || getAdminCredentials().username };
-      }
+    const verified = verifySessionToken(token);
+    if (verified.valid && verified.username) {
+      activeTokens.add(token);
+      return { authenticated: true, username: verified.username, token };
     }
 
-    return { authenticated: false, username: null };
+    return { authenticated: false, username: null, token: null };
   };
 
   // Middleware enforcing authentication
   const requireAuthMiddleware = (req: express.Request, res: express.Response, next: express.NextFunction) => {
-    // Public route exceptions
     const isPublic =
       req.path === "/api/health" ||
       req.path === "/login" ||
@@ -229,13 +237,11 @@ async function startServer() {
     }
 
     const authState = checkAuthentication(req);
-    const requireLoginFlag = process.env.REQUIRE_LOGIN === "true";
 
     if (authState.authenticated) {
       return next();
     }
 
-    // If API route: return 401 JSON
     if (req.path.startsWith("/api/")) {
       return res.status(401).json({
         success: false,
@@ -244,13 +250,8 @@ async function startServer() {
       });
     }
 
-    // If page request and REQUIRE_LOGIN feature flag is set to true
-    if (requireLoginFlag) {
-      const nextParam = encodeURIComponent(sanitizeRedirectUrl(req.originalUrl));
-      return res.redirect(`/login?next=${nextParam}`);
-    }
-
-    next();
+    const nextParam = encodeURIComponent(sanitizeRedirectUrl(req.originalUrl));
+    return res.redirect(`/login?next=${nextParam}`);
   };
 
   app.use(requireAuthMiddleware);
@@ -309,13 +310,29 @@ async function startServer() {
   // AUTHENTICATION ENDPOINTS
   app.get("/api/auth/check", (req, res) => {
     const authState = checkAuthentication(req);
+    const token = authState.token;
+    const smtpConfig = token ? getSessionSmtp(token) : undefined;
+
     res.json({
       authenticated: authState.authenticated,
-      username: authState.username
+      email: authState.username,
+      username: authState.username,
+      hasSmtpConfig: Boolean(smtpConfig),
+      smtp: smtpConfig
+        ? {
+            host: smtpConfig.host,
+            port: smtpConfig.port,
+            username: smtpConfig.username,
+            fromEmail: smtpConfig.fromEmail,
+            fromName: smtpConfig.fromName,
+            use_tls: smtpConfig.use_tls,
+            use_ssl: smtpConfig.use_ssl
+          }
+        : null
     });
   });
 
-  app.post(["/api/auth/login", "/api/login"], authLimiter, (req, res) => {
+  app.post(["/api/auth/login", "/api/login"], authLimiter, async (req, res) => {
     const parseResult = loginSchema.safeParse(req.body);
     if (!parseResult.success) {
       return res.status(400).json({
@@ -324,15 +341,68 @@ async function startServer() {
       });
     }
 
-    const { username, password } = parseResult.data;
-    const creds = getAdminCredentials();
+    const data = parseResult.data;
+    const email = (data.email || data.username || "").trim().toLowerCase();
+    const appPassword = (data.appPassword || data.password || "").trim();
 
-    const isUserMatch = timingSafeCompare(username.trim(), creds.username);
-    const isPassMatch = timingSafeCompare(password.trim(), creds.password);
+    if (!email || !appPassword) {
+      return res.status(400).json({
+        success: false,
+        error: "Office 365 / Outlook Email and App Password are required."
+      });
+    }
 
-    if (isUserMatch && isPassMatch) {
-      const sessionToken = generateSessionToken(creds.username);
+    const host = "outlook.office365.com";
+    const port = 587;
+
+    const debugLogs: string[] = [];
+    const customLogger = {
+      level: () => "trace",
+      trace: (e: any) => debugLogs.push(`[TRACE] ${typeof e === "string" ? e : JSON.stringify(e)}`),
+      debug: (e: any) => debugLogs.push(`[DEBUG] ${typeof e === "string" ? e : JSON.stringify(e)}`),
+      info: (e: any) => debugLogs.push(`[INFO] ${typeof e === "string" ? e : JSON.stringify(e)}`),
+      warn: (e: any) => debugLogs.push(`[WARN] ${typeof e === "string" ? e : JSON.stringify(e)}`),
+      error: (e: any) => debugLogs.push(`[ERROR] ${typeof e === "string" ? e : JSON.stringify(e)}`)
+    };
+
+    debugLogs.push(`[LOGIN-SMTP] Attempting SMTP verification for ${email} on ${host}:${port}`);
+
+    try {
+      const transporter = nodemailer.createTransport({
+        host,
+        port,
+        secure: false,
+        requireTLS: true,
+        family: 4,
+        lookup: forceIPv4CustomLookup,
+        logger: customLogger,
+        debug: true,
+        auth: { user: email, pass: appPassword },
+        tls: { rejectUnauthorized: false, servername: host },
+        connectionTimeout: 12000,
+        greetingTimeout: 12000,
+        socketTimeout: 12000
+      } as any);
+
+      await transporter.verify();
+      debugLogs.push(`[LOGIN-SMTP] Connection & authentication successful.`);
+
+      const sessionToken = generateSessionToken(email);
       activeTokens.add(sessionToken);
+
+      const smtpConfig: SmtpSessionConfig = {
+        host,
+        port,
+        username: email,
+        password: appPassword,
+        fromEmail: email,
+        fromName: email.split("@")[0],
+        use_tls: true,
+        use_ssl: false,
+        authenticatedAt: new Date().toISOString()
+      };
+
+      setSessionSmtp(sessionToken, smtpConfig);
 
       res.cookie(SESSION_COOKIE_NAME, sessionToken, {
         httpOnly: true,
@@ -345,24 +415,28 @@ async function startServer() {
       return res.json({
         success: true,
         token: sessionToken,
-        username: creds.username,
-        message: "Authentication successful."
+        email,
+        hasSmtpConfig: true,
+        message: `Office 365 SMTP authentication successful. Connected as ${email}.`
+      });
+    } catch (err: any) {
+      console.error("[LOGIN SMTP ERROR]", err);
+      return res.status(401).json({
+        success: false,
+        error: `SMTP Authentication failed for outlook.office365.com:587: ${err.message || "Invalid email or App Password"}. Please verify your 16-character Microsoft App Password.`,
+        logs: debugLogs
       });
     }
-
-    return res.status(401).json({
-      success: false,
-      error: "Invalid username or password. Please verify your environment credentials."
-    });
   });
 
   app.post(["/api/auth/logout", "/api/logout"], (req, res) => {
-    res.clearCookie(SESSION_COOKIE_NAME);
-    const authHeader = req.headers.authorization;
-    if (authHeader && authHeader.startsWith("Bearer ")) {
-      activeTokens.delete(authHeader.substring(7).trim());
+    const token = getAuthTokenFromReq(req);
+    if (token) {
+      activeTokens.delete(token);
+      removeSessionSmtp(token);
     }
-    res.json({ success: true, message: "Logged out successfully." });
+    res.clearCookie(SESSION_COOKIE_NAME);
+    res.json({ success: true, message: "Logged out successfully and cleared session SMTP config." });
   });
 
   // HEALTH CHECK
@@ -372,7 +446,6 @@ async function startServer() {
       service: "Edgevest Bulk Email Campaign Server",
       timestamp: new Date().toISOString(),
       uptime_seconds: Math.floor(process.uptime()),
-      require_login: process.env.REQUIRE_LOGIN === "true",
       environment: process.env.NODE_ENV || "development",
       active_campaign: {
         status: currentCampaign.status,
@@ -411,7 +484,23 @@ async function startServer() {
 
   // SMTP VERIFICATION ENDPOINT
   app.post("/api/smtp/verify", smtpLimiter, async (req, res) => {
+    const token = getAuthTokenFromReq(req);
+    const existingSmtp = token ? getSessionSmtp(token) : undefined;
+
     const parseResult = smtpSchema.safeParse(req.body);
+    if (!parseResult.success && existingSmtp) {
+      return res.json({
+        success: true,
+        message: `Using active session SMTP config for ${existingSmtp.username} (${existingSmtp.host}:${existingSmtp.port}).`,
+        session_smtp: {
+          host: existingSmtp.host,
+          port: existingSmtp.port,
+          username: existingSmtp.username,
+          fromEmail: existingSmtp.fromEmail
+        }
+      });
+    }
+
     if (!parseResult.success) {
       return res.status(400).json({
         success: false,
@@ -429,14 +518,12 @@ async function startServer() {
     const debugLogs: string[] = [];
     const customLogger = {
       level: () => "trace",
-      trace: (e: any, ...a: any[]) => debugLogs.push(`[TRACE] ${typeof e === "string" ? e : JSON.stringify(e)}`),
-      debug: (e: any, ...a: any[]) => debugLogs.push(`[DEBUG] ${typeof e === "string" ? e : JSON.stringify(e)}`),
-      info: (e: any, ...a: any[]) => debugLogs.push(`[INFO] ${typeof e === "string" ? e : JSON.stringify(e)}`),
-      warn: (e: any, ...a: any[]) => debugLogs.push(`[WARN] ${typeof e === "string" ? e : JSON.stringify(e)}`),
-      error: (e: any, ...a: any[]) => debugLogs.push(`[ERROR] ${typeof e === "string" ? e : JSON.stringify(e)}`)
+      trace: (e: any) => debugLogs.push(`[TRACE] ${typeof e === "string" ? e : JSON.stringify(e)}`),
+      debug: (e: any) => debugLogs.push(`[DEBUG] ${typeof e === "string" ? e : JSON.stringify(e)}`),
+      info: (e: any) => debugLogs.push(`[INFO] ${typeof e === "string" ? e : JSON.stringify(e)}`),
+      warn: (e: any) => debugLogs.push(`[WARN] ${typeof e === "string" ? e : JSON.stringify(e)}`),
+      error: (e: any) => debugLogs.push(`[ERROR] ${typeof e === "string" ? e : JSON.stringify(e)}`)
     };
-
-    debugLogs.push(`[INIT] Starting SMTP verification for ${cleanHost}:${portNum} (User: ${cleanUser})`);
 
     try {
       const startTime = Date.now();
@@ -451,9 +538,9 @@ async function startServer() {
         debug: true,
         auth: { user: cleanUser, pass: password },
         tls: { rejectUnauthorized: false, servername: cleanHost },
-        connectionTimeout: 15000,
-        greetingTimeout: 15000,
-        socketTimeout: 15000
+        connectionTimeout: 12000,
+        greetingTimeout: 12000,
+        socketTimeout: 12000
       } as any);
 
       await transporter.verify();
@@ -527,7 +614,25 @@ async function startServer() {
       });
     }
 
-    const { smtp, recipients, template, settings } = parseResult.data;
+    const { recipients, template, settings } = parseResult.data;
+    let smtp = parseResult.data.smtp;
+
+    // Fallback to session SMTP config if not explicitly provided or password missing
+    const token = getAuthTokenFromReq(req);
+    const sessionSmtp = token ? getSessionSmtp(token) : undefined;
+
+    if ((!smtp || !smtp.password || !smtp.host) && sessionSmtp) {
+      smtp = {
+        host: sessionSmtp.host,
+        port: sessionSmtp.port,
+        username: sessionSmtp.username,
+        password: sessionSmtp.password,
+        use_ssl: sessionSmtp.use_ssl,
+        use_tls: sessionSmtp.use_tls,
+        from_email: sessionSmtp.fromEmail,
+        from_name: sessionSmtp.fromName
+      };
+    }
 
     if (currentCampaign.timer) clearInterval(currentCampaign.timer);
 
@@ -545,7 +650,6 @@ async function startServer() {
       });
     }
 
-    // Check how many initial recipients are suppressed
     const suppressedCount = recipients.filter((r) => suppressionStore.isSuppressed(r.email)).length;
     if (suppressedCount > 0) {
       initLogs.push({
@@ -585,9 +689,9 @@ async function startServer() {
           lookup: forceIPv4CustomLookup,
           auth: { user: cleanUser, pass: smtp.password },
           tls: { rejectUnauthorized: false, servername: cleanHost },
-          connectionTimeout: 15000,
-          greetingTimeout: 15000,
-          socketTimeout: 15000
+          connectionTimeout: 12000,
+          greetingTimeout: 12000,
+          socketTimeout: 12000
         } as any);
       } catch (e: any) {
         initLogs.push({
@@ -633,7 +737,6 @@ async function startServer() {
     const fromEmail = (smtp?.from_email || smtp?.username || "no-reply@edgevest.com").trim();
     const fromName = (smtp?.from_name || "Edgevest").trim();
 
-    // Determine host base URL for unsubscribe links
     let baseUrl = "http://localhost:" + PORT;
     if (req) {
       const hostHeader = req.headers.host;
@@ -648,7 +751,6 @@ async function startServer() {
       const rec = currentCampaign.recipients[idx];
       const displayIndex = idx + 1;
 
-      // CHECK SUPPRESSION STORE BEFORE DISPATCH
       if (suppressionStore.isSuppressed(rec.email)) {
         rec.status = "suppressed";
         rec.error = "Email address is in global suppression list.";
@@ -662,7 +764,6 @@ async function startServer() {
         continue;
       }
 
-      // Personalize subject & body
       let personalizedSubject = template?.subject || "Edgevest Update";
       let personalizedBody = template?.body_html || "<p>Hello {name}</p>";
 
@@ -676,7 +777,6 @@ async function startServer() {
         .replace(/\{email\}/gi, rec.email)
         .replace(/\{company\}/gi, rec.company || "Valued Client");
 
-      // Inject Unsubscribe Link & Headers
       const unsubUrl = buildUnsubscribeUrl(baseUrl, rec.email);
       personalizedBody = injectUnsubscribeFooter(personalizedBody, unsubUrl);
 
@@ -729,7 +829,6 @@ async function startServer() {
           });
         }
       } else {
-        // Local Simulation Mode
         if (Math.random() > 0.1) {
           rec.status = "sent";
           currentCampaign.sent += 1;
@@ -881,7 +980,7 @@ async function startServer() {
 
   app.get(["/campaign.html", "/index.html", "/"], (req, res, next) => {
     if (req.query.dev === "true") {
-      return next(); // Let Vite handle React DevTools view when ?dev=true
+      return next();
     }
     const distPath = path.join(process.cwd(), "dist", "campaign.html");
     const publicPath = path.join(process.cwd(), "public", "campaign.html");
@@ -897,7 +996,7 @@ async function startServer() {
   app.use(express.static(path.join(process.cwd(), "public")));
   app.use("/public", express.static(path.join(process.cwd(), "public")));
 
-  // VITE DEV MIDDLEWARE FOR SPA / HMR
+  // VITE DEV MIDDLEWARE
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
       server: { middlewareMode: true },
@@ -912,9 +1011,26 @@ async function startServer() {
     });
   }
 
-  app.listen(PORT, "0.0.0.0", () => {
-    console.log(`Campaign App running on http://localhost:${PORT}`);
+  const server = app.listen(PORT, "0.0.0.0", () => {
+    console.log(`Campaign App running on http://0.0.0.0:${PORT}`);
   });
+
+  // Graceful shutdown logic
+  const gracefulShutdown = (signal: string) => {
+    console.log(`\nReceived ${signal}. Shutting down gracefully...`);
+    if (currentCampaign.timer) clearInterval(currentCampaign.timer);
+    server.close(() => {
+      console.log("HTTP server closed. Exiting process.");
+      process.exit(0);
+    });
+    setTimeout(() => {
+      console.error("Forced shutdown after timeout.");
+      process.exit(1);
+    }, 10000);
+  };
+
+  process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
+  process.on("SIGINT", () => gracefulShutdown("SIGINT"));
 }
 
 startServer();

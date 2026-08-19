@@ -45,9 +45,14 @@ export const campaignStartSchema = z.object({
 });
 
 export const loginSchema = z.object({
-  username: z.string().min(1, "Username is required"),
-  password: z.string().min(1, "Password is required")
-});
+  email: z.string().optional(),
+  appPassword: z.string().optional(),
+  username: z.string().optional(),
+  password: z.string().optional()
+}).refine(
+  (data) => Boolean((data.email || data.username) && (data.appPassword || data.password)),
+  { message: "Office 365 / Outlook Email and App Password are required." }
+);
 
 export const unsubscribeSchema = z.object({
   token: z.string().min(1, "Unsubscribe token is required"),
