@@ -687,6 +687,7 @@ jane@company.org, Jane Smith, Globex Inc</textarea>
     async function authenticatedFetch(url, options = {}) {
       options = options || {};
       options.headers = options.headers || {};
+      options.credentials = options.credentials || "include";
       const token = localStorage.getItem("edgevest_auth_token");
       if (token) {
         options.headers["Authorization"] = `Bearer ${token}`;
@@ -743,13 +744,13 @@ jane@company.org, Jane Smith, Globex Inc</textarea>
 
     async function checkAuthStatus() {
       const token = localStorage.getItem("edgevest_auth_token");
-      if (!token) {
-        showAuthOverlay();
-        return false;
-      }
+      const headers = {};
+      if (token) headers["Authorization"] = `Bearer ${token}`;
+
       try {
         const res = await fetch("/api/auth/check", {
-          headers: { "Authorization": `Bearer ${token}` }
+          headers,
+          credentials: "include"
         });
         const data = await res.json();
         if (data.authenticated) {
@@ -782,6 +783,7 @@ jane@company.org, Jane Smith, Globex Inc</textarea>
         const res = await fetch("/api/auth/login", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
+          credentials: "include",
           body: JSON.stringify({
             username: userEl.value.trim(),
             password: passEl.value.trim()
@@ -807,12 +809,15 @@ jane@company.org, Jane Smith, Globex Inc</textarea>
 
     async function handleLogout() {
       const token = localStorage.getItem("edgevest_auth_token");
-      if (token) {
-        await fetch("/api/auth/logout", {
-          method: "POST",
-          headers: { "Authorization": `Bearer ${token}` }
-        }).catch(() => {});
-      }
+      const headers = {};
+      if (token) headers["Authorization"] = `Bearer ${token}`;
+
+      await fetch("/api/auth/logout", {
+        method: "POST",
+        headers,
+        credentials: "include"
+      }).catch(() => {});
+
       localStorage.removeItem("edgevest_auth_token");
       showAuthOverlay("You have been signed out successfully.");
     }
@@ -924,19 +929,20 @@ jane@company.org, Jane Smith, Globex Inc</textarea>
     }
 
     // SMTP Verification
-    document.getElementById("btn-test-smtp").addEventListener("click", async () => {
+    document.getElementById("btn-test-smtp")?.addEventListener("click", async () => {
       const resultDiv = document.getElementById("smtp-test-result");
+      if (!resultDiv) return;
       resultDiv.classList.remove("hidden");
       resultDiv.className = "mt-4 p-4 rounded-xl text-sm bg-[#1a2e26] text-[#63b39b] border border-[#2d5a4c]";
       resultDiv.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Testing connection to SMTP server & gathering diagnostic logs...';
 
       const payload = {
-        host: document.getElementById("smtp-host").value,
-        port: document.getElementById("smtp-port").value,
-        username: document.getElementById("smtp-user").value,
-        password: document.getElementById("smtp-pass").value,
-        use_tls: document.getElementById("smtp-tls").checked,
-        use_ssl: document.getElementById("smtp-ssl").checked,
+        host: document.getElementById("smtp-host")?.value || "",
+        port: document.getElementById("smtp-port")?.value || "587",
+        username: document.getElementById("smtp-user")?.value || "",
+        password: document.getElementById("smtp-pass")?.value || "",
+        use_tls: document.getElementById("smtp-tls")?.checked || false,
+        use_ssl: document.getElementById("smtp-ssl")?.checked || false,
       };
 
       try {
@@ -994,29 +1000,34 @@ jane@company.org, Jane Smith, Globex Inc</textarea>
     });
 
     // Sample Data Loader
-    document.getElementById("btn-sample-data").addEventListener("click", () => {
+    document.getElementById("btn-sample-data")?.addEventListener("click", () => {
       const sample = "tina@example.com, Tina Kurunga, Edgevest Training\njohn@example.com, John Doe, Acme Corp\njane@company.org, Jane Smith, Globex Inc\ninvalid-email-here, Bad Record, Unknown";
-      document.getElementById("raw-recipients-input").value = sample;
+      const inputEl = document.getElementById("raw-recipients-input");
+      if (inputEl) inputEl.value = sample;
       parseRecipientText();
     });
 
-    document.getElementById("btn-parse-text").addEventListener("click", parseRecipientText);
+    document.getElementById("btn-parse-text")?.addEventListener("click", parseRecipientText);
 
     // CSV File Upload / Dropzone handlers
     const csvDropzone = document.getElementById("csv-dropzone");
     const csvFileInput = document.getElementById("csv-file-input");
 
-    csvDropzone.addEventListener("click", () => csvFileInput.click());
-    csvDropzone.addEventListener("dragover", (e) => { e.preventDefault(); csvDropzone.classList.add("border-[#c5a059]"); });
-    csvDropzone.addEventListener("dragleave", () => csvDropzone.classList.remove("border-[#c5a059]"));
-    csvDropzone.addEventListener("drop", (e) => {
-      e.preventDefault();
-      csvDropzone.classList.remove("border-[#c5a059]");
-      if (e.dataTransfer.files.length) handleCSVFile(e.dataTransfer.files[0]);
-    });
-    csvFileInput.addEventListener("change", (e) => {
-      if (e.target.files.length) handleCSVFile(e.target.files[0]);
-    });
+    if (csvDropzone) {
+      csvDropzone.addEventListener("click", () => csvFileInput?.click());
+      csvDropzone.addEventListener("dragover", (e) => { e.preventDefault(); csvDropzone.classList.add("border-[#c5a059]"); });
+      csvDropzone.addEventListener("dragleave", () => csvDropzone.classList.remove("border-[#c5a059]"));
+      csvDropzone.addEventListener("drop", (e) => {
+        e.preventDefault();
+        csvDropzone.classList.remove("border-[#c5a059]");
+        if (e.dataTransfer.files.length) handleCSVFile(e.dataTransfer.files[0]);
+      });
+    }
+    if (csvFileInput) {
+      csvFileInput.addEventListener("change", (e) => {
+        if (e.target.files.length) handleCSVFile(e.target.files[0]);
+      });
+    }
 
     function handleCSVFile(file) {
       const fileNameDiv = document.getElementById("csv-file-name");
@@ -1142,7 +1153,7 @@ jane@company.org, Jane Smith, Globex Inc</textarea>
     }
 
     // Launch Campaign
-    document.getElementById("btn-launch-campaign").addEventListener("click", async () => {
+    document.getElementById("btn-launch-campaign")?.addEventListener("click", async () => {
       if (validatedRecipients.length === 0) {
         alert("Please add at least one valid recipient in Step 2.");
         goToStep(2);
@@ -1151,23 +1162,23 @@ jane@company.org, Jane Smith, Globex Inc</textarea>
 
       const payload = {
         smtp: {
-          host: document.getElementById("smtp-host").value,
-          port: document.getElementById("smtp-port").value,
-          username: document.getElementById("smtp-user").value,
-          password: document.getElementById("smtp-pass").value,
-          from_email: document.getElementById("smtp-from-email").value,
-          from_name: document.getElementById("smtp-from-name").value,
-          use_tls: document.getElementById("smtp-tls").checked,
-          use_ssl: document.getElementById("smtp-ssl").checked,
+          host: document.getElementById("smtp-host")?.value || "",
+          port: document.getElementById("smtp-port")?.value || "587",
+          username: document.getElementById("smtp-user")?.value || "",
+          password: document.getElementById("smtp-pass")?.value || "",
+          from_email: document.getElementById("smtp-from-email")?.value || "",
+          from_name: document.getElementById("smtp-from-name")?.value || "",
+          use_tls: document.getElementById("smtp-tls")?.checked || false,
+          use_ssl: document.getElementById("smtp-ssl")?.checked || false,
         },
         recipients: validatedRecipients,
         template: {
-          subject: document.getElementById("email-subject").value,
-          body_html: document.getElementById("email-body-html").value,
+          subject: document.getElementById("email-subject")?.value || "",
+          body_html: document.getElementById("email-body-html")?.value || "",
           attachments: campaignAttachments
         },
         settings: {
-          max_per_minute: document.getElementById("max-per-minute").value,
+          max_per_minute: document.getElementById("max-per-minute")?.value || "30",
         }
       };
 
@@ -1193,11 +1204,17 @@ jane@company.org, Jane Smith, Globex Inc</textarea>
     // SSE Progress Tracker & Status Sync Engine
     function updateCampaignStatsUI(status) {
       if (!status) return;
-      document.getElementById("stat-total").innerText = status.total || 0;
-      document.getElementById("stat-sent").innerText = status.sent || 0;
-      document.getElementById("stat-failed").innerText = status.failed || 0;
-      document.getElementById("stat-progress").innerText = `${status.progress_percent || 0}%`;
-      document.getElementById("progress-bar-fill").style.width = `${status.progress_percent || 0}%`;
+      const totalEl = document.getElementById("stat-total");
+      const sentEl = document.getElementById("stat-sent");
+      const failedEl = document.getElementById("stat-failed");
+      const progressEl = document.getElementById("stat-progress");
+      const barFillEl = document.getElementById("progress-bar-fill");
+
+      if (totalEl) totalEl.innerText = status.total || 0;
+      if (sentEl) sentEl.innerText = status.sent || 0;
+      if (failedEl) failedEl.innerText = status.failed || 0;
+      if (progressEl) progressEl.innerText = `${status.progress_percent || 0}%`;
+      if (barFillEl) barFillEl.style.width = `${status.progress_percent || 0}%`;
 
       if (status.logs && Array.isArray(status.logs)) {
         cachedLogsList = status.logs;
@@ -1285,29 +1302,41 @@ jane@company.org, Jane Smith, Globex Inc</textarea>
     }, 1500);
 
     // Campaign Controls
-    document.getElementById("btn-pause-campaign").addEventListener("click", async () => {
+    document.getElementById("btn-pause-campaign")?.addEventListener("click", async () => {
       await authenticatedFetch("/api/campaign/pause", { method: "POST" });
       fetchCampaignStatus();
     });
-    document.getElementById("btn-resume-campaign").addEventListener("click", async () => {
+    document.getElementById("btn-resume-campaign")?.addEventListener("click", async () => {
       await authenticatedFetch("/api/campaign/resume", { method: "POST" });
       fetchCampaignStatus();
       startSSEStream();
     });
-    document.getElementById("btn-cancel-campaign").addEventListener("click", async () => {
+    document.getElementById("btn-cancel-campaign")?.addEventListener("click", async () => {
       await authenticatedFetch("/api/campaign/cancel", { method: "POST" });
       fetchCampaignStatus();
     });
 
     // Initial auth verification and data load
-    window.addEventListener("DOMContentLoaded", async () => {
+    async function initCampaignApp() {
+      // If token exists in localStorage, proactively hide overlay while verifying
+      const existingToken = localStorage.getItem("edgevest_auth_token");
+      if (existingToken) {
+        hideAuthOverlay();
+      }
+
       const isAuthenticated = await checkAuthStatus();
       if (isAuthenticated) {
         parseRecipientText();
         syncVisualToHtml();
         fetchCampaignStatus();
       }
-    });
+    }
+
+    if (document.readyState === "loading") {
+      window.addEventListener("DOMContentLoaded", initCampaignApp);
+    } else {
+      initCampaignApp();
+    }
 
     // ==========================================
     // ATTACHMENTS & RECEIPT GENERATOR ENGINE
@@ -1315,11 +1344,11 @@ jane@company.org, Jane Smith, Globex Inc</textarea>
     let campaignAttachments = [];
 
     // File Upload Trigger
-    document.getElementById("btn-trigger-file-upload").addEventListener("click", () => {
-      document.getElementById("attachment-file-input").click();
+    document.getElementById("btn-trigger-file-upload")?.addEventListener("click", () => {
+      document.getElementById("attachment-file-input")?.click();
     });
 
-    document.getElementById("attachment-file-input").addEventListener("change", (e) => {
+    document.getElementById("attachment-file-input")?.addEventListener("change", (e) => {
       const files = e.target.files;
       if (!files || files.length === 0) return;
 
@@ -1349,18 +1378,18 @@ jane@company.org, Jane Smith, Globex Inc</textarea>
 
     // Receipt Modal Controls
     const receiptModal = document.getElementById("receipt-modal");
-    document.getElementById("btn-open-receipt-builder").addEventListener("click", () => {
-      receiptModal.classList.remove("hidden");
+    document.getElementById("btn-open-receipt-builder")?.addEventListener("click", () => {
+      if (receiptModal) receiptModal.classList.remove("hidden");
     });
-    document.getElementById("btn-close-receipt-modal").addEventListener("click", () => {
-      receiptModal.classList.add("hidden");
+    document.getElementById("btn-close-receipt-modal")?.addEventListener("click", () => {
+      if (receiptModal) receiptModal.classList.add("hidden");
     });
-    document.getElementById("btn-cancel-receipt-modal").addEventListener("click", () => {
-      receiptModal.classList.add("hidden");
+    document.getElementById("btn-cancel-receipt-modal")?.addEventListener("click", () => {
+      if (receiptModal) receiptModal.classList.add("hidden");
     });
 
     // Generate PDF Receipt using jsPDF
-    document.getElementById("btn-generate-receipt-pdf").addEventListener("click", () => {
+    document.getElementById("btn-generate-receipt-pdf")?.addEventListener("click", () => {
       try {
         const filename = document.getElementById("receipt-filename").value.trim() || "Receipt_Edgevest_{name}.pdf";
         const receiptNo = document.getElementById("receipt-no").value.trim() || "EV-2026-0018";

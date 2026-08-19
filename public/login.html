@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-[#0a0806]">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sign In - Edgevest Campaign Manager</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap');
+    body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    .serif-title { font-family: 'Playfair Display', serif; }
+    .glass-card {
+      background: rgba(22, 17, 13, 0.85);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(140, 101, 67, 0.35);
+    }
+    .glass-input {
+      background: rgba(10, 8, 6, 0.7);
+      border: 1px solid rgba(140, 101, 67, 0.3);
+      color: #fff;
+    }
+    .glass-input:focus {
+      border-color: #e2b871;
+      outline: none;
+      box-shadow: 0 0 15px rgba(226, 184, 113, 0.25);
+    }
+  </style>
+</head>
+<body class="h-full flex items-center justify-center p-4 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-[#1f1610] via-[#0d0a08] to-[#050403] text-stone-200">
+
+  <div class="glass-card max-w-md w-full rounded-2xl shadow-2xl p-8 border border-[#8c6543]/40 relative overflow-hidden">
+    <!-- Top Accent Line -->
+    <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#8c6543] via-[#e2b871] to-[#8c6543]"></div>
+
+    <!-- Header & Logo -->
+    <div class="text-center mb-8">
+      <div class="h-16 w-16 mx-auto p-1.5 rounded-2xl bg-[#faf8f5] flex items-center justify-center shadow-xl shadow-[#8c6543]/30 ring-1 ring-[#e2b871]/60 mb-4">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="100%" height="100%">
+          <defs>
+            <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#d4af37" />
+              <stop offset="30%" stop-color="#f3e5ab" />
+              <stop offset="55%" stop-color="#c5a059" />
+              <stop offset="80%" stop-color="#8c6543" />
+              <stop offset="100%" stop-color="#5a3d24" />
+            </linearGradient>
+          </defs>
+          <rect width="120" height="120" rx="16" fill="#fcfaf7" />
+          <g>
+            <path d="M 60 14 C 33 14 14 33 14 60 C 14 87 33 106 60 106 C 82 106 100 90 104 68 C 104 65 100 64 97 66 C 92 82 78 95 60 95 C 40 95 25 80 25 60 C 25 40 40 25 60 25 C 75 25 88 35 92 49 C 94 52 98 51 99 48 C 95 30 79 14 60 14 Z" fill="url(#goldGrad)" />
+            <path d="M 60 29 C 42 29 28 42 28 60 C 28 78 42 91 60 91 C 74 91 86 81 89 67 C 90 64 85 63 83 65 C 79 74 70 81 60 81 C 48 81 38 71 38 60 C 38 49 48 39 60 39 C 70 39 79 46 82 56 C 84 59 88 58 89 55 C 86 41 74 29 60 29 Z" fill="url(#goldGrad)" />
+            <path d="M 60 44 C 51 44 44 51 44 60 C 44 69 51 76 60 76 C 68 76 75 70 77 62 L 58 62 C 55 62 55 57 57 57 L 83 57 C 85 57 86 55 85 53 C 81 47 72 44 60 44 Z" fill="url(#goldGrad)" />
+          </g>
+        </svg>
+      </div>
+      <h1 class="text-2xl font-bold tracking-tight text-white serif-title">EDGEVEST</h1>
+      <p class="text-xs text-[#e2b871] font-medium tracking-widest uppercase mt-1">Campaign Manager Login</p>
+    </div>
+
+    <!-- Error Alert -->
+    <div id="error-box" class="hidden mb-6 p-4 bg-rose-950/80 border border-rose-800/90 rounded-xl text-rose-200 text-xs flex items-center shadow-lg">
+      <i class="fa-solid fa-triangle-exclamation text-rose-400 text-base mr-3 shrink-0"></i>
+      <span id="error-msg">Invalid credentials. Please try again.</span>
+    </div>
+
+    <!-- Login Form -->
+    <form id="login-form" onsubmit="handleLogin(event)" class="space-y-5">
+      <div>
+        <label class="block text-xs font-semibold uppercase tracking-wider text-[#d1c4b8] mb-2">
+          <i class="fa-solid fa-user text-[#e2b871] mr-1.5"></i> Username
+        </label>
+        <input type="text" id="username" required placeholder="Enter username" value="admin" class="w-full glass-input rounded-xl px-4 py-3 text-sm transition" />
+      </div>
+
+      <div>
+        <label class="block text-xs font-semibold uppercase tracking-wider text-[#d1c4b8] mb-2 flex justify-between items-center">
+          <span><i class="fa-solid fa-lock text-[#e2b871] mr-1.5"></i> Password</span>
+          <button type="button" onclick="togglePassword()" class="text-[11px] text-[#a8988a] hover:text-[#e2b871] transition lowercase">
+            <i id="pwd-icon" class="fa-solid fa-eye mr-1"></i> show
+          </button>
+        </label>
+        <input type="password" id="password" required placeholder="Enter password" value="edgevest2026" class="w-full glass-input rounded-xl px-4 py-3 text-sm transition" />
+      </div>
+
+      <button type="submit" id="btn-submit" class="w-full py-3.5 bg-gradient-to-r from-[#8c6543] via-[#785338] to-[#5c3d28] hover:from-[#9e7854] hover:to-[#6d4c2d] text-white font-bold rounded-xl text-sm border border-[#c5a059]/40 transition flex items-center justify-center shadow-xl shadow-[#8c6543]/20">
+        <span id="btn-text" class="flex items-center">
+          <i class="fa-solid fa-right-to-bracket mr-2 text-amber-300"></i> Sign In to Dashboard
+        </span>
+      </button>
+    </form>
+
+    <div class="mt-8 text-center border-t border-[#3d2d20]/60 pt-4">
+      <p class="text-[11px] text-stone-500">Edgevest Enterprise Session Security &bull; Protected Access</p>
+    </div>
+  </div>
+
+  <script>
+    function togglePassword() {
+      const p = document.getElementById("password");
+      const i = document.getElementById("pwd-icon");
+      if (p.type === "password") {
+        p.type = "text";
+        i.className = "fa-solid fa-eye-slash mr-1";
+      } else {
+        p.type = "password";
+        i.className = "fa-solid fa-eye mr-1";
+      }
+    }
+
+    async function handleLogin(e) {
+      e.preventDefault();
+      const user = document.getElementById("username").value.trim();
+      const pass = document.getElementById("password").value.trim();
+      const errBox = document.getElementById("error-box");
+      const errText = document.getElementById("error-msg");
+      const btnText = document.getElementById("btn-text");
+
+      errBox.classList.add("hidden");
+      btnText.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i> Authenticating...`;
+
+      try {
+        const res = await fetch("/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ username: user, password: pass })
+        });
+
+        const data = await res.json();
+        if (data.success && data.token) {
+          localStorage.setItem("edgevest_auth_token", data.token);
+          
+          // Get next redirect parameter safely
+          const urlParams = new URLSearchParams(window.location.search);
+          const nextUrl = urlParams.get("next") || "/campaign.html";
+          window.location.href = nextUrl;
+        } else {
+          errText.textContent = data.error || "Authentication failed. Invalid username or password.";
+          errBox.classList.remove("hidden");
+        }
+      } catch (err) {
+        errText.textContent = "Network error connecting to authentication server.";
+        errBox.classList.remove("hidden");
+      } finally {
+        btnText.innerHTML = `<i class="fa-solid fa-right-to-bracket mr-2 text-amber-300"></i> Sign In to Dashboard`;
+      }
+    }
+  </script>
+</body>
+</html>
