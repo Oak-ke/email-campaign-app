@@ -174,7 +174,7 @@ jane@company.org, Jane Smith, Globex Inc</textarea>
             </div>
             <p class="text-xs sm:text-sm font-semibold text-[#f7f4ee]">Drag & drop CSV file here, or click to browse</p>
             <p class="text-[11px] text-[#8c7868] mt-1">Headers supported: email, name, company</p>
-            <input type="file" id="csv-file-input" accept=".csv,.txt" class="hidden" />
+            <input type="file" id="csv-file-input" accept=".csv,.txt,text/csv" class="hidden" />
           </div>
           <div id="csv-file-name" class="mt-2 text-xs font-semibold text-[#e2b871] hidden"></div>
         </div>
@@ -697,8 +697,8 @@ jane@company.org, Jane Smith, Globex Inc</textarea>
         }
       }
       if (stepNum === 2) {
-        syncVisualToHtml();
-        updatePreview();
+        if (typeof syncVisualToHtml === "function") syncVisualToHtml();
+        if (typeof updatePreview === "function") updatePreview();
       }
       if (stepNum === 4) {
         fetchCampaignStatus();
@@ -906,173 +906,172 @@ jane@company.org, Jane Smith, Globex Inc</textarea>
     }
 
     function handleCSVFile(file) {
-      if (!file) return;
-      const fileNameDiv = document.getElementById("csv-file-name");
-      if (fileNameDiv) {
-        fileNameDiv.innerHTML = `<i class="fa-solid fa-file-csv mr-1.5 text-amber-400"></i> Loaded File: <strong>${escapeHtml(file.name)}</strong> (${(file.size/1024).toFixed(1)} KB)`;
-        fileNameDiv.classList.remove("hidden");
-      }
+  const fileNameDiv = document.getElementById("csv-file-name");
+  if (!file) return;
 
-      const isExcel = file.name.endsWith('.xlsx') || file.name.endsWith('.xls');
+  const lower = (file.name || "").toLowerCase();
+  if (lower.endsWith(".xlsx") || lower.endsWith(".xls")) {
+    alert("Please save Excel as CSV (.csv) and upload that file. .xlsx is not supported.");
+    return;
+  }
 
-      if (isExcel && typeof XLSX !== 'undefined') {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          try {
-            const data = new Uint8Array(e.target.result);
-            const workbook = XLSX.read(data, { type: 'array' });
-            const firstSheetName = workbook.SheetNames[0];
-            const worksheet = workbook.Sheets[firstSheetName];
-            const csvText = XLSX.utils.sheet_to_csv(worksheet);
-            document.getElementById("raw-recipients-input").value = csvText;
-            parseRecipientText();
-          } catch (err) {
-            console.error("Excel parse error:", err);
-            alert("Unable to parse Excel file: " + err.message);
-          }
-        };
-        reader.readAsArrayBuffer(file);
-      } else {
-        const reader = new FileReader();
-        reader.onload = (evt) => {
-          const text = evt.target.result;
-          // In case user uploaded xlsx renamed to .csv
-          if (text.startsWith("PK\x03\x04") && typeof XLSX !== 'undefined') {
-            const abReader = new FileReader();
-            abReader.onload = (e) => {
-              try {
-                const data = new Uint8Array(e.target.result);
-                const workbook = XLSX.read(data, { type: 'array' });
-                const csvText = XLSX.utils.sheet_to_csv(workbook.Sheets[workbook.SheetNames[0]]);
-                document.getElementById("raw-recipients-input").value = csvText;
-                parseRecipientText();
-              } catch (err) {
-                alert("Error reading spreadsheet file.");
-              }
-            };
-            abReader.readAsArrayBuffer(file);
-            return;
-          }
-          document.getElementById("raw-recipients-input").value = text;
-          parseRecipientText();
-        };
-        reader.readAsText(file);
-      }
-      if (csvFileInput) csvFileInput.value = "";
+  if (fileNameDiv) {
+    fileNameDiv.innerText = "Selected File: " + file.name + " (" + (file.size / 1024).toFixed(1) + " KB)";
+    fileNameDiv.classList.remove("hidden");
+  }
+
+  const reader = new FileReader();
+  reader.onerror = function () {
+    alert("Could not read that file.");
+  };
+  reader.onload = function (evt) {
+    var text = evt.target.result || "";
+    if (text.charCodeAt(0) === 0xfeff) text = text.slice(1);
+    document.getElementById("raw-recipients-input").value = text;
+    parseRecipientText();
+  };
+  reader.readAsText(file);
+}
+
+function splitCsvLine(line) {
+  var result = [];
+  var cur = "";
+  var inQuotes = false;
+  for (var i = 0; i < line.length; i++) {
+    var c = line[i];
+    if (c === '"') {
+      inQuotes = !inQuotes;
+    } else if ((c === "," || c === ";" || c === "\t") && !inQuotes) {
+      result.push(cur.trim());
+      cur = "";
+    } else {
+      cur += c;
+    }
+  }
+  result.push(cur.trim());
+  return result.map(function (s) {
+    return s.replace(/^"|"$/g, "").trim();
+  });
+}
+
+function looksLikeHeader(parts) {
+  var joined = parts.join(" ").toLowerCase();
+  return (
+    joined.indexOf("email") !== -1 ||
+    joined.indexOf("e-mail") !== -1 ||
+    (joined.indexOf("name") !== -1 && parts.length >= 2 && parts[0].indexOf("@") === -1)
+  );
+}
+
+function mapHeaderIndexes(headers) {
+  var h = headers.map(function (x) {
+    return x.toLowerCase();
+  });
+  function find() {
+    var keys = Array.prototype.slice.call(arguments);
+    for (var k = 0; k < keys.length; k++) {
+      var i = h.findIndex(function (x) {
+        return x === keys[k] || x.indexOf(keys[k]) !== -1;
+      });
+      if (i >= 0) return i;
+    }
+    return -1;
+  }
+  return {
+    email: find("email", "e-mail", "mail"),
+    name: find("name", "full name", "fullname", "contact"),
+    company: find("company", "organisation", "organization", "org"),
+  };
+}
+
+async function parseRecipientText() {
+  var text = (document.getElementById("raw-recipients-input") && document.getElementById("raw-recipients-input").value) || "";
+  var lines = text.split(/\r?\n/).map(function (l) { return l.trim(); }).filter(Boolean);
+  var raw = [];
+
+  if (lines.length === 0) {
+    alert("No recipient lines found.");
+    return;
+  }
+
+  var start = 0;
+  var idx = { email: 0, name: 1, company: 2 };
+  var firstParts = splitCsvLine(lines[0]);
+
+  if (looksLikeHeader(firstParts)) {
+    idx = mapHeaderIndexes(firstParts);
+    if (idx.email < 0) idx.email = 0;
+    start = 1;
+  }
+
+  for (var i = start; i < lines.length; i++) {
+    var parts = splitCsvLine(lines[i]);
+    if (!parts.length) continue;
+    var email = (parts[idx.email] || parts[0] || "").trim();
+    if (!email) continue;
+    var name = (idx.name >= 0 && parts[idx.name] ? parts[idx.name] : "") || parts[1] || email.split("@")[0];
+    var company = (idx.company >= 0 && parts[idx.company] ? parts[idx.company] : "") || parts[2] || "Valued Client";
+    raw.push({ email: email, name: name, company: company });
+  }
+
+  if (raw.length === 0) {
+    alert("No valid rows found. Use columns: email, name, company.");
+    return;
+  }
+
+  try {
+    var res = await authenticatedFetch("/api/recipients/validate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ recipients: raw }),
+    });
+
+    if (res.status === 401) {
+      alert("Please sign in first, then upload the CSV again.");
+      return;
     }
 
-    function parseCSVLine(line) {
-      const result = [];
-      let current = '';
-      let inQuotes = false;
-      for (let i = 0; i < line.length; i++) {
-        const char = line[i];
-        if (char === '"' || char === "'") {
-          inQuotes = !inQuotes;
-        } else if ((char === ',' || char === ';' || char === '\t') && !inQuotes) {
-          result.push(current.trim().replace(/^["']|["']$/g, ''));
-          current = '';
-        } else {
-          current += char;
-        }
-      }
-      if (current || line.endsWith(',') || line.endsWith(';')) {
-        result.push(current.trim().replace(/^["']|["']$/g, ''));
-      }
-      return result;
+    var data = await res.json();
+    validatedRecipients = data.valid_recipients || [];
+
+    document.getElementById("count-valid").innerText = "Valid: " + (data.valid_count || 0);
+    document.getElementById("count-invalid").innerText = "Invalid: " + (data.invalid_count || 0);
+
+    var tbody = document.getElementById("recipients-table-body");
+    tbody.innerHTML = "";
+
+    (data.valid_recipients || []).forEach(function (r, i) {
+      var tr = document.createElement("tr");
+      tr.className = "hover:bg-[#1a1410] transition-colors";
+      tr.innerHTML =
+        '<td class="px-4 py-2.5 text-xs text-[#8c7868] font-mono">' + (i + 1) + "</td>" +
+        '<td class="px-4 py-2.5 font-mono text-xs text-[#f7f4ee]">' + r.email + "</td>" +
+        '<td class="px-4 py-2.5 text-xs text-[#d1c4b8]">' + r.name + "</td>" +
+        '<td class="px-4 py-2.5 text-xs text-[#a8988a]">' + (r.company || "-") + "</td>" +
+        '<td class="px-4 py-2.5 text-xs text-[#63b39b] font-bold">Valid</td>';
+      tbody.appendChild(tr);
+    });
+
+    (data.invalid_recipients || []).forEach(function (r) {
+      var tr = document.createElement("tr");
+      tr.className = "bg-rose-950/20";
+      tr.innerHTML =
+        '<td class="px-4 py-2.5 text-xs text-rose-500">!</td>' +
+        '<td class="px-4 py-2.5 font-mono text-xs text-rose-400">' + (r.email || "") + "</td>" +
+        '<td class="px-4 py-2.5 text-xs">' + (r.name || "-") + "</td>" +
+        '<td class="px-4 py-2.5 text-xs">-</td>' +
+        '<td class="px-4 py-2.5 text-xs text-rose-400">' + (r.error || "Invalid") + "</td>";
+      tbody.appendChild(tr);
+    });
+
+    if (!validatedRecipients.length) {
+      alert("File read, but no valid emails. Check headers and addresses.");
     }
-
-    async function parseRecipientText() {
-      const text = document.getElementById("raw-recipients-input").value;
-      if (!text || !text.trim()) {
-        validatedRecipients = [];
-        document.getElementById("count-valid").innerText = `Valid: 0`;
-        document.getElementById("count-invalid").innerText = `Invalid: 0`;
-        document.getElementById("recipients-table-body").innerHTML = `<tr><td colspan="5" class="px-4 py-8 text-center text-[#8c7868] text-xs">No recipients added yet. Upload a CSV or parse the list above.</td></tr>`;
-        return;
-      }
-
-      const lines = text.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
-      let emailIdx = 0;
-      let nameIdx = 1;
-      let companyIdx = 2;
-      let startRow = 0;
-
-      if (lines.length > 0) {
-        const firstLineParts = parseCSVLine(lines[0]);
-        const lowerParts = firstLineParts.map(p => p.toLowerCase());
-        const hasHeader = lowerParts.some(p => p.includes('email') || p.includes('mail') || p.includes('name') || p.includes('company') || p.includes('org'));
-        if (hasHeader) {
-          startRow = 1;
-          lowerParts.forEach((p, idx) => {
-            if (p.includes('email') || p.includes('mail')) emailIdx = idx;
-            else if (p.includes('name')) nameIdx = idx;
-            else if (p.includes('company') || p.includes('org') || p.includes('corp')) companyIdx = idx;
-          });
-        }
-      }
-
-      const raw = [];
-      for (let i = startRow; i < lines.length; i++) {
-        const parts = parseCSVLine(lines[i]);
-        let email = parts[emailIdx] ? parts[emailIdx].trim() : (parts[0] ? parts[0].trim() : '');
-        if (!email) continue;
-        if (email.toLowerCase() === 'email' || email.toLowerCase() === 'e-mail') continue;
-
-        let name = parts[nameIdx] ? parts[nameIdx].trim() : email.split('@')[0];
-        let company = parts[companyIdx] ? parts[companyIdx].trim() : 'Valued Client';
-
-        raw.push({ email, name: name || email.split('@')[0], company: company || 'Valued Client' });
-      }
-
-      try {
-        const res = await fetch("/api/recipients/validate", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ recipients: raw })
-        });
-        const data = await res.json();
-
-        validatedRecipients = data.valid_recipients || [];
-        document.getElementById("count-valid").innerText = `Valid: ${data.valid_count || 0}`;
-        document.getElementById("count-invalid").innerText = `Invalid: ${data.invalid_count || 0}`;
-
-        const tbody = document.getElementById("recipients-table-body");
-        tbody.innerHTML = "";
-
-        if (data.valid_recipients && data.valid_recipients.length > 0) {
-          data.valid_recipients.forEach((r, idx) => {
-            const tr = document.createElement("tr");
-            tr.className = "hover:bg-[#1a1410] transition-colors";
-            tr.innerHTML = `
-              <td class="px-4 py-2.5 text-xs text-[#8c7868] font-mono">${idx + 1}</td>
-              <td class="px-4 py-2.5 font-mono text-xs text-[#f7f4ee]">${r.email}</td>
-              <td class="px-4 py-2.5 text-xs text-[#d1c4b8]">${r.name}</td>
-              <td class="px-4 py-2.5 text-xs text-[#a8988a]">${r.company || "-"}</td>
-              <td class="px-4 py-2.5 text-xs text-[#63b39b] font-bold"><i class="fa-solid fa-circle-check mr-1"></i> Valid</td>
-            `;
-            tbody.appendChild(tr);
-          });
-        }
-
-        if (data.invalid_recipients && data.invalid_recipients.length > 0) {
-          data.invalid_recipients.forEach((r) => {
-            const tr = document.createElement("tr");
-            tr.className = "hover:bg-[#1a1410] transition-colors bg-rose-950/20";
-            tr.innerHTML = `
-              <td class="px-4 py-2.5 text-xs text-rose-500 font-mono">!</td>
-              <td class="px-4 py-2.5 font-mono text-xs text-rose-400">${r.email}</td>
-              <td class="px-4 py-2.5 text-xs text-slate-400">${r.name || "-"}</td>
-              <td class="px-4 py-2.5 text-xs text-slate-500">-</td>
-              <td class="px-4 py-2.5 text-xs text-rose-400 font-bold"><i class="fa-solid fa-circle-xmark mr-1"></i> ${r.error}</td>
-            `;
-            tbody.appendChild(tr);
-          });
-        }
-      } catch (err) {
-        console.error("Recipient validation failed:", err);
-      }
-    }
+  } catch (err) {
+    console.error(err);
+    alert("Recipient validation failed: " + err.message);
+  }
+}
 
     // Template Helpers
     function insertTag(tag) {
