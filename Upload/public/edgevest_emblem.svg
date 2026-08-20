@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="100%" height="100%">
+  <defs>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#d4af37" />
+      <stop offset="30%" stop-color="#f3e5ab" />
+      <stop offset="55%" stop-color="#c5a059" />
+      <stop offset="80%" stop-color="#8c6543" />
+      <stop offset="100%" stop-color="#5a3d24" />
+    </linearGradient>
+    <filter id="goldGlow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="1" stdDeviation="1.5" flood-color="#000000" flood-opacity="0.25"/>
+    </filter>
+  </defs>
+
+  <!-- Background container optional -->
+  <rect width="120" height="120" rx="16" fill="#fcfaf7" />
+
+  <!-- Emblem Group -->
+  <g filter="url(#goldGlow)">
+    <!-- Outer Arc -->
+    <path d="M 60 14 C 33 14 14 33 14 60 C 14 87 33 106 60 106 C 82 106 100 90 104 68 C 104 65 100 64 97 66 C 92 82 78 95 60 95 C 40 95 25 80 25 60 C 25 40 40 25 60 25 C 75 25 88 35 92 49 C 94 52 98 51 99 48 C 95 30 79 14 60 14 Z" fill="url(#goldGrad)" />
+
+    <!-- Middle Arc -->
+    <path d="M 60 29 C 42 29 28 42 28 60 C 28 78 42 91 60 91 C 74 91 86 81 89 67 C 90 64 85 63 83 65 C 79 74 70 81 60 81 C 48 81 38 71 38 60 C 38 49 48 39 60 39 C 70 39 79 46 82 56 C 84 59 88 58 89 55 C 86 41 74 29 60 29 Z" fill="url(#goldGrad)" />
+
+    <!-- Center 'e' Hook -->
+    <path d="M 60 44 C 51 44 44 51 44 60 C 44 69 51 76 60 76 C 68 76 75 70 77 62 L 58 62 C 55 62 55 57 58 57 L 83 57 C 85 57 86 55 85 53 C 81 47 72 44 60 44 Z" fill="url(#goldGrad)" />
+  </g>
+</svg>
