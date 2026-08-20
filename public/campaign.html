@@ -315,44 +315,42 @@ jane@company.org, Jane Smith, Globex Inc</textarea>
             </div>
 
             <!-- Visual Contenteditable Container with Real Email Styling -->
-            <div class="bg-slate-200 border-2 border-[#3d2d20] rounded-xl p-4 sm:p-6 shadow-inner min-h-[380px] overflow-y-auto">
-              <!-- Edgevest Frame Wrapper -->
-              <div class="max-w-xl mr-auto bg-white rounded shadow-xl overflow-hidden border border-slate-300 font-serif" style="font-family: 'Bookman Old Style', Bookman, 'URW Bookman L', Georgia, serif;">
-                <div class="bg-black text-white p-6 text-left" style="background-color: #000000; color: #ffffff; text-align: left; font-family: 'Bookman Old Style', Bookman, 'URW Bookman L', Georgia, serif;">
-                  <div style="display: flex; align-items: flex-start; gap: 14px;">
-                    <!-- Top Left Logo Badge -->
-                    <div style="height: 48px; width: 48px; background-color: #ffffff; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border: 1px solid #e2b871; padding: 2px;">
-                      <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMjAgMTIwIiB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIj4KICA8ZGVmcz4KICAgIDxsaW5lYXJHcmFkaWVudCBpZD0iZ29sZEdyYWQiIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjEwMCUiPgogICAgICA8c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjZDRhZjM3IiAvPgogICAgICA8c3RvcCBvZmZzZXQ9IjMwJSIgc3RvcC1jb2xvcj0iI2YzZTVhYiIgLz4KICAgICAgPHN0b3Agb2Zmc2V0PSI1NSUiIHN0b3AtY29sb3I9IiNjNWEwNTkiIC8+CiAgICAgIDxzdG9wIG9mZnNldD0iODAlIiBzdG9wLWNvbG9yPSIjOGM2NTQzIiAvPgogICAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiM1YTNkMjQiIC8+CiAgICA8L2xpbmVhckdyYWRpZW50PgogICAgPGZpbHRlciBpZD0iZ29sZEdsb3ciIHg9Ii0xMCUiIHk9Ii0xMCUiIHdpZHRoPSIxMjAlIiBoZWlnaHQ9IjEyMCUiPgogICAgICA8ZmVEcm9wU2hhZG93IGR4PSIwIiBkeT0iMSIgc3RkRGV2aWF0aW9uPSIxLjUiIGZsb29kLWNvbG9yPSIjMDAwMDAwIiBmbG9vZC1vcGFjaXR5PSIwLjI1Ii8+CiAgICA8L2ZpbHRlcj4KICA8L2RlZnM+CgogIDwhLS0gQmFja2dyb3VuZCBjb250YWluZXIgb3B0aW9uYWwgLS0+CiAgPHJlY3Qgd2lkdGg9IjEyMCIgaGVpZ2h0PSIxMjAiIHJ4PSIxNiIgZmlsbD0iI2ZjZmFmNyIgLz4KCiAgPCEtLSBFbWJsZW0gR3JvdXAgLS0+CiAgPGcgZmlsdGVyPSJ1cmwoI2dvbGRHbG93KSI+CiAgICA8IS0tIE91dGVyIEFyYyAtLT4KICAgIDxwYXRoIGQ9Ik0gNjAgMTQgQyAzMyAxNCAxNCAzMyAxNCA2MCBDIDE0IDg3IDMzIDEwNiA2MCAxMDYgQyA4MiAxMDYgMTAwIDkwIDEwNCA2OCBDIDEwNCA2NSAxMDAgNjQgOTcgNjYgQyA5MiA4MiA3OCA5NSA2MCA5NSBDIDQwIDk1IDI1IDgwIDI1IDYwIEMgMjUgNDAgNDAgMjUgNjAgMjUgQyA3NSAyNSA4OCAzNSA5MiA0OSBDIDk0IDUyIDk4IDUxIDk5IDQ4IEMgOTUgMzAgNzkgMTQgNjAgMTQgWiIgZmlsbD0idXJsKCNnb2xkR3JhZCkiIC8+CgogICAgPCEtLSBNaWRkbGUgQXJjIC0tPgogICAgPHBhdGggZD0iTSA2MCAyOSBDIDQyIDI5IDI4IDQyIDI4IDYwIEMgMjggNzggNDIgOTEgNjAgOTEgQyA3NCA5MSA4NiA4MSA4OSA2NyBDIDkwIDY0IDg1IDYzIDgzIDY1IEMgNzkgNzQgNzAgODEgNjAgODEgQyA0OCA4MSAzOCA3MSAzOCA2MCBDIDM4IDQ5IDQ4IDM5IDYwIDM5IEMgNzAgMzkgNzkgNDYgODIgNTYgQyA4NCA1OSA4OCA1OCA4OSA1NSBDIDg2IDQxIDc0IDI5IDYwIDI5IFoiIGZpbGw9InVybCgjZ29sZEdyYWQpIiAvPgoKICAgIDwhLS0gQ2VudGVyICdlJyBIb29rIC0tPgogICAgPHBhdGggZD0iTSA2MCA0NCBDIDUxIDQ0IDQ0IDUxIDQ0IDYwIEMgNDQgNjkgNTEgNzYgNjAgNzYgQyA2OCA3NiA3NSA3MCA3NyA2MiBMIDU4IDYyIEMgNTUgNjIgNTUgNTcgNTggNTcgTCA4MyA1NyBDIDg1IDU3IDg2IDU1IDg1IDUzIEMgODEgNDcgNzIgNDQgNjAgNDQgWiIgZmlsbD0idXJsKCNnb2xkR3JhZCkiIC8+CiAgPC9nPgo8L3N2Zz4K" alt="Edgevest Emblem" style="max-height: 42px; width: 42px; object-fit: contain; border-radius: 6px;" onerror="this.onerror=null; this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMjAgMTIwIiB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIj4KICA8ZGVmcz4KICAgIDxsaW5lYXJHcmFkaWVudCBpZD0iZ29sZEdyYWQiIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjEwMCUiPgogICAgICA8c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjZDRhZjM3IiAvPgogICAgICA8c3RvcCBvZmZzZXQ9IjMwJSIgc3RvcC1jb2xvcj0iI2YzZTVhYiIgLz4KICAgICAgPHN0b3Agb2Zmc2V0PSI1NSUiIHN0b3AtY29sb3I9IiNjNWEwNTkiIC8+CiAgICAgIDxzdG9wIG9mZnNldD0iODAlIiBzdG9wLWNvbG9yPSIjOGM2NTQzIiAvPgogICAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiM1YTNkMjQiIC8+CiAgICA8L2xpbmVhckdyYWRpZW50PgogICAgPGZpbHRlciBpZD0iZ29sZEdsb3ciIHg9Ii0xMCUiIHk9Ii0xMCUiIHdpZHRoPSIxMjAlIiBoZWlnaHQ9IjEyMCUiPgogICAgICA8ZmVEcm9wU2hhZG93IGR4PSIwIiBkeT0iMSIgc3RkRGV2aWF0aW9uPSIxLjUiIGZsb29kLWNvbG9yPSIjMDAwMDAwIiBmbG9vZC1vcGFjaXR5PSIwLjI1Ii8+CiAgICA8L2ZpbHRlcj4KICA8L2RlZnM+CgogIDwhLS0gQmFja2dyb3VuZCBjb250YWluZXIgb3B0aW9uYWwgLS0+CiAgPHJlY3Qgd2lkdGg9IjEyMCIgaGVpZ2h0PSIxMjAiIHJ4PSIxNiIgZmlsbD0iI2ZjZmFmNyIgLz4KCiAgPCEtLSBFbWJsZW0gR3JvdXAgLS0+CiAgPGcgZmlsdGVyPSJ1cmwoI2dvbGRHbG93KSI+CiAgICA8IS0tIE91dGVyIEFyYyAtLT4KICAgIDxwYXRoIGQ9Ik0gNjAgMTQgQyAzMyAxNCAxNCAzMyAxNCA2MCBDIDE0IDg3IDMzIDEwNiA2MCAxMDYgQyA4MiAxMDYgMTAwIDkwIDEwNCA2OCBDIDEwNCA2NSAxMDAgNjQgOTcgNjYgQyA5MiA4MiA3OCA5NSA2MCA5NSBDIDQwIDk1IDI1IDgwIDI1IDYwIEMgMjUgNDAgNDAgMjUgNjAgMjUgQyA3NSAyNSA4OCAzNSA5MiA0OSBDIDk0IDUyIDk4IDUxIDk5IDQ4IEMgOTUgMzAgNzkgMTQgNjAgMTQgWiIgZmlsbD0idXJsKCNnb2xkR3JhZCkiIC8+CgogICAgPCEtLSBNaWRkbGUgQXJjIC0tPgogICAgPHBhdGggZD0iTSA2MCAyOSBDIDQyIDI5IDI4IDQyIDI4IDYwIEMgMjggNzggNDIgOTEgNjAgOTEgQyA3NCA5MSA4NiA4MSA4OSA2NyBDIDkwIDY0IDg1IDYzIDgzIDY1IEMgNzkgNzQgNzAgODEgNjAgODEgQyA0OCA4MSAzOCA3MSAzOCA2MCBDIDM4IDQ5IDQ4IDM5IDYwIDM5IEMgNzAgMzkgNzkgNDYgODIgNTYgQyA4NCA1OSA4OCA1OCA4OSA1NSBDIDg2IDQxIDc0IDI5IDYwIDI5IFoiIGZpbGw9InVybCgjZ29sZEdyYWQpIiAvPgoKICAgIDwhLS0gQ2VudGVyICdlJyBIb29rIC0tPgogICAgPHBhdGggZD0iTSA2MCA0NCBDIDUxIDQ0IDQ0IDUxIDQ0IDYwIEMgNDQgNjkgNTEgNzYgNjAgNzYgQyA2OCA3NiA3NSA3MCA3NyA2MiBMIDU4IDYyIEMgNTUgNjIgNTUgNTcgNTggNTcgTCA4MyA1NyBDIDg1IDU3IDg2IDU1IDg1IDUzIEMgODEgNDcgNzIgNDQgNjAgNDQgWiIgZmlsbD0idXJsKCNnb2xkR3JhZCkiIC8+CiAgPC9nPgo8L3N2Zz4K';" referrerPolicy="no-referrer" />
-                    </div>
-                    <!-- Brand Title & Contact Info -->
-                    <div>
-                      <h1 class="text-2xl font-bold text-white leading-tight m-0" style="color: #ffffff; font-family: 'Bookman Old Style', Bookman, 'URW Bookman L', Georgia, serif; text-align: left;">Edgevest</h1>
-                      <p class="text-xs text-slate-300 mt-0.5 mb-2" style="color: #d1d5db; font-family: 'Bookman Old Style', Bookman, 'URW Bookman L', Georgia, serif; text-align: left;">Professional Training and Development</p>
-                      
-                      <!-- Contact Information in Header -->
-                      <div style="font-size: 11px; color: #e5e7eb; line-height: 1.4; border-top: 1px solid #333333; padding-top: 6px; margin-top: 6px;">
-                        <p style="margin: 0 0 2px 0; color: #ffffff;">Phone: +254758314887 &nbsp;|&nbsp; Email: <a href="mailto:Trainings@edgevest.co.ke" class="text-white underline" style="color: #ffffff;">Trainings@edgevest.co.ke</a></p>
-                        <p style="margin: 0; color: #d1d5db;">Grace land court Block C, J6 Opp K.U School of Law, Parklands</p>
-                      </div>
-                    </div>
+            <div class="bg-[#f4f2ee] border-2 border-[#3d2d20] rounded-xl p-4 sm:p-6 shadow-inner min-h-[380px] overflow-y-auto">
+              <div class="max-w-xl mx-auto bg-white rounded shadow-xl overflow-hidden border border-slate-200" style="font-family: 'Segoe UI', Helvetica, Arial, sans-serif;">
+                <!-- Matching Edgevest email header -->
+                <div style="padding: 28px 32px 20px 32px; text-align: center; background: #ffffff;">
+                  <img src="https://edgevest.co.ke/images/logo.png" alt="Edgevest" width="160" style="display:block; margin: 0 auto 6px auto; max-width: 160px;">
+                  <div style="font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: #b8860b;">Training &amp; Consultancy</div>
+                </div>
+                <div style="height: 4px; background: linear-gradient(90deg,#b8860b,#d4af5a);"></div>
+
+                <div id="visual-editor-content" contenteditable="true" class="p-8 text-sm leading-relaxed outline-none min-h-[220px]" style="color: #4a4a4a; font-size: 15px; line-height: 1.7;" oninput="syncVisualToHtml()">
+                  <div style="font-size: 11px; letter-spacing: 2.5px; text-transform: uppercase; color: #b8860b; font-weight: 600;">You're Invited</div>
+                  <h1 style="font-family: Georgia, 'Times New Roman', serif; font-size: 26px; line-height: 1.3; color: #1c1c1c; margin: 10px 0 0 0; font-weight: normal;">Professional Training &amp; Development Session</h1>
+                  <p style="margin-top: 14px;">Dear {name},</p>
+                  <p>We're delighted to invite you to an upcoming Edgevest training session — a hands-on workshop designed to sharpen the practical skills that move your career forward.</p>
+
+                  <div style="background-color: #faf8f4; border-left: 3px solid #b8860b; padding: 18px 22px; margin: 16px 0;">
+                    <div style="font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: #9a9a9a;">Date</div>
+                    <div style="font-size: 15px; color: #1c1c1c; font-weight: 600; margin-bottom: 12px;">16 January 2026</div>
+                    <div style="font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: #9a9a9a;">Time</div>
+                    <div style="font-size: 15px; color: #1c1c1c; font-weight: 600; margin-bottom: 12px;">9:00 AM – 4:00 PM</div>
+                    <div style="font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: #9a9a9a;">Location</div>
+                    <div style="font-size: 15px; color: #1c1c1c; font-weight: 600;">Nairobi, Kenya</div>
                   </div>
+
+                  <p style="text-align: center; margin: 24px 0 8px 0;">
+                    <a href="https://edgevest.co.ke/contact.html" style="display: inline-block; background-color: #b8860b; color: #ffffff; font-size: 14px; font-weight: 600; text-decoration: none; padding: 14px 32px; border-radius: 3px;">Reserve Your Seat →</a>
+                  </p>
+                  <p style="text-align: center; font-size: 13px; color: #9a9a9a;">Limited seats available — spaces are confirmed on a first-come basis.</p>
                 </div>
 
-                <!-- Editable Main Body Area -->
-                <div id="visual-editor-content" contenteditable="true" class="p-8 text-slate-900 text-sm leading-relaxed outline-none min-h-[220px]" style="font-family: 'Bookman Old Style', Bookman, 'URW Bookman L', Georgia, serif;" oninput="syncVisualToHtml()">
-                  <p style="margin-bottom: 16px;">Dear {name},</p>
-                  <p style="margin-bottom: 16px;">We are excited to invite you to our upcoming professional training session.</p>
-                  
-                  <div style="background-color: #f8f6f2; border-left: 4px solid #c5a059; padding: 12px 16px; margin: 20px 0; border-radius: 4px;">
-                    <p style="margin: 0 0 4px 0; font-weight: bold; color: #8c6543;">Date: 16th January 2026</p>
-                    <p style="margin: 0 0 4px 0;">Location: Nairobi</p>
-                    <p style="margin: 0;">Time: 9:00 AM - 4:00 PM</p>
-                  </div>
-
-                  <p style="margin-bottom: 16px;">This hands-on workshop will equip you with practical skills to excel in your career.</p>
-                  <p style="margin-bottom: 20px;">We look forward to seeing you there!</p>
-                  
-                  <p style="margin: 0;">Best regards,<br/><strong>Edgevest Team</strong></p>
+                <div style="height: 4px; background: linear-gradient(90deg,#b8860b,#d4af5a);"></div>
+                <div style="padding: 24px 32px; text-align: center; font-size: 12px; color: #9a9a9a;">
+                  <img src="https://edgevest.co.ke/images/logo.png" alt="Edgevest" width="100" style="display:block; margin: 0 auto 10px auto;">
+                  <p style="margin: 0 0 4px 0;">Grace Land Court, Block C, J6, Opp. K.U School of Law, Parklands, Nairobi</p>
+                  <p style="margin: 0;">+254 758 314 887 · trainings@edgevest.co.ke · www.edgevest.co.ke</p>
+                  <p style="margin: 8px 0 0 0;">NITA/TRN/2675 · SR/eGP/2026/59082</p>
                 </div>
               </div>
             </div>
@@ -482,6 +480,9 @@ jane@company.org, Jane Smith, Globex Inc</textarea>
           <button type="button" id="btn-cancel-campaign" class="px-3.5 py-2 bg-rose-700 hover:bg-rose-600 text-white text-xs font-bold rounded-xl shadow-sm transition border border-rose-500/30">
             <i class="fa-solid fa-stop mr-1"></i> Stop Campaign
           </button>
+          <button type="button" id="btn-clear-campaign-data" onclick="clearCampaignWorkspace()" class="px-3.5 py-2 bg-[#1a1410] hover:bg-[#261c17] text-[#e2b871] border border-[#8c6543]/60 text-xs font-bold rounded-xl shadow-sm transition">
+            <i class="fa-solid fa-broom mr-1"></i> Clear workspace
+          </button>
         </div>
       </div>
 
@@ -586,17 +587,37 @@ jane@company.org, Jane Smith, Globex Inc</textarea>
     </div>
   </footer>
 
-  <script>
+    <script>
     // State Manager
     let currentStep = 1;
     let validatedRecipients = [];
     let sseSource = null;
+    let campaignAttachments = [];
+    let cachedLogsList = [];
+    let activeLogFilterLevel = "all";
+    let currentSmtpLogs = [];
+    let currentPreviewAttIndex = null;
+    let currentPreviewBlobUrl = null;
+
+    // ---- Auth helper (REQUIRED for parse / CSV / launch) ----
+    async function authenticatedFetch(url, options) {
+      options = options || {};
+      var headers = Object.assign({}, options.headers || {});
+      var token = localStorage.getItem("edgevest_auth_token");
+      if (token) {
+        headers["Authorization"] = "Bearer " + token;
+      }
+      return fetch(url, Object.assign({}, options, {
+        headers: headers,
+        credentials: "include"
+      }));
+    }
 
     function goToStep(stepNum) {
       currentStep = stepNum;
-      for (let i = 1; i <= 4; i++) {
-        const btn = document.getElementById(`step-btn-${i}`);
-        const content = document.getElementById(`step-content-${i}`);
+      for (var i = 1; i <= 4; i++) {
+        var btn = document.getElementById("step-btn-" + i);
+        var content = document.getElementById("step-content-" + i);
         if (i === stepNum) {
           if (btn) btn.className = "step-active group p-3.5 flex flex-col border-l-4 md:border-l-0 md:border-t-4 rounded-xl transition-all cursor-pointer";
           if (content) content.classList.remove("hidden");
@@ -618,55 +639,148 @@ jane@company.org, Jane Smith, Globex Inc</textarea>
       }
     }
 
-    // SMTP Presets
+        function getDefaultVisualBodyHtml() {
+      return (
+        '<div style="font-size: 11px; letter-spacing: 2.5px; text-transform: uppercase; color: #b8860b; font-weight: 600;">You\'re Invited</div>' +
+        '<h1 style="font-family: Georgia, \'Times New Roman\', serif; font-size: 26px; line-height: 1.3; color: #1c1c1c; margin: 10px 0 0 0; font-weight: normal;">Professional Training &amp; Development Session</h1>' +
+        '<p style="margin-top: 14px;">Dear {name},</p>' +
+        '<p>We\'re delighted to invite you to an upcoming Edgevest training session — a hands-on workshop designed to sharpen the practical skills that move your career forward.</p>' +
+        '<div style="background-color: #faf8f4; border-left: 3px solid #b8860b; padding: 18px 22px; margin: 16px 0;">' +
+        '<div style="font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: #9a9a9a;">Date</div>' +
+        '<div style="font-size: 15px; color: #1c1c1c; font-weight: 600; margin-bottom: 12px;">16 January 2026</div>' +
+        '<div style="font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: #9a9a9a;">Time</div>' +
+        '<div style="font-size: 15px; color: #1c1c1c; font-weight: 600; margin-bottom: 12px;">9:00 AM – 4:00 PM</div>' +
+        '<div style="font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: #9a9a9a;">Location</div>' +
+        '<div style="font-size: 15px; color: #1c1c1c; font-weight: 600;">Nairobi, Kenya</div></div>' +
+        '<p style="text-align: center; margin: 24px 0 8px 0;"><a href="https://edgevest.co.ke/contact.html" style="display: inline-block; background-color: #b8860b; color: #ffffff; font-size: 14px; font-weight: 600; text-decoration: none; padding: 14px 32px; border-radius: 3px;">Reserve Your Seat →</a></p>' +
+        '<p style="text-align: center; font-size: 13px; color: #9a9a9a;">Limited seats available — spaces are confirmed on a first-come basis.</p>'
+      );
+    }
+
+    async function clearCampaignWorkspace() {
+      if (!confirm("Clear recipients, attachments, stats/logs, and reset the template to the default Edgevest invitation?")) {
+        return;
+      }
+
+      // Close live stream
+      if (sseSource) {
+        try { sseSource.close(); } catch (e) {}
+        sseSource = null;
+      }
+
+      // Optional: clear server-side logs / cancel leftover state
+      try {
+        await authenticatedFetch("/api/campaign/log/clear", { method: "POST" });
+      } catch (e) {}
+      try {
+        await authenticatedFetch("/api/campaign/cancel", { method: "POST" });
+      } catch (e) {}
+
+      // Recipients
+      validatedRecipients = [];
+      var input = document.getElementById("raw-recipients-input");
+      if (input) input.value = "";
+      var tbody = document.getElementById("recipients-table-body");
+      if (tbody) {
+        tbody.innerHTML = '<tr><td colspan="5" class="px-4 py-8 text-center text-[#8c7868] text-xs">No recipients added yet. Upload a CSV or parse the list above.</td></tr>';
+      }
+      var cv = document.getElementById("count-valid");
+      var ci = document.getElementById("count-invalid");
+      if (cv) cv.innerText = "Valid: 0";
+      if (ci) ci.innerText = "Invalid: 0";
+      var fileName = document.getElementById("csv-file-name");
+      if (fileName) {
+        fileName.innerText = "";
+        fileName.classList.add("hidden");
+      }
+      var fileInput = document.getElementById("csv-file-input");
+      if (fileInput) fileInput.value = "";
+
+      // Template reset
+      var subj = document.getElementById("email-subject");
+      if (subj) subj.value = "Invitation: Professional Training & Development Session";
+      var visualEl = document.getElementById("visual-editor-content");
+      if (visualEl) visualEl.innerHTML = getDefaultVisualBodyHtml();
+      syncVisualToHtml();
+
+      // Attachments
+      campaignAttachments = [];
+      renderAttachmentsList();
+
+      // Monitor UI
+      cachedLogsList = [];
+      renderLogConsole();
+      var totalEl = document.getElementById("stat-total");
+      var sentEl = document.getElementById("stat-sent");
+      var failedEl = document.getElementById("stat-failed");
+      var progressEl = document.getElementById("stat-progress");
+      var bar = document.getElementById("progress-bar-fill");
+      if (totalEl) totalEl.innerText = "0";
+      if (sentEl) sentEl.innerText = "0";
+      if (failedEl) failedEl.innerText = "0";
+      if (progressEl) progressEl.innerText = "0%";
+      if (bar) bar.style.width = "0%";
+      var finish = document.getElementById("finish-banner-node");
+      if (finish) finish.remove();
+      var consoleDiv = document.getElementById("sse-log-console");
+      if (consoleDiv) {
+        consoleDiv.innerHTML = '<div class="text-[#8c7868] italic">[System] Workspace cleared. Ready for a new campaign.</div>';
+      }
+
+      goToStep(1);
+      alert("Workspace cleared. You can start a new campaign.");
+    }
+
     function applySmtpPreset(type) {
-      const host = document.getElementById("smtp-host");
-      const port = document.getElementById("smtp-port");
-      const tls = document.getElementById("smtp-tls");
-      const ssl = document.getElementById("smtp-ssl");
+      var host = document.getElementById("smtp-host");
+      var port = document.getElementById("smtp-port");
+      var tls = document.getElementById("smtp-tls");
+      var ssl = document.getElementById("smtp-ssl");
+      if (!host || !port) return;
 
       if (type === "o365_outlook") {
         host.value = "outlook.office365.com";
         port.value = "587";
-        tls.checked = true;
-        ssl.checked = false;
+        if (tls) tls.checked = true;
+        if (ssl) ssl.checked = false;
       } else if (type === "o365_smtp") {
         host.value = "smtp.office365.com";
         port.value = "587";
-        tls.checked = true;
-        ssl.checked = false;
+        if (tls) tls.checked = true;
+        if (ssl) ssl.checked = false;
       } else if (type === "edgevest") {
         host.value = "mail.edgevest.co.ke";
         port.value = "465";
-        ssl.checked = true;
-        tls.checked = false;
+        if (ssl) ssl.checked = true;
+        if (tls) tls.checked = false;
       } else if (type === "gmail") {
         host.value = "smtp.gmail.com";
         port.value = "465";
-        ssl.checked = true;
-        tls.checked = false;
+        if (ssl) ssl.checked = true;
+        if (tls) tls.checked = false;
       }
     }
 
-    // Auto-sync checkboxes
-    document.getElementById("smtp-tls")?.addEventListener("change", (e) => {
-      if (e.target.checked) document.getElementById("smtp-ssl").checked = false;
+    document.getElementById("smtp-tls")?.addEventListener("change", function (e) {
+      var ssl = document.getElementById("smtp-ssl");
+      if (e.target.checked && ssl) ssl.checked = false;
     });
-    document.getElementById("smtp-ssl")?.addEventListener("change", (e) => {
-      if (e.target.checked) document.getElementById("smtp-tls").checked = false;
+    document.getElementById("smtp-ssl")?.addEventListener("change", function (e) {
+      var tls = document.getElementById("smtp-tls");
+      if (e.target.checked && tls) tls.checked = false;
     });
-    document.getElementById("smtp-port")?.addEventListener("change", (e) => {
-      const val = parseInt(e.target.value, 10);
+    document.getElementById("smtp-port")?.addEventListener("change", function (e) {
+      var val = parseInt(e.target.value, 10);
+      var tls = document.getElementById("smtp-tls");
+      var ssl = document.getElementById("smtp-ssl");
       if (val === 587) {
-        document.getElementById("smtp-tls").checked = true;
-        document.getElementById("smtp-ssl").checked = false;
+        if (tls) tls.checked = true;
+        if (ssl) ssl.checked = false;
       } else if (val === 465) {
-        document.getElementById("smtp-ssl").checked = true;
-        document.getElementById("smtp-tls").checked = false;
+        if (ssl) ssl.checked = true;
+        if (tls) tls.checked = false;
       }
     });
-
-    let currentSmtpLogs = [];
 
     function escapeHtml(str) {
       if (!str) return "";
@@ -680,17 +794,17 @@ jane@company.org, Jane Smith, Globex Inc</textarea>
 
     function copySmtpLogs() {
       if (!currentSmtpLogs || currentSmtpLogs.length === 0) return;
-      const text = currentSmtpLogs.join("\n");
-      navigator.clipboard.writeText(text).then(() => {
+      var text = currentSmtpLogs.join("\n");
+      navigator.clipboard.writeText(text).then(function () {
         alert("Debug logs copied to clipboard!");
-      }).catch(() => {
+      }).catch(function () {
         prompt("Copy debug logs below:", text);
       });
     }
 
     function toggleSmtpDebugLogConsole() {
-      const body = document.getElementById("smtp-debug-log-body");
-      const icon = document.getElementById("smtp-log-toggle-icon");
+      var body = document.getElementById("smtp-debug-log-body");
+      var icon = document.getElementById("smtp-log-toggle-icon");
       if (!body) return;
       if (body.classList.contains("hidden")) {
         body.classList.remove("hidden");
@@ -701,116 +815,122 @@ jane@company.org, Jane Smith, Globex Inc</textarea>
       }
     }
 
-    // SMTP Verification
-    document.getElementById("btn-test-smtp").addEventListener("click", async () => {
-      const resultDiv = document.getElementById("smtp-test-result");
+    document.getElementById("btn-test-smtp")?.addEventListener("click", async function () {
+      var resultDiv = document.getElementById("smtp-test-result");
+      if (!resultDiv) return;
       resultDiv.classList.remove("hidden");
       resultDiv.className = "mt-4 p-4 rounded-xl text-sm bg-[#1a2e26] text-[#63b39b] border border-[#2d5a4c]";
       resultDiv.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Testing connection to SMTP server & gathering diagnostic logs...';
 
-      const payload = {
-        host: document.getElementById("smtp-host").value,
-        port: document.getElementById("smtp-port").value,
-        username: document.getElementById("smtp-user").value,
-        password: document.getElementById("smtp-pass").value,
-        use_tls: document.getElementById("smtp-tls").checked,
-        use_ssl: document.getElementById("smtp-ssl").checked,
+      var hostEl = document.getElementById("smtp-host");
+      var portEl = document.getElementById("smtp-port");
+      var userEl = document.getElementById("smtp-user");
+      var passEl = document.getElementById("smtp-pass");
+      var tlsEl = document.getElementById("smtp-tls");
+      var sslEl = document.getElementById("smtp-ssl");
+
+      var payload = {
+        host: hostEl ? hostEl.value : "",
+        port: portEl ? portEl.value : "",
+        username: userEl ? userEl.value : "",
+        password: passEl ? passEl.value : "",
+        use_tls: tlsEl ? tlsEl.checked : false,
+        use_ssl: sslEl ? sslEl.checked : false
       };
 
       try {
-        const res = await fetch("/api/smtp/verify", {
+        var res = await authenticatedFetch("/api/smtp/verify", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload)
         });
-        const data = await res.json();
+        var data = await res.json();
         currentSmtpLogs = data.logs || [];
 
-        let logsHtml = "";
+        var logsHtml = "";
         if (currentSmtpLogs.length > 0) {
-          const formattedLogs = currentSmtpLogs.map(line => {
-            let color = "text-slate-300";
+          var formattedLogs = currentSmtpLogs.map(function (line) {
+            var color = "text-slate-300";
             if (line.includes("[ERROR]") || line.includes("[FAIL]")) color = "text-rose-400 font-bold";
             else if (line.includes("[SUCCESS]") || line.includes("[DNS SUCCESS]")) color = "text-emerald-400 font-bold";
             else if (line.includes("[WARN]")) color = "text-amber-400";
             else if (line.includes("[INIT]") || line.includes("[CONFIG]") || line.includes("[DNS]")) color = "text-sky-300 font-semibold";
             else if (line.includes("[DEBUG]") || line.includes("[TRACE]")) color = "text-slate-400";
-            return `<div class="${color}">${escapeHtml(line)}</div>`;
+            return '<div class="' + color + '">' + escapeHtml(line) + "</div>";
           }).join("");
 
-          logsHtml = `
-            <div class="mt-4 border border-[#3d2d20] rounded-xl bg-[#0b0806] overflow-hidden text-left">
-              <div class="flex items-center justify-between px-4 py-2.5 bg-[#18120e] border-b border-[#3d2d20] cursor-pointer" onclick="toggleSmtpDebugLogConsole()">
-                <span class="text-xs font-mono font-bold text-[#e2b871] flex items-center">
-                  <i class="fa-solid fa-terminal mr-2 text-[#c5a059]"></i> Live Diagnostic & Handshake Logs (${currentSmtpLogs.length} entries)
-                </span>
-                <div class="flex items-center gap-2">
-                  <button type="button" onclick="event.stopPropagation(); copySmtpLogs()" class="px-2.5 py-1 bg-[#261c17] hover:bg-[#32241d] border border-[#3d2d20] hover:border-[#8c6543] text-[11px] font-mono text-[#d1c4b8] rounded transition flex items-center">
-                    <i class="fa-solid fa-copy mr-1 text-[#e2b871]"></i> Copy Logs
-                  </button>
-                  <span id="smtp-log-toggle-icon" class="text-xs text-[#a8988a] ml-1"><i class="fa-solid fa-chevron-up"></i></span>
-                </div>
-              </div>
-              <div id="smtp-debug-log-body" class="p-3.5 text-xs font-mono max-h-72 overflow-y-auto space-y-1 bg-black/90">
-                ${formattedLogs}
-              </div>
-            </div>
-          `;
+          logsHtml =
+            '<div class="mt-4 border border-[#3d2d20] rounded-xl bg-[#0b0806] overflow-hidden text-left">' +
+            '<div class="flex items-center justify-between px-4 py-2.5 bg-[#18120e] border-b border-[#3d2d20] cursor-pointer" onclick="toggleSmtpDebugLogConsole()">' +
+            '<span class="text-xs font-mono font-bold text-[#e2b871] flex items-center">' +
+            '<i class="fa-solid fa-terminal mr-2 text-[#c5a059]"></i> Live Diagnostic & Handshake Logs (' + currentSmtpLogs.length + " entries)</span>" +
+            '<div class="flex items-center gap-2">' +
+            '<button type="button" onclick="event.stopPropagation(); copySmtpLogs()" class="px-2.5 py-1 bg-[#261c17] hover:bg-[#32241d] border border-[#3d2d20] hover:border-[#8c6543] text-[11px] font-mono text-[#d1c4b8] rounded transition flex items-center">' +
+            '<i class="fa-solid fa-copy mr-1 text-[#e2b871]"></i> Copy Logs</button>' +
+            '<span id="smtp-log-toggle-icon" class="text-xs text-[#a8988a] ml-1"><i class="fa-solid fa-chevron-up"></i></span>' +
+            "</div></div>" +
+            '<div id="smtp-debug-log-body" class="p-3.5 text-xs font-mono max-h-72 overflow-y-auto space-y-1 bg-black/90">' +
+            formattedLogs +
+            "</div></div>";
         }
 
         if (data.success) {
           resultDiv.className = "mt-4 p-4 rounded-xl text-sm bg-[#1a2e26] text-[#63b39b] border border-[#2d5a4c]";
-          resultDiv.innerHTML = `<i class="fa-solid fa-circle-check mr-2 text-[#63b39b]"></i> ${escapeHtml(data.message)} ${logsHtml}`;
+          resultDiv.innerHTML = '<i class="fa-solid fa-circle-check mr-2 text-[#63b39b]"></i> ' + escapeHtml(data.message) + " " + logsHtml;
         } else {
           resultDiv.className = "mt-4 p-4 rounded-xl text-sm bg-rose-950/60 text-rose-300 border border-rose-800/60";
-          resultDiv.innerHTML = `<i class="fa-solid fa-circle-xmark mr-2 text-rose-400"></i> ${escapeHtml(data.error || '').replace(/\n/g, '<br/>')} ${logsHtml}`;
+          resultDiv.innerHTML = '<i class="fa-solid fa-circle-xmark mr-2 text-rose-400"></i> ' + escapeHtml(data.error || "").replace(/\n/g, "<br/>") + " " + logsHtml;
         }
       } catch (err) {
         resultDiv.className = "mt-4 p-4 rounded-xl text-sm bg-rose-950/60 text-rose-300 border border-rose-800/60";
-        resultDiv.innerHTML = `<i class="fa-solid fa-circle-xmark mr-2 text-rose-400"></i> Network error connecting to backend API: ${escapeHtml(err.message)}`;
+        resultDiv.innerHTML = '<i class="fa-solid fa-circle-xmark mr-2 text-rose-400"></i> Network error connecting to backend API: ' + escapeHtml(err.message);
       }
     });
 
-    // Sample Data Loader
-    document.getElementById("btn-sample-data").addEventListener("click", () => {
-      const sample = "tina@example.com, Tina Kurunga, Edgevest Training\njohn@example.com, John Doe, Acme Corp\njane@company.org, Jane Smith, Globex Inc\ninvalid-email-here, Bad Record, Unknown";
-      document.getElementById("raw-recipients-input").value = sample;
+    document.getElementById("btn-sample-data")?.addEventListener("click", function () {
+      var sample = "tina@example.com, Tina Kurunga, Edgevest Training\njohn@example.com, John Doe, Acme Corp\njane@company.org, Jane Smith, Globex Inc\ninvalid-email-here, Bad Record, Unknown";
+      var inputEl = document.getElementById("raw-recipients-input");
+      if (inputEl) inputEl.value = sample;
       parseRecipientText();
     });
 
-    document.getElementById("btn-parse-text").addEventListener("click", parseRecipientText);
+    document.getElementById("btn-parse-text")?.addEventListener("click", parseRecipientText);
 
-    // CSV File Upload / Dropzone handlers
-    const csvDropzone = document.getElementById("csv-dropzone");
-    const csvFileInput = document.getElementById("csv-file-input");
-    const btnBrowseCsv = document.getElementById("btn-browse-csv");
+    var csvDropzone = document.getElementById("csv-dropzone");
+    var csvFileInput = document.getElementById("csv-file-input");
+    var btnBrowseCsv = document.getElementById("btn-browse-csv");
 
     if (btnBrowseCsv && csvFileInput) {
-      btnBrowseCsv.addEventListener("click", (e) => {
+      btnBrowseCsv.addEventListener("click", function (e) {
         e.stopPropagation();
         csvFileInput.click();
       });
     }
 
     if (csvDropzone && csvFileInput) {
-      csvDropzone.addEventListener("click", (e) => {
+      csvDropzone.addEventListener("click", function (e) {
         if (e.target !== csvFileInput && e.target !== btnBrowseCsv && (!btnBrowseCsv || !btnBrowseCsv.contains(e.target))) {
           csvFileInput.click();
         }
       });
-      csvFileInput.addEventListener("click", (e) => {
+      csvFileInput.addEventListener("click", function (e) {
         e.stopPropagation();
       });
-      csvDropzone.addEventListener("dragover", (e) => { e.preventDefault(); csvDropzone.classList.add("border-[#c5a059]"); });
-      csvDropzone.addEventListener("dragleave", () => csvDropzone.classList.remove("border-[#c5a059]"));
-      csvDropzone.addEventListener("drop", (e) => {
+      csvDropzone.addEventListener("dragover", function (e) {
+        e.preventDefault();
+        csvDropzone.classList.add("border-[#c5a059]");
+      });
+      csvDropzone.addEventListener("dragleave", function () {
+        csvDropzone.classList.remove("border-[#c5a059]");
+      });
+      csvDropzone.addEventListener("drop", function (e) {
         e.preventDefault();
         csvDropzone.classList.remove("border-[#c5a059]");
         if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) {
           handleCSVFile(e.dataTransfer.files[0]);
         }
       });
-      csvFileInput.addEventListener("change", (e) => {
+      csvFileInput.addEventListener("change", function (e) {
         if (e.target.files && e.target.files.length) {
           handleCSVFile(e.target.files[0]);
         }
@@ -819,27 +939,24 @@ jane@company.org, Jane Smith, Globex Inc</textarea>
 
     function handleCSVFile(file) {
       if (!file) return;
-
-      const lower = (file.name || "").toLowerCase();
+      var lower = (file.name || "").toLowerCase();
       if (lower.endsWith(".xlsx") || lower.endsWith(".xls")) {
         alert("Please export Excel as CSV (File → Save As → CSV) and upload the .csv file.");
         return;
       }
-
-      const fileNameDiv = document.getElementById("csv-file-name");
+      var fileNameDiv = document.getElementById("csv-file-name");
       if (fileNameDiv) {
         fileNameDiv.innerText = "Selected File: " + file.name + " (" + (file.size / 1024).toFixed(1) + " KB)";
         fileNameDiv.classList.remove("hidden");
       }
-
-      const reader = new FileReader();
+      var reader = new FileReader();
       reader.onerror = function () {
         alert("Could not read that file.");
       };
       reader.onload = function (evt) {
-        let text = evt.target.result || "";
-        if (text.charCodeAt(0) === 0xfeff) text = text.slice(1); // strip Excel BOM
-        const input = document.getElementById("raw-recipients-input");
+        var text = evt.target.result || "";
+        if (text.charCodeAt(0) === 0xfeff) text = text.slice(1);
+        var input = document.getElementById("raw-recipients-input");
         if (input) input.value = text;
         parseRecipientText();
       };
@@ -847,11 +964,11 @@ jane@company.org, Jane Smith, Globex Inc</textarea>
     }
 
     function splitCsvLine(line) {
-      const result = [];
-      let cur = "";
-      let inQuotes = false;
-      for (let i = 0; i < line.length; i++) {
-        const c = line[i];
+      var result = [];
+      var cur = "";
+      var inQuotes = false;
+      for (var i = 0; i < line.length; i++) {
+        var c = line[i];
         if (c === '"') {
           inQuotes = !inQuotes;
         } else if ((c === "," || c === ";" || c === "\t") && !inQuotes) {
@@ -862,59 +979,62 @@ jane@company.org, Jane Smith, Globex Inc</textarea>
         }
       }
       result.push(cur.trim());
-      return result.map((s) => s.replace(/^"|"$/g, "").trim());
+      return result.map(function (s) {
+        return s.replace(/^"|"$/g, "").trim();
+      });
     }
 
     function looksLikeHeader(parts) {
-      const j = parts.join(" ").toLowerCase();
-      return j.includes("email") || j.includes("e-mail") ||
-        (j.includes("name") && parts.length >= 2 && !String(parts[0]).includes("@"));
+      var j = parts.join(" ").toLowerCase();
+      return j.indexOf("email") >= 0 || j.indexOf("e-mail") >= 0 ||
+        (j.indexOf("name") >= 0 && parts.length >= 2 && String(parts[0]).indexOf("@") < 0);
     }
 
     function mapHeaderIndexes(headers) {
-      const h = headers.map((x) => x.toLowerCase());
-      const find = (...keys) => {
-        for (const k of keys) {
-          const i = h.findIndex((x) => x === k || x.includes(k));
+      var h = headers.map(function (x) { return x.toLowerCase(); });
+      function find() {
+        var keys = Array.prototype.slice.call(arguments);
+        for (var k = 0; k < keys.length; k++) {
+          var i = h.findIndex(function (x) { return x === keys[k] || x.indexOf(keys[k]) >= 0; });
           if (i >= 0) return i;
         }
         return -1;
-      };
+      }
       return {
         email: find("email", "e-mail", "mail"),
         name: find("name", "full name", "fullname"),
-        company: find("company", "organisation", "organization", "org"),
+        company: find("company", "organisation", "organization", "org")
       };
     }
 
     async function parseRecipientText() {
-      const input = document.getElementById("raw-recipients-input");
-      const text = (input && input.value) || "";
-      const lines = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
-      const raw = [];
+      var input = document.getElementById("raw-recipients-input");
+      var text = (input && input.value) || "";
+      var lines = text.split(/\r?\n/).map(function (l) { return l.trim(); }).filter(Boolean);
+      var raw = [];
 
       if (!lines.length) {
         alert("No recipient lines found.");
         return;
       }
 
-      let start = 0;
-      let idx = { email: 0, name: 1, company: 2 };
-      const firstParts = splitCsvLine(lines[0]);
+      var start = 0;
+      var idx = { email: 0, name: 1, company: 2 };
+      var firstParts = splitCsvLine(lines[0]);
       if (looksLikeHeader(firstParts)) {
         idx = mapHeaderIndexes(firstParts);
         if (idx.email < 0) idx.email = 0;
         start = 1;
       }
 
-      for (let i = start; i < lines.length; i++) {
-        const parts = splitCsvLine(lines[i]);
+      for (var i = start; i < lines.length; i++) {
+        var parts = splitCsvLine(lines[i]);
         if (!parts.length) continue;
-        const email = (parts[idx.email] || parts[0] || "").trim();
+        var email = (parts[idx.email] || parts[0] || "").trim();
         if (!email) continue;
-        const name = (idx.name >= 0 && parts[idx.name]) || parts[1] || email.split("@")[0];
-        const company = (idx.company >= 0 && parts[idx.company]) || parts[2] || "Valued Client";
-        raw.push({ email, name, company });
+        var name = (idx.name >= 0 && parts[idx.name]) || parts[1] || email.split("@")[0];
+        var company = (idx.company >= 0 && parts[idx.company]) || parts[2] || "Valued Client";
+        raw.push({ email: email, name: name, company: company });
       }
 
       if (!raw.length) {
@@ -923,10 +1043,10 @@ jane@company.org, Jane Smith, Globex Inc</textarea>
       }
 
       try {
-        const res = await authenticatedFetch("/api/recipients/validate", {
+        var res = await authenticatedFetch("/api/recipients/validate", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ recipients: raw }),
+          body: JSON.stringify({ recipients: raw })
         });
 
         if (res.status === 401) {
@@ -934,45 +1054,45 @@ jane@company.org, Jane Smith, Globex Inc</textarea>
           return;
         }
         if (!res.ok) {
-          let errBody = {};
+          var errBody = {};
           try { errBody = await res.json(); } catch (e) {}
           alert(errBody.error || ("Validation failed (HTTP " + res.status + ")"));
           return;
         }
 
-        const data = await res.json();
+        var data = await res.json();
         validatedRecipients = data.valid_recipients || [];
 
-        const cv = document.getElementById("count-valid");
-        const ci = document.getElementById("count-invalid");
+        var cv = document.getElementById("count-valid");
+        var ci = document.getElementById("count-invalid");
         if (cv) cv.innerText = "Valid: " + (data.valid_count || 0);
         if (ci) ci.innerText = "Invalid: " + (data.invalid_count || 0);
 
-        const tbody = document.getElementById("recipients-table-body");
+        var tbody = document.getElementById("recipients-table-body");
         if (!tbody) return;
         tbody.innerHTML = "";
 
-        (data.valid_recipients || []).forEach((r, i) => {
-          const tr = document.createElement("tr");
+        (data.valid_recipients || []).forEach(function (r, i) {
+          var tr = document.createElement("tr");
           tr.className = "hover:bg-[#1a1410] transition-colors";
           tr.innerHTML =
-            '<td class="px-4 py-2.5 text-xs text-[#8c7868] font-mono">' + (i + 1) + "</td>" +
-            '<td class="px-4 py-2.5 font-mono text-xs text-[#f7f4ee]">' + r.email + "</td>" +
-            '<td class="px-4 py-2.5 text-xs text-[#d1c4b8]">' + (r.name || "") + "</td>" +
-            '<td class="px-4 py-2.5 text-xs text-[#a8988a]">' + (r.company || "-") + "</td>" +
-            '<td class="px-4 py-2.5 text-xs text-[#63b39b] font-bold">Valid</td>';
+            "<td class=\"px-4 py-2.5 text-xs text-[#8c7868] font-mono\">" + (i + 1) + "</td>" +
+            "<td class=\"px-4 py-2.5 font-mono text-xs text-[#f7f4ee]\">" + escapeHtml(r.email || "") + "</td>" +
+            "<td class=\"px-4 py-2.5 text-xs text-[#d1c4b8]\">" + escapeHtml(r.name || "") + "</td>" +
+            "<td class=\"px-4 py-2.5 text-xs text-[#a8988a]\">" + escapeHtml(r.company || "-") + "</td>" +
+            "<td class=\"px-4 py-2.5 text-xs text-[#63b39b] font-bold\">Valid</td>";
           tbody.appendChild(tr);
         });
 
-        (data.invalid_recipients || []).forEach((r) => {
-          const tr = document.createElement("tr");
+        (data.invalid_recipients || []).forEach(function (r) {
+          var tr = document.createElement("tr");
           tr.className = "bg-rose-950/20";
           tr.innerHTML =
-            '<td class="px-4 py-2.5 text-xs text-rose-500">!</td>' +
-            '<td class="px-4 py-2.5 font-mono text-xs text-rose-400">' + (r.email || "") + "</td>" +
-            '<td class="px-4 py-2.5 text-xs">' + (r.name || "-") + "</td>" +
-            '<td class="px-4 py-2.5 text-xs">-</td>' +
-            '<td class="px-4 py-2.5 text-xs text-rose-400">' + (r.error || "Invalid") + "</td>';
+            "<td class=\"px-4 py-2.5 text-xs text-rose-500\">!</td>" +
+            "<td class=\"px-4 py-2.5 font-mono text-xs text-rose-400\">" + escapeHtml(r.email || "") + "</td>" +
+            "<td class=\"px-4 py-2.5 text-xs\">" + escapeHtml(r.name || "-") + "</td>" +
+            "<td class=\"px-4 py-2.5 text-xs\">-</td>" +
+            "<td class=\"px-4 py-2.5 text-xs text-rose-400\">" + escapeHtml(r.error || "Invalid") + "</td>";
           tbody.appendChild(tr);
         });
 
@@ -985,51 +1105,71 @@ jane@company.org, Jane Smith, Globex Inc</textarea>
       }
     }
 
+    function insertTag(tag) {
+      var visualEl = document.getElementById("visual-editor-content");
+      if (visualEl) {
+        visualEl.focus();
+        try {
+          document.execCommand("insertText", false, " " + tag + " ");
+        } catch (e) {
+          visualEl.innerHTML = visualEl.innerHTML + " " + tag + " ";
+        }
+        if (typeof syncVisualToHtml === "function") syncVisualToHtml();
+        return;
+      }
+      var area = document.getElementById("email-body-html");
+      if (area) area.value = (area.value || "") + " " + tag;
+      if (typeof updatePreview === "function") updatePreview();
+    }
+
     function updatePreview() {
-      const sample = validatedRecipients[0] || { email: "tina@example.com", name: "Tina Kurunga", company: "Edgevest Training" };
-      let subject = document.getElementById("email-subject").value || "Invitation: Professional Training & Development Session for {name}";
-      let body = document.getElementById("email-body-html").value;
+      var sample = validatedRecipients[0] || { email: "tina@example.com", name: "Tina Kurunga", company: "Edgevest Training" };
+      var subjEl = document.getElementById("email-subject");
+      var bodyEl = document.getElementById("email-body-html");
+      var subject = (subjEl && subjEl.value) || "Invitation: Professional Training & Development Session";
+      var body = bodyEl ? bodyEl.value : "";
 
       if (!body) {
         syncVisualToHtml();
-        body = document.getElementById("email-body-html").value;
+        body = bodyEl ? bodyEl.value : "";
       }
 
       subject = subject.replace(/\{name\}/gi, sample.name).replace(/\{company\}/gi, sample.company).replace(/\{email\}/gi, sample.email);
       body = body.replace(/\{name\}/gi, sample.name).replace(/\{company\}/gi, sample.company).replace(/\{email\}/gi, sample.email);
 
-      document.getElementById("preview-to-email").innerText = sample.email;
-      document.getElementById("preview-subject-text").innerText = subject;
+      var toEl = document.getElementById("preview-to-email");
+      var subjPrev = document.getElementById("preview-subject-text");
+      if (toEl) toEl.innerText = sample.email;
+      if (subjPrev) subjPrev.innerText = subject;
 
-      const iframe = document.getElementById("preview-iframe");
+      var iframe = document.getElementById("preview-iframe");
       if (iframe) {
-        const doc = iframe.contentDocument || iframe.contentWindow.document;
+        var doc = iframe.contentDocument || iframe.contentWindow.document;
         doc.open();
         doc.write(body);
         doc.close();
       }
     }
 
-    // Auth Check & Session Management
     async function checkAuthStatus() {
       try {
-        const res = await fetch("/api/auth/check");
-        const data = await res.json();
+        var res = await fetch("/api/auth/check", { credentials: "include" });
+        var data = await res.json();
         if (!data.authenticated) {
           window.location.href = "/login.html";
           return;
         }
-        const badge = document.getElementById("user-info-badge");
-        const badgeText = document.getElementById("user-info-text");
-        if (badge && badgeText && data.user) {
-          badgeText.innerText = `${data.user} (${data.smtp.host})`;
+        var badge = document.getElementById("user-info-badge");
+        var badgeText = document.getElementById("user-info-text");
+        if (badge && badgeText) {
+          var label = data.username || data.user || "Connected";
+          if (data.smtp && data.smtp.host) label += " (" + data.smtp.host + ")";
+          badgeText.innerText = label;
           badge.classList.remove("hidden");
         }
-        // Initialize template, attachments & recipient table
         syncVisualToHtml();
         renderAttachmentsList();
         parseRecipientText();
-        // Set default step to Recipients List (Step 1)
         goToStep(1);
       } catch (err) {
         console.error("Auth check error:", err);
@@ -1039,10 +1179,11 @@ jane@company.org, Jane Smith, Globex Inc</textarea>
 
     async function handleLogout() {
       try {
-        await fetch("/api/auth/logout", { method: "POST", cache: "no-store" });
+        await fetch("/api/auth/logout", { method: "POST", cache: "no-store", credentials: "include" });
       } catch (err) {
         console.error("Logout request error:", err);
       }
+      try { localStorage.removeItem("edgevest_auth_token"); } catch (e) {}
       window.location.replace("/login.html");
     }
 
@@ -1050,33 +1191,38 @@ jane@company.org, Jane Smith, Globex Inc</textarea>
       window.location.href = "/login.html";
     }
 
-    // Launch Campaign
-    document.getElementById("btn-launch-campaign").addEventListener("click", async () => {
+    document.getElementById("btn-launch-campaign")?.addEventListener("click", async function () {
       if (validatedRecipients.length === 0) {
         alert("Please add at least one valid recipient in Step 1.");
         goToStep(1);
         return;
       }
 
-      const payload = {
+      var subjEl = document.getElementById("email-subject");
+      var bodyEl = document.getElementById("email-body-html");
+      var maxEl = document.getElementById("max-per-minute");
+
+      if (typeof syncVisualToHtml === "function") syncVisualToHtml();
+
+      var payload = {
         recipients: validatedRecipients,
         template: {
-          subject: document.getElementById("email-subject").value,
-          body_html: document.getElementById("email-body-html").value,
+          subject: subjEl ? subjEl.value : "",
+          body_html: bodyEl ? bodyEl.value : "",
           attachments: campaignAttachments
         },
         settings: {
-          max_per_minute: document.getElementById("max-per-minute").value,
+          max_per_minute: maxEl ? maxEl.value : "30"
         }
       };
 
       try {
-        const res = await fetch("/api/campaign/start", {
+        var res = await authenticatedFetch("/api/campaign/start", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload)
         });
-        const data = await res.json();
+        var data = await res.json();
 
         if (data.success) {
           goToStep(4);
@@ -1086,7 +1232,7 @@ jane@company.org, Jane Smith, Globex Inc</textarea>
             alert("SMTP Session expired. Please log in again.");
             window.location.href = "/login.html";
           } else {
-            alert("Error launching campaign: " + data.error);
+            alert("Error launching campaign: " + (data.error || "Unknown error"));
           }
         }
       } catch (err) {
@@ -1094,15 +1240,18 @@ jane@company.org, Jane Smith, Globex Inc</textarea>
       }
     });
 
-    // SSE Progress Tracker & Status Sync Engine
     function updateCampaignStatsUI(status) {
       if (!status) return;
-      document.getElementById("stat-total").innerText = status.total || 0;
-      document.getElementById("stat-sent").innerText = status.sent || 0;
-      document.getElementById("stat-failed").innerText = status.failed || 0;
-      document.getElementById("stat-progress").innerText = `${status.progress_percent || 0}%`;
-      document.getElementById("progress-bar-fill").style.width = `${status.progress_percent || 0}%`;
-
+      var totalEl = document.getElementById("stat-total");
+      var sentEl = document.getElementById("stat-sent");
+      var failedEl = document.getElementById("stat-failed");
+      var progressEl = document.getElementById("stat-progress");
+      var barFillEl = document.getElementById("progress-bar-fill");
+      if (totalEl) totalEl.innerText = status.total || 0;
+      if (sentEl) sentEl.innerText = status.sent || 0;
+      if (failedEl) failedEl.innerText = status.failed || 0;
+      if (progressEl) progressEl.innerText = (status.progress_percent || 0) + "%";
+      if (barFillEl) barFillEl.style.width = (status.progress_percent || 0) + "%";
       if (status.logs && Array.isArray(status.logs)) {
         cachedLogsList = status.logs;
         renderLogConsole();
@@ -1111,8 +1260,8 @@ jane@company.org, Jane Smith, Globex Inc</textarea>
 
     async function fetchCampaignStatus() {
       try {
-        const res = await fetch("/api/campaign/status");
-        const status = await res.json();
+        var res = await authenticatedFetch("/api/campaign/status");
+        var status = await res.json();
         updateCampaignStatsUI(status);
         return status;
       } catch (err) {
@@ -1125,43 +1274,35 @@ jane@company.org, Jane Smith, Globex Inc</textarea>
         sseSource.close();
         sseSource = null;
       }
-
       sseSource = new EventSource("/api/campaign/stream");
-
-      sseSource.onmessage = (e) => {
+      sseSource.onmessage = function (e) {
         try {
-          const eventData = JSON.parse(e.data);
+          var eventData = JSON.parse(e.data);
           if (eventData.type === "progress" || eventData.type === "status" || eventData.type === "init") {
-            const status = eventData.data;
+            var status = eventData.data;
             updateCampaignStatsUI(status);
-
-            // Check if campaign completed, failed, or was cancelled
-            const isFinished = status.status === "completed" || 
-                              status.status === "cancelled" || 
-                              status.status === "failed" || 
-                              (status.total > 0 && status.current_index >= status.total && status.status !== "running");
-
+            var isFinished = status.status === "completed" ||
+              status.status === "cancelled" ||
+              status.status === "failed" ||
+              (status.total > 0 && status.current_index >= status.total && status.status !== "running");
             if (isFinished) {
               if (sseSource) {
                 sseSource.close();
                 sseSource = null;
               }
-
-              // Append final completion banner to log console
-              const consoleDiv = document.getElementById("sse-log-console");
+              var consoleDiv = document.getElementById("sse-log-console");
               if (consoleDiv && !document.getElementById("finish-banner-node")) {
-                const finishBanner = document.createElement("div");
+                var finishBanner = document.createElement("div");
                 finishBanner.id = "finish-banner-node";
-                const stateUpper = (status.status || "COMPLETED").toUpperCase();
-                const isSuccess = status.status === "completed" || status.failed === 0;
-                finishBanner.className = isSuccess 
+                var stateUpper = (status.status || "COMPLETED").toUpperCase();
+                var isSuccess = status.status === "completed" || status.failed === 0;
+                finishBanner.className = isSuccess
                   ? "mt-2 p-2 bg-[#1a2e26] border border-[#2d5a4c] text-[#63b39b] font-bold text-xs rounded-lg flex items-center justify-between"
                   : "mt-2 p-2 bg-amber-950/60 border border-amber-800/60 text-amber-300 font-bold text-xs rounded-lg flex items-center justify-between";
-                
-                finishBanner.innerHTML = `
-                  <span><i class="fa-solid fa-flag-checkered mr-1.5"></i> CAMPAIGN EXECUTION ${stateUpper}: ${status.sent || 0} Sent, ${status.failed || 0} Bounced / Failed of ${status.total || 0} Total</span>
-                  <span class="text-[10px] text-[#a8988a] font-mono">[STREAM CLOSED]</span>
-                `;
+                finishBanner.innerHTML =
+                  "<span><i class=\"fa-solid fa-flag-checkered mr-1.5\"></i> CAMPAIGN EXECUTION " + stateUpper + ": " +
+                  (status.sent || 0) + " Sent, " + (status.failed || 0) + " Bounced / Failed of " + (status.total || 0) + " Total</span>" +
+                  "<span class=\"text-[10px] text-[#a8988a] font-mono\">[STREAM CLOSED]</span>";
                 consoleDiv.appendChild(finishBanner);
                 consoleDiv.scrollTop = consoleDiv.scrollHeight;
               }
@@ -1171,8 +1312,7 @@ jane@company.org, Jane Smith, Globex Inc</textarea>
           console.error("Error parsing SSE data:", err);
         }
       };
-
-      sseSource.onerror = (err) => {
+      sseSource.onerror = function () {
         if (sseSource) {
           sseSource.close();
           sseSource = null;
@@ -1180,62 +1320,46 @@ jane@company.org, Jane Smith, Globex Inc</textarea>
       };
     }
 
-    // Polling fallback every 1.5 seconds to ensure stats are always live when viewing step 4
-    setInterval(() => {
-      if (currentStep === 4) {
-        fetchCampaignStatus();
-      }
+    setInterval(function () {
+      if (currentStep === 4) fetchCampaignStatus();
     }, 1500);
 
-    // Campaign Controls
-    document.getElementById("btn-pause-campaign").addEventListener("click", async () => {
-      await fetch("/api/campaign/pause", { method: "POST" });
+    document.getElementById("btn-pause-campaign")?.addEventListener("click", async function () {
+      await authenticatedFetch("/api/campaign/pause", { method: "POST" });
       fetchCampaignStatus();
     });
-    document.getElementById("btn-resume-campaign").addEventListener("click", async () => {
-      await fetch("/api/campaign/resume", { method: "POST" });
+    document.getElementById("btn-resume-campaign")?.addEventListener("click", async function () {
+      await authenticatedFetch("/api/campaign/resume", { method: "POST" });
       fetchCampaignStatus();
       startSSEStream();
     });
-    document.getElementById("btn-cancel-campaign").addEventListener("click", async () => {
-      await fetch("/api/campaign/cancel", { method: "POST" });
+    document.getElementById("btn-cancel-campaign")?.addEventListener("click", async function () {
+      await authenticatedFetch("/api/campaign/cancel", { method: "POST" });
       fetchCampaignStatus();
     });
 
-    // Auto Parse initial demo list on load & sync template
-    window.addEventListener("DOMContentLoaded", () => {
+    window.addEventListener("DOMContentLoaded", function () {
       checkAuthStatus();
-      parseRecipientText();
-      syncVisualToHtml();
-      fetchCampaignStatus();
     });
 
-    // ==========================================
-    // ATTACHMENTS & RECEIPT GENERATOR ENGINE
-    // ==========================================
-    let campaignAttachments = [];
-
-    // File Upload Trigger
-    document.getElementById("btn-trigger-file-upload").addEventListener("click", () => {
-      document.getElementById("attachment-file-input").click();
+    document.getElementById("btn-trigger-file-upload")?.addEventListener("click", function () {
+      document.getElementById("attachment-file-input")?.click();
     });
 
-    document.getElementById("attachment-file-input").addEventListener("change", (e) => {
-      const files = e.target.files;
+    document.getElementById("attachment-file-input")?.addEventListener("change", function (e) {
+      var files = e.target.files;
       if (!files || files.length === 0) return;
-
-      Array.from(files).forEach(file => {
-        const isPdf = file.name.toLowerCase().endsWith('.pdf') || (file.type && file.type.includes('pdf'));
-        const fileType = isPdf ? 'application/pdf' : (file.type || 'application/octet-stream');
-
-        const reader = new FileReader();
-        reader.onload = (evt) => {
-          let dataUri = evt.target.result;
-          if (isPdf && typeof dataUri === 'string') {
-            dataUri = dataUri.replace(/^data:[^;]+;base64,/, 'data:application/pdf;base64,');
+      Array.from(files).forEach(function (file) {
+        var isPdf = file.name.toLowerCase().endsWith(".pdf") || (file.type && file.type.indexOf("pdf") >= 0);
+        var fileType = isPdf ? "application/pdf" : (file.type || "application/octet-stream");
+        var reader = new FileReader();
+        reader.onload = function (evt) {
+          var dataUri = evt.target.result;
+          if (isPdf && typeof dataUri === "string") {
+            dataUri = dataUri.replace(/^data:[^;]+;base64,/, "data:application/pdf;base64,");
           }
           campaignAttachments.push({
-            id: 'att_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
+            id: "att_" + Date.now() + "_" + Math.random().toString(36).substring(2, 6),
             name: file.name,
             size: formatBytes(file.size),
             type: fileType,
@@ -1248,215 +1372,164 @@ jane@company.org, Jane Smith, Globex Inc</textarea>
       });
     });
 
-    // Receipt Modal Controls
-    const receiptModal = document.getElementById("receipt-modal");
-    document.getElementById("btn-open-receipt-builder").addEventListener("click", () => {
-      receiptModal.classList.remove("hidden");
+    var receiptModal = document.getElementById("receipt-modal");
+    document.getElementById("btn-open-receipt-builder")?.addEventListener("click", function () {
+      if (receiptModal) receiptModal.classList.remove("hidden");
     });
-    document.getElementById("btn-close-receipt-modal").addEventListener("click", () => {
-      receiptModal.classList.add("hidden");
+    document.getElementById("btn-close-receipt-modal")?.addEventListener("click", function () {
+      if (receiptModal) receiptModal.classList.add("hidden");
     });
-    document.getElementById("btn-cancel-receipt-modal").addEventListener("click", () => {
-      receiptModal.classList.add("hidden");
+    document.getElementById("btn-cancel-receipt-modal")?.addEventListener("click", function () {
+      if (receiptModal) receiptModal.classList.add("hidden");
     });
 
-    // Generate PDF Receipt using jsPDF
-    document.getElementById("btn-generate-receipt-pdf").addEventListener("click", () => {
+    document.getElementById("btn-generate-receipt-pdf")?.addEventListener("click", function () {
       try {
-        const filename = document.getElementById("receipt-filename").value.trim() || "Receipt_Edgevest_{name}.pdf";
-        const receiptNo = document.getElementById("receipt-no").value.trim() || "EV-2026-0018";
-        const receiptDate = document.getElementById("receipt-date").value.trim() || "16th January 2026";
-        const amount = document.getElementById("receipt-amount").value.trim() || "KES 15,000";
-        const method = document.getElementById("receipt-method").value.trim() || "M-PESA / Bank Transfer";
-        const client = document.getElementById("receipt-client").value.trim() || "{name} ({company})";
-        const desc = document.getElementById("receipt-desc").value.trim() || "Payment for Professional Training";
-        const notes = document.getElementById("receipt-notes").value.trim() || "Official receipt generated by Edgevest.";
+        var filename = (document.getElementById("receipt-filename") || {}).value;
+        filename = (filename && filename.trim()) || "Receipt_Edgevest_{name}.pdf";
+        var receiptNo = ((document.getElementById("receipt-no") || {}).value || "").trim() || "EV-2026-0018";
+        var receiptDate = ((document.getElementById("receipt-date") || {}).value || "").trim() || "16th January 2026";
+        var amount = ((document.getElementById("receipt-amount") || {}).value || "").trim() || "KES 15,000";
+        var method = ((document.getElementById("receipt-method") || {}).value || "").trim() || "M-PESA / Bank Transfer";
+        var client = ((document.getElementById("receipt-client") || {}).value || "").trim() || "{name} ({company})";
+        var desc = ((document.getElementById("receipt-desc") || {}).value || "").trim() || "Payment for Professional Training";
+        var notes = ((document.getElementById("receipt-notes") || {}).value || "").trim() || "Official receipt generated by Edgevest.";
 
         if (!window.jspdf || !window.jspdf.jsPDF) {
           alert("jsPDF library loading... Please try again in a moment.");
           return;
         }
 
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF({ unit: 'pt', format: 'letter' });
+        var jsPDF = window.jspdf.jsPDF;
+        var doc = new jsPDF({ unit: "pt", format: "letter" });
 
-        // Background & Header Bar (Edgevest Dark Signature)
         doc.setFillColor(13, 11, 10);
-        doc.rect(0, 0, 612, 90, 'F');
-
-        // Header Title
-        doc.setFont('helvetica', 'bold');
+        doc.rect(0, 0, 612, 90, "F");
+        doc.setFont("helvetica", "bold");
         doc.setFontSize(22);
-        doc.setTextColor(226, 184, 113); // Gold #e2b871
+        doc.setTextColor(226, 184, 113);
         doc.text("EDGEVEST", 40, 50);
-
         doc.setFontSize(10);
-        doc.setFont('helvetica', 'normal');
+        doc.setFont("helvetica", "normal");
         doc.setTextColor(224, 212, 200);
         doc.text("Professional Training & Development", 40, 68);
-
         doc.setFontSize(14);
-        doc.setFont('helvetica', 'bold');
+        doc.setFont("helvetica", "bold");
         doc.setTextColor(255, 255, 255);
         doc.text("OFFICIAL RECEIPT", 440, 50);
-
-        // Gold Accent Border Line
         doc.setDrawColor(197, 160, 89);
         doc.setLineWidth(3);
         doc.line(0, 90, 612, 90);
 
-        // Receipt Meta Box
         doc.setFillColor(248, 246, 242);
-        doc.roundedRect(40, 115, 532, 70, 6, 6, 'F');
-        doc.setDrawColor(220, 210, 195);
-        doc.setLineWidth(1);
-        doc.roundedRect(40, 115, 532, 70, 6, 6, 'D');
-
+        doc.roundedRect(40, 115, 532, 70, 6, 6, "F");
         doc.setFontSize(10);
         doc.setTextColor(80, 70, 60);
-        doc.setFont('helvetica', 'bold');
+        doc.setFont("helvetica", "bold");
         doc.text("RECEIPT NO:", 60, 142);
-        doc.setFont('helvetica', 'normal');
+        doc.setFont("helvetica", "normal");
         doc.setTextColor(15, 15, 15);
         doc.text(receiptNo, 140, 142);
-
-        doc.setFont('helvetica', 'bold');
+        doc.setFont("helvetica", "bold");
         doc.setTextColor(80, 70, 60);
         doc.text("DATE:", 60, 165);
-        doc.setFont('helvetica', 'normal');
+        doc.setFont("helvetica", "normal");
         doc.setTextColor(15, 15, 15);
         doc.text(receiptDate, 140, 165);
-
-        doc.setFont('helvetica', 'bold');
+        doc.setFont("helvetica", "bold");
         doc.setTextColor(80, 70, 60);
         doc.text("PAYMENT METHOD:", 320, 142);
-        doc.setFont('helvetica', 'normal');
+        doc.setFont("helvetica", "normal");
         doc.setTextColor(15, 15, 15);
         doc.text(method, 440, 142);
-
-        doc.setFont('helvetica', 'bold');
+        doc.setFont("helvetica", "bold");
         doc.setTextColor(80, 70, 60);
         doc.text("RECEIVED FROM:", 320, 165);
-        doc.setFont('helvetica', 'normal');
+        doc.setFont("helvetica", "normal");
         doc.setTextColor(15, 15, 15);
         doc.text(client, 440, 165);
 
-        // Table Header
         doc.setFillColor(24, 18, 14);
-        doc.rect(40, 210, 532, 28, 'F');
-        doc.setFont('helvetica', 'bold');
+        doc.rect(40, 210, 532, 28, "F");
+        doc.setFont("helvetica", "bold");
         doc.setFontSize(10);
         doc.setTextColor(226, 184, 113);
         doc.text("ITEM / DESCRIPTION", 55, 227);
         doc.text("AMOUNT", 480, 227);
-
-        // Table Row
-        doc.setFont('helvetica', 'normal');
+        doc.setFont("helvetica", "normal");
         doc.setTextColor(30, 30, 30);
         doc.text(desc, 55, 260);
-        doc.setFont('helvetica', 'bold');
+        doc.setFont("helvetica", "bold");
         doc.text(amount, 480, 260);
-
         doc.setDrawColor(220, 220, 220);
         doc.setLineWidth(0.5);
         doc.line(40, 280, 572, 280);
 
-        // Total Paid Highlight Box
         doc.setFillColor(245, 238, 225);
-        doc.roundedRect(350, 300, 222, 45, 4, 4, 'F');
-        doc.setDrawColor(197, 160, 89);
-        doc.setLineWidth(1);
-        doc.roundedRect(350, 300, 222, 45, 4, 4, 'D');
-
+        doc.roundedRect(350, 300, 222, 45, 4, 4, "F");
         doc.setFontSize(11);
         doc.setTextColor(80, 60, 30);
-        doc.setFont('helvetica', 'bold');
+        doc.setFont("helvetica", "bold");
         doc.text("TOTAL PAID:", 365, 328);
         doc.setFontSize(12);
         doc.setTextColor(140, 101, 67);
         doc.text(amount, 455, 328);
-
-        // Terms & Footer
         doc.setFontSize(9);
-        doc.setFont('helvetica', 'italic');
+        doc.setFont("helvetica", "italic");
         doc.setTextColor(100, 100, 100);
         doc.text("Notes: " + notes, 40, 370);
-
-        // Signature Line
-        doc.setFont('helvetica', 'bold');
+        doc.setFont("helvetica", "bold");
         doc.setFontSize(10);
         doc.setTextColor(13, 11, 10);
         doc.text("Authorized Stamp & Signature:", 40, 440);
         doc.line(40, 480, 220, 480);
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(9);
-        doc.setTextColor(100, 100, 100);
-        doc.text("Edgevest Accounts & Finance Department", 40, 495);
-
-        // Footer Bar
         doc.setFillColor(13, 11, 10);
-        doc.rect(0, 742, 612, 50, 'F');
+        doc.rect(0, 742, 612, 50, "F");
         doc.setFontSize(8);
         doc.setTextColor(200, 190, 180);
         doc.text("Edgevest • Grace land court, Block C, J6 Opp K.U School of Law, Parklands", 130, 762);
-        doc.text("Phone: +254 758 314 887 | Email: trainings@edgevest.co.ke | Website: edgevest.co.ke", 125, 776);
+        doc.text("Phone: +254 758 314 887 | Email: trainings@edgevest.co.ke", 125, 776);
 
-        const pdfDataUri = doc.output('datauristring');
-
+        var pdfDataUri = doc.output("datauristring");
         campaignAttachments.push({
-          id: 'att_rcpt_' + Date.now(),
+          id: "att_rcpt_" + Date.now(),
           name: filename,
-          size: '~85 KB (Generated PDF)',
-          type: 'application/pdf',
+          size: "~85 KB (Generated PDF)",
+          type: "application/pdf",
           data: pdfDataUri,
           isReceipt: true
         });
-
         renderAttachmentsList();
-        receiptModal.classList.add("hidden");
+        if (receiptModal) receiptModal.classList.add("hidden");
       } catch (err) {
         alert("Error generating PDF receipt: " + err.message);
       }
     });
 
     function renderAttachmentsList() {
-      const container = document.getElementById("attachments-list");
-      const noMsg = document.getElementById("no-attachments-msg");
-
+      var container = document.getElementById("attachments-list");
+      var noMsg = document.getElementById("no-attachments-msg");
+      if (!container) return;
       if (campaignAttachments.length === 0) {
-        noMsg.classList.remove("hidden");
+        if (noMsg) noMsg.classList.remove("hidden");
         container.innerHTML = "";
         return;
       }
-
-      noMsg.classList.add("hidden");
+      if (noMsg) noMsg.classList.add("hidden");
       container.innerHTML = "";
-
-      campaignAttachments.forEach((att, idx) => {
-        const card = document.createElement("div");
+      campaignAttachments.forEach(function (att, idx) {
+        var card = document.createElement("div");
         card.className = "bg-[#18120e] border border-[#3d2d20] hover:border-[#8c6543] rounded-xl p-3 flex items-center justify-between shadow-sm transition";
-        card.innerHTML = `
-          <div class="flex items-center space-x-3 overflow-hidden">
-            <div class="w-9 h-9 rounded-lg bg-[#261c17] border border-[#3d2d20] flex items-center justify-center text-[#e2b871] shrink-0">
-              <i class="fa-solid ${att.isReceipt ? 'fa-receipt text-amber-400' : 'fa-file-pdf'} text-sm"></i>
-            </div>
-            <div class="truncate">
-              <p class="text-xs font-bold text-slate-100 truncate">${att.name}</p>
-              <p class="text-[10px] text-[#a8988a] flex items-center gap-1.5 mt-0.5">
-                <span>${att.size}</span>
-                ${att.isReceipt ? '<span class="px-1.5 py-0.2 bg-amber-950/80 text-amber-300 border border-amber-800/60 rounded text-[9px] font-bold">PDF RECEIPT</span>' : ''}
-              </p>
-            </div>
-          </div>
-          <div class="flex items-center space-x-1 shrink-0 ml-2">
-            <button type="button" onclick="previewAttachment(${idx})" class="p-1.5 hover:bg-[#261c17] text-[#e2b871] rounded-lg transition" title="Preview File">
-              <i class="fa-solid fa-eye text-xs"></i>
-            </button>
-            <button type="button" onclick="removeAttachment(${idx})" class="p-1.5 hover:bg-rose-950 text-rose-400 rounded-lg transition" title="Remove Attachment">
-              <i class="fa-solid fa-trash-can text-xs"></i>
-            </button>
-          </div>
-        `;
+        card.innerHTML =
+          '<div class="flex items-center space-x-3 overflow-hidden">' +
+          '<div class="w-9 h-9 rounded-lg bg-[#261c17] border border-[#3d2d20] flex items-center justify-center text-[#e2b871] shrink-0">' +
+          '<i class="fa-solid ' + (att.isReceipt ? "fa-receipt text-amber-400" : "fa-file-pdf") + ' text-sm"></i></div>' +
+          '<div class="truncate"><p class="text-xs font-bold text-slate-100 truncate">' + escapeHtml(att.name) + "</p>" +
+          '<p class="text-[10px] text-[#a8988a]">' + escapeHtml(att.size || "") + "</p></div></div>" +
+          '<div class="flex items-center space-x-1 shrink-0 ml-2">' +
+          '<button type="button" onclick="previewAttachment(' + idx + ')" class="p-1.5 hover:bg-[#261c17] text-[#e2b871] rounded-lg transition"><i class="fa-solid fa-eye text-xs"></i></button>' +
+          '<button type="button" onclick="removeAttachment(' + idx + ')" class="p-1.5 hover:bg-rose-950 text-rose-400 rounded-lg transition"><i class="fa-solid fa-trash-can text-xs"></i></button>' +
+          "</div>";
         container.appendChild(card);
       });
     }
@@ -1466,102 +1539,75 @@ jane@company.org, Jane Smith, Globex Inc</textarea>
       renderAttachmentsList();
     }
 
-    let currentPreviewAttIndex = null;
-    let currentPreviewBlobUrl = null;
-
     function dataURItoBlob(dataURI, forceMime) {
       if (!dataURI) return null;
       try {
-        const parts = dataURI.split(',');
+        var parts = dataURI.split(",");
         if (parts.length < 2) return null;
-        let mime = forceMime;
+        var mime = forceMime;
         if (!mime) {
-          const mimeMatch = parts[0].match(/:(.*?);/);
-          mime = mimeMatch ? mimeMatch[1] : 'application/pdf';
+          var mimeMatch = parts[0].match(/:(.*?);/);
+          mime = mimeMatch ? mimeMatch[1] : "application/pdf";
         }
-        if (mime === 'application/octet-stream' || !mime) mime = 'application/pdf';
-
-        const bstr = atob(parts[1]);
-        let n = bstr.length;
-        const u8arr = new Uint8Array(n);
-        while (n--) {
-          u8arr[n] = bstr.charCodeAt(n);
-        }
+        var bstr = atob(parts[1]);
+        var n = bstr.length;
+        var u8arr = new Uint8Array(n);
+        while (n--) u8arr[n] = bstr.charCodeAt(n);
         return new Blob([u8arr], { type: mime });
       } catch (err) {
-        console.error("Error converting data URI to Blob:", err);
+        console.error(err);
         return null;
       }
     }
 
     function openAttachmentInNewTab() {
       if (currentPreviewAttIndex === null || !campaignAttachments[currentPreviewAttIndex]) return;
-      const att = campaignAttachments[currentPreviewAttIndex];
-      const isPdf = att.isReceipt || (att.name && att.name.toLowerCase().endsWith(".pdf")) || (att.type && att.type.includes("pdf"));
-      const mime = isPdf ? 'application/pdf' : (att.type || 'application/pdf');
-      const blob = dataURItoBlob(att.data, mime);
-      
+      var att = campaignAttachments[currentPreviewAttIndex];
+      var isPdf = att.isReceipt || (att.name && att.name.toLowerCase().endsWith(".pdf"));
+      var mime = isPdf ? "application/pdf" : (att.type || "application/pdf");
+      var blob = dataURItoBlob(att.data, mime);
       if (blob) {
-        const blobUrl = URL.createObjectURL(blob);
-        const win = window.open(blobUrl, '_blank');
-        if (!win || win.closed || typeof win.closed === 'undefined') {
-          downloadCurrentAttachment();
-        }
-      } else if (att.data) {
-        const win = window.open();
-        if (win) win.location.href = att.data;
+        var blobUrl = URL.createObjectURL(blob);
+        window.open(blobUrl, "_blank");
       }
     }
 
     function downloadCurrentAttachment() {
       if (currentPreviewAttIndex === null || !campaignAttachments[currentPreviewAttIndex]) return;
-      const att = campaignAttachments[currentPreviewAttIndex];
-      const isPdf = att.isReceipt || (att.name && att.name.toLowerCase().endsWith(".pdf")) || (att.type && att.type.includes("pdf"));
-      const mime = isPdf ? 'application/pdf' : (att.type || 'application/pdf');
-      const blob = dataURItoBlob(att.data, mime);
-      
-      const a = document.createElement('a');
+      var att = campaignAttachments[currentPreviewAttIndex];
+      var isPdf = att.isReceipt || (att.name && att.name.toLowerCase().endsWith(".pdf"));
+      var mime = isPdf ? "application/pdf" : (att.type || "application/pdf");
+      var blob = dataURItoBlob(att.data, mime);
+      var a = document.createElement("a");
       if (blob) {
-        const url = URL.createObjectURL(blob);
+        var url = URL.createObjectURL(blob);
         a.href = url;
-        a.download = att.name || 'document.pdf';
+        a.download = att.name || "document.pdf";
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
-        setTimeout(() => URL.revokeObjectURL(url), 1000);
-      } else {
-        a.href = att.data;
-        a.download = att.name || 'document.pdf';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
+        setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
       }
     }
 
     function previewAttachment(index) {
-      const att = campaignAttachments[index];
+      var att = campaignAttachments[index];
       if (!att) return;
       currentPreviewAttIndex = index;
-
-      const modal = document.getElementById("attachment-viewer-modal");
-      const titleEl = document.getElementById("att-viewer-title");
-      const metaEl = document.getElementById("att-viewer-meta");
-      const iframeContainer = document.getElementById("att-viewer-iframe-container");
-      const imgContainer = document.getElementById("att-viewer-img-container");
-      const img = document.getElementById("att-viewer-img");
-
+      var modal = document.getElementById("attachment-viewer-modal");
+      var titleEl = document.getElementById("att-viewer-title");
+      var metaEl = document.getElementById("att-viewer-meta");
+      var iframeContainer = document.getElementById("att-viewer-iframe-container");
+      var imgContainer = document.getElementById("att-viewer-img-container");
+      var img = document.getElementById("att-viewer-img");
       if (titleEl) titleEl.innerText = att.name;
-      if (metaEl) metaEl.innerText = `${att.size || ''} • ${att.isReceipt ? 'Official Edgevest PDF Receipt' : (att.type || 'Document')}`;
-
-      // Revoke previous blob URL
+      if (metaEl) metaEl.innerText = (att.size || "") + " • " + (att.isReceipt ? "PDF Receipt" : (att.type || "Document"));
       if (currentPreviewBlobUrl) {
         URL.revokeObjectURL(currentPreviewBlobUrl);
         currentPreviewBlobUrl = null;
       }
-
-      const isPdf = att.isReceipt || (att.name && att.name.toLowerCase().endsWith(".pdf")) || (att.type && att.type.includes("pdf"));
-      const isImg = !isPdf && att.type && (att.type.startsWith("image/") || att.type.includes("png") || att.type.includes("jpg") || att.type.includes("jpeg"));
-
+      var isPdf = att.isReceipt || (att.name && att.name.toLowerCase().endsWith(".pdf"));
+      var isImg = !isPdf && att.type && att.type.indexOf("image/") === 0;
       if (isImg) {
         if (iframeContainer) iframeContainer.classList.add("hidden");
         if (imgContainer) imgContainer.classList.remove("hidden");
@@ -1570,77 +1616,45 @@ jane@company.org, Jane Smith, Globex Inc</textarea>
         if (imgContainer) imgContainer.classList.add("hidden");
         if (iframeContainer) {
           iframeContainer.classList.remove("hidden");
-          const mime = isPdf ? 'application/pdf' : (att.type || 'application/pdf');
-          const blob = dataURItoBlob(att.data, mime);
+          var blob = dataURItoBlob(att.data, "application/pdf");
           if (blob) {
             currentPreviewBlobUrl = URL.createObjectURL(blob);
-            iframeContainer.innerHTML = `
-              <object data="${currentPreviewBlobUrl}" type="${mime}" class="w-full h-full min-h-[480px] rounded-lg bg-white border-0 shadow-lg">
-                <iframe src="${currentPreviewBlobUrl}" class="w-full h-full min-h-[480px] rounded-lg bg-white border-0">
-                  <div class="p-8 text-center text-slate-200 space-y-4">
-                    <p class="text-base font-bold text-amber-400">PDF Preview Loaded</p>
-                    <p class="text-xs text-slate-400">If your browser prevents embedding PDFs inside frames, click below to view or download:</p>
-                    <div class="flex items-center justify-center gap-3 pt-2">
-                      <button type="button" onclick="openAttachmentInNewTab()" class="px-4 py-2 bg-[#8c6543] text-white rounded-xl text-xs font-bold shadow-md">Open PDF in New Tab</button>
-                      <button type="button" onclick="downloadCurrentAttachment()" class="px-4 py-2 bg-[#261c17] border border-[#8c6543] text-[#e2b871] rounded-xl text-xs font-bold">Download File</button>
-                    </div>
-                  </div>
-                </iframe>
-              </object>
-            `;
-          } else {
-            iframeContainer.innerHTML = `
-              <div class="p-8 text-center text-slate-200 space-y-4">
-                <p class="text-sm font-bold text-rose-400">Unable to render inline preview for this file.</p>
-                <div class="flex items-center justify-center gap-3 pt-2">
-                  <button type="button" onclick="openAttachmentInNewTab()" class="px-4 py-2 bg-[#8c6543] text-white rounded-xl text-xs font-bold shadow-md">Open in New Tab</button>
-                  <button type="button" onclick="downloadCurrentAttachment()" class="px-4 py-2 bg-[#261c17] border border-[#8c6543] text-[#e2b871] rounded-xl text-xs font-bold">Download File</button>
-                </div>
-              </div>
-            `;
+            iframeContainer.innerHTML = '<iframe src="' + currentPreviewBlobUrl + '" class="w-full h-full min-h-[480px] rounded-lg bg-white border-0"></iframe>';
           }
         }
       }
-
       if (modal) modal.classList.remove("hidden");
     }
 
     function closeAttachmentViewer() {
-      const modal = document.getElementById("attachment-viewer-modal");
+      var modal = document.getElementById("attachment-viewer-modal");
       if (modal) modal.classList.add("hidden");
       if (currentPreviewBlobUrl) {
         URL.revokeObjectURL(currentPreviewBlobUrl);
         currentPreviewBlobUrl = null;
       }
-      const iframeContainer = document.getElementById("att-viewer-iframe-container");
-      if (iframeContainer) {
-        iframeContainer.innerHTML = '<iframe id="att-viewer-iframe" src="about:blank" class="w-full h-full min-h-[450px] rounded-lg border-0 bg-white"></iframe>';
-      }
     }
 
     function formatBytes(bytes) {
-      if (bytes === 0) return '0 Bytes';
-      const k = 1024;
-      const sizes = ['Bytes', 'KB', 'MB'];
-      const i = Math.floor(Math.log(bytes) / Math.log(k));
-      return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+      if (bytes === 0) return "0 Bytes";
+      var k = 1024;
+      var sizes = ["Bytes", "KB", "MB"];
+      var i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + " " + sizes[i];
     }
 
-    // ==========================================
-    // RICH TEXT VISUAL EDITOR & TEMPLATES LOGIC
-    // ==========================================
     function formatText(command) {
       document.execCommand(command, false, null);
       syncVisualToHtml();
     }
 
     function formatBlock(tag) {
-      document.execCommand('formatBlock', false, '<' + tag + '>');
+      document.execCommand("formatBlock", false, "<" + tag + ">");
       syncVisualToHtml();
     }
 
     function insertLinkPrompt() {
-      const url = prompt("Enter hyperlink URL (e.g. https://edgevest.co.ke):", "https://");
+      var url = prompt("Enter hyperlink URL (e.g. https://edgevest.co.ke):", "https://");
       if (url) {
         document.execCommand("createLink", false, url);
         syncVisualToHtml();
@@ -1648,211 +1662,175 @@ jane@company.org, Jane Smith, Globex Inc</textarea>
     }
 
     function insertCtaButton() {
-      const label = prompt("Enter Button Label:", "Register / Confirm Attendance");
-      const url = prompt("Enter Button Link URL:", "https://edgevest.co.ke/register");
+      var label = prompt("Enter Button Label:", "Register / Confirm Attendance");
+      var url = prompt("Enter Button Link URL:", "https://edgevest.co.ke/register");
       if (label && url) {
-        const btnHtml = `<div style="margin: 24px 0; text-align: center;"><a href="${url}" style="background-color: #000000; color: #ffffff; padding: 12px 24px; font-weight: bold; font-size: 14px; text-decoration: none; border-radius: 4px; display: inline-block; border: 1px solid #c5a059;">${label}</a></div>`;
+        var btnHtml = '<div style="margin: 24px 0; text-align: center;"><a href="' + url + '" style="background-color: #000000; color: #ffffff; padding: 12px 24px; font-weight: bold; font-size: 14px; text-decoration: none; border-radius: 4px; display: inline-block; border: 1px solid #c5a059;">' + label + "</a></div>";
         document.execCommand("insertHTML", false, btnHtml);
         syncVisualToHtml();
       }
     }
 
     function insertTagToVisual(tag) {
-      const visualEl = document.getElementById("visual-editor-content");
-      visualEl.focus();
-      document.execCommand("insertText", false, " " + tag + " ");
-      syncVisualToHtml();
+      insertTag(tag);
     }
 
         function syncVisualToHtml() {
-      const visualEl = document.getElementById("visual-editor-content");
-      const visualContent = visualEl ? visualEl.innerHTML : "";
+      var visualEl = document.getElementById("visual-editor-content");
+      var visualContent = visualEl ? visualEl.innerHTML : "";
 
-      const fullHtml = `<!DOCTYPE html>
-<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Edgevest</title>
-<style>
-  body, table, td, a { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
-  table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
-  img { border: 0; height: auto; line-height: 100%; outline: none; text-decoration: none; }
-  body { margin: 0; padding: 0; width: 100% !important; background-color: #f4f2ee; font-family: 'Segoe UI', Helvetica, Arial, sans-serif; }
-  a { color: #b8860b; }
-  .wrapper { width: 100%; background-color: #f4f2ee; padding: 32px 0; }
-  .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; }
-  .gold-rule { height: 4px; line-height: 4px; font-size: 4px; background: linear-gradient(90deg,#b8860b,#d4af5a); }
-  .brand-tag { font-family: 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: #b8860b; }
-  .footer-text { font-size: 12px; line-height: 1.7; color: #9a9a9a; }
-  .footer-link { color: #b8860b; text-decoration: none; }
-  .body-content-inner { font-size: 15px; line-height: 1.7; color: #4a4a4a; }
-  .body-content-inner p { margin: 0 0 16px 0; }
-</style>
-</head>
-<body>
-<div class="wrapper">
-  <table role="presentation" class="container" width="600" cellpadding="0" cellspacing="0" border="0" align="center">
+      var fullHtml =
+        '<!DOCTYPE html>\n' +
+        '<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">\n' +
+        '<head>\n' +
+        '<meta charset="UTF-8">\n' +
+        '<meta name="viewport" content="width=device-width, initial-scale=1.0">\n' +
+        '<meta http-equiv="X-UA-Compatible" content="IE=edge">\n' +
+        '<title>Edgevest — Professional Training &amp; Development</title>\n' +
+        '<style>\n' +
+        'body, table, td, a { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }\n' +
+        'table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }\n' +
+        'img { -ms-interpolation-mode: bicubic; border: 0; height: auto; line-height: 100%; outline: none; text-decoration: none; }\n' +
+        'body { margin: 0; padding: 0; width: 100% !important; height: 100% !important; background-color: #f4f2ee; font-family: \'Segoe UI\', Helvetica, Arial, sans-serif; }\n' +
+        'a { color: #b8860b; }\n' +
+        '.wrapper { width: 100%; background-color: #f4f2ee; padding: 32px 0; }\n' +
+        '.container { max-width: 600px; margin: 0 auto; background-color: #ffffff; }\n' +
+        '.gold-rule { height: 4px; line-height: 4px; font-size: 4px; background: linear-gradient(90deg,#b8860b,#d4af5a); }\n' +
+        '.brand-tag { font-family: \'Segoe UI\', Helvetica, Arial, sans-serif; font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: #b8860b; }\n' +
+        '.eyebrow { font-size: 11px; letter-spacing: 2.5px; text-transform: uppercase; color: #b8860b; font-weight: 600; }\n' +
+        'h1 { font-family: Georgia, \'Times New Roman\', serif; font-size: 26px; line-height: 1.3; color: #1c1c1c; margin: 10px 0 0 0; font-weight: normal; }\n' +
+        'p { font-size: 15px; line-height: 1.7; color: #4a4a4a; margin: 0 0 16px 0; }\n' +
+        '.btn { display: inline-block; background-color: #b8860b; color: #ffffff !important; font-size: 14px; font-weight: 600; letter-spacing: 0.5px; text-decoration: none; padding: 14px 32px; border-radius: 3px; }\n' +
+        '.btn-outline { display: inline-block; background-color: transparent; border: 1.5px solid #b8860b; color: #b8860b !important; font-size: 13px; font-weight: 600; text-decoration: none; padding: 10px 22px; border-radius: 3px; }\n' +
+        '.detail-card { background-color: #faf8f4; border-left: 3px solid #b8860b; padding: 18px 22px; }\n' +
+        '.detail-label { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: #9a9a9a; padding-bottom: 3px; }\n' +
+        '.detail-value { font-size: 15px; color: #1c1c1c; font-weight: 600; padding-bottom: 14px; }\n' +
+        '.footer-text { font-size: 12px; line-height: 1.7; color: #9a9a9a; }\n' +
+        '.footer-link { color: #b8860b; text-decoration: none; }\n' +
+        '.body-content-inner { font-size: 15px; line-height: 1.7; color: #4a4a4a; }\n' +
+        '@media only screen and (max-width: 600px) {\n' +
+        '  .container { width: 100% !important; }\n' +
+        '  .px { padding-left: 24px !important; padding-right: 24px !important; }\n' +
+        '  h1 { font-size: 22px !important; }\n' +
+        '}\n' +
+        '</style>\n' +
+        '</head>\n' +
+        '<body>\n' +
+        '<div class="wrapper">\n' +
+        '  <table role="presentation" class="container" width="600" cellpadding="0" cellspacing="0" border="0" align="center">\n' +
+        '    <!-- Header (locked brand design) -->\n' +
+        '    <tr>\n' +
+        '      <td style="padding: 32px 40px 24px 40px;" class="px" align="center">\n' +
+        '        <img src="https://edgevest.co.ke/images/logo.png" alt="Edgevest — Your Training Partner" width="180" style="display:block; margin: 0 auto 6px auto;">\n' +
+        '        <div class="brand-tag">Training &amp; Consultancy</div>\n' +
+        '      </td>\n' +
+        '    </tr>\n' +
+        '    <tr><td class="gold-rule">&nbsp;</td></tr>\n' +
+        '    <!-- Editable body -->\n' +
+        '    <tr>\n' +
+        '      <td style="padding: 36px 40px 32px 40px;" class="px body-content-inner">\n' +
+        visualContent +
+        '      </td>\n' +
+        '    </tr>\n' +
+        '    <tr><td class="gold-rule">&nbsp;</td></tr>\n' +
+        '    <!-- Footer (locked brand design) -->\n' +
+        '    <tr>\n' +
+        '      <td style="padding: 32px 40px 12px 40px;" class="px" align="center">\n' +
+        '        <img src="https://edgevest.co.ke/images/logo.png" alt="Edgevest" width="120" style="display:block; margin: 0 auto 12px auto;">\n' +
+        '        <p class="footer-text" style="margin: 0 0 4px 0;">Grace Land Court, Block C, J6, Opp. K.U School of Law, Parklands, Nairobi</p>\n' +
+        '        <p class="footer-text" style="margin: 0 0 4px 0;">\n' +
+        '          <a class="footer-link" href="tel:+254758314887">+254 758 314 887</a> &nbsp;|&nbsp;\n' +
+        '          <a class="footer-link" href="mailto:trainings@edgevest.co.ke">trainings@edgevest.co.ke</a> &nbsp;|&nbsp;\n' +
+        '          <a class="footer-link" href="https://edgevest.co.ke">www.edgevest.co.ke</a>\n' +
+        '        </p>\n' +
+        '        <p class="footer-text" style="margin: 12px 0 0 0;">NITA/TRN/2675 &nbsp;·&nbsp; SR/eGP/2026/59082</p>\n' +
+        '      </td>\n' +
+        '    </tr>\n' +
+        '    <tr>\n' +
+        '      <td style="padding: 0 40px 32px 40px;" class="px" align="center">\n' +
+        '        <p class="footer-text" style="margin:0;">You\'re receiving this because you\'re part of the Edgevest network.<br>\n' +
+        '        <a class="footer-link" href="/unsubscribe?email={email}">Unsubscribe</a> &nbsp;·&nbsp;\n' +
+        '        <a class="footer-link" href="https://edgevest.co.ke">Update preferences</a></p>\n' +
+        '      </td>\n' +
+        '    </tr>\n' +
+        '  </table>\n' +
+        '</div>\n' +
+        '</body>\n' +
+        '</html>';
 
-    <!-- HEADER -->
-    <tr>
-      <td style="padding: 32px 40px 24px 40px;" align="center">
-        <img src="https://edgevest.co.ke/images/logo.png" alt="Edgevest — Your Training Partner" width="180" style="display:block; margin: 0 auto 6px auto;">
-        <div class="brand-tag">Training &amp; Consultancy</div>
-      </td>
-    </tr>
-    <tr><td class="gold-rule">&nbsp;</td></tr>
-
-    <!-- BODY (user-editable middle) -->
-    <tr>
-      <td style="padding: 36px 40px 32px 40px;" class="body-content-inner">
-        ${visualContent}
-      </td>
-    </tr>
-
-    <tr><td class="gold-rule">&nbsp;</td></tr>
-
-    <!-- FOOTER -->
-    <tr>
-      <td style="padding: 32px 40px 12px 40px;" align="center">
-        <img src="https://edgevest.co.ke/images/logo.png" alt="Edgevest" width="120" style="display:block; margin: 0 auto 12px auto;">
-        <p class="footer-text" style="margin: 0 0 4px 0;">Grace Land Court, Block C, J6, Opp. K.U School of Law, Parklands, Nairobi</p>
-        <p class="footer-text" style="margin: 0 0 4px 0;">
-          <a class="footer-link" href="tel:+254758314887">+254 758 314 887</a> &nbsp;|&nbsp;
-          <a class="footer-link" href="mailto:trainings@edgevest.co.ke">trainings@edgevest.co.ke</a> &nbsp;|&nbsp;
-          <a class="footer-link" href="https://edgevest.co.ke">www.edgevest.co.ke</a>
-        </p>
-        <p class="footer-text" style="margin: 12px 0 0 0;">NITA/TRN/2675 &nbsp;·&nbsp; SR/eGP/2026/59082</p>
-      </td>
-    </tr>
-    <tr>
-      <td style="padding: 0 40px 32px 40px;" align="center">
-        <p class="footer-text" style="margin:0;">You're receiving this because you're part of the Edgevest network.<br>
-        <a class="footer-link" href="/unsubscribe?email={email}">Unsubscribe</a> &nbsp;·&nbsp;
-        <a class="footer-link" href="https://edgevest.co.ke">Update preferences</a></p>
-      </td>
-    </tr>
-
-  </table>
-</div>
-</body>
-</html>`;
-
-      const bodyField = document.getElementById("email-body-html");
+      var bodyField = document.getElementById("email-body-html");
       if (bodyField) bodyField.value = fullHtml;
-      if (typeof updatePreview === "function") updatePreview();
-    }
-    function syncHtmlToVisual() {
-      const rawHtml = document.getElementById("email-body-html").value;
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(rawHtml, "text/html");
-      const bodyContent = doc.querySelector(".body-content-inner") || doc.querySelector(".body-content");
-      if (bodyContent) {
-        document.getElementById("visual-editor-content").innerHTML = bodyContent.innerHTML;
-      }
-      updatePreview();
     }
 
     function applyPresetTemplate(type) {
-      const visualEl = document.getElementById("visual-editor-content");
-      const subjEl = document.getElementById("email-subject");
+      var visualEl = document.getElementById("visual-editor-content");
+      var subjEl = document.getElementById("email-subject");
+      if (!visualEl || !subjEl) return;
 
       if (type === "invitation") {
         subjEl.value = "Invitation: Professional Training & Development Session";
-        visualEl.innerHTML = `
-          <p style="margin-bottom: 16px;">Dear {name},</p>
-          <p style="margin-bottom: 16px;">We are excited to invite you to our upcoming professional training session.</p>
-          <div style="background-color: #f8f6f2; border-left: 4px solid #c5a059; padding: 12px 16px; margin: 20px 0; border-radius: 4px;">
-            <p style="margin: 0 0 4px 0; font-weight: bold; color: #8c6543;">Date: 16th January 2026</p>
-            <p style="margin: 0 0 4px 0;">Location: Nairobi</p>
-            <p style="margin: 0;">Time: 9:00 AM - 4:00 PM</p>
-          </div>
-          <p style="margin-bottom: 16px;">This hands-on workshop will equip you with practical skills to excel in your career.</p>
-          <p style="margin-bottom: 20px;">We look forward to seeing you there!</p>
-          <p style="margin: 0;">Best regards,<br/><strong>Edgevest Team</strong></p>
-        `;
+        visualEl.innerHTML =
+          '<p style="margin-bottom:16px">Dear {name},</p>' +
+          '<p style="margin-bottom:16px">We are excited to invite you to our upcoming professional training session.</p>' +
+          '<div style="background-color:#f8f6f2;border-left:4px solid #c5a059;padding:12px 16px;margin:20px 0;border-radius:4px">' +
+          '<p style="margin:0 0 4px 0;font-weight:bold;color:#8c6543">Date: 16th January 2026</p>' +
+          '<p style="margin:0 0 4px 0">Location: Nairobi</p>' +
+          '<p style="margin:0">Time: 9:00 AM - 4:00 PM</p></div>' +
+          '<p style="margin-bottom:16px">This hands-on workshop will equip you with practical skills to excel in your career.</p>' +
+          '<p style="margin-bottom:20px">We look forward to seeing you there!</p>' +
+          '<p style="margin:0">Best regards,<br><strong>Edgevest Team</strong></p>';
       } else if (type === "receipt") {
-        subjEl.value = "Official Payment Receipt from Edgevest for {name}";
-        visualEl.innerHTML = `
-          <p style="margin-bottom: 16px;">Dear {name},</p>
-          <p style="margin-bottom: 16px;">Thank you for your payment. Please find your official payment summary details below:</p>
-          <div style="background-color: #111827; color: #ffffff; padding: 20px; border-radius: 6px; margin: 20px 0;">
-            <h3 style="margin: 0 0 10px 0; color: #e2b871; border-b: 1px solid #374151; padding-bottom: 8px;">PAYMENT RECEIPT CONFIRMATION</h3>
-            <p style="margin: 4px 0;"><strong>Receipt No:</strong> EV-2026-{name}</p>
-            <p style="margin: 4px 0;"><strong>Client Name:</strong> {name} ({company})</p>
-            <p style="margin: 4px 0;"><strong>Amount Paid:</strong> KES 15,000</p>
-            <p style="margin: 4px 0;"><strong>Status:</strong> <span style="color: #34d399; font-weight: bold;">VERIFIED & COMPLETED</span></p>
-          </div>
-          <p style="margin-bottom: 16px;">A copy of your PDF receipt has also been attached to this email.</p>
-          <p style="margin: 0;">Warm regards,<br/><strong>Edgevest Accounts Department</strong></p>
-        `;
+        subjEl.value = "Official Payment Receipt from Edgevest";
+        visualEl.innerHTML =
+          '<p style="margin-bottom:16px">Dear {name},</p>' +
+          '<p style="margin-bottom:16px">Thank you for your payment. Please find your summary below:</p>' +
+          '<p style="margin-bottom:16px"><strong>Client:</strong> {name} ({company})</p>' +
+          '<p style="margin:0">Warm regards,<br><strong>Edgevest Accounts</strong></p>';
       } else if (type === "letter") {
-        subjEl.value = "Executive Update for {name} - Edgevest Consultancy";
-        visualEl.innerHTML = `
-          <p style="margin-bottom: 16px;">Dear {name},</p>
-          <p style="margin-bottom: 16px;">I hope this message finds you well at {company}.</p>
-          <p style="margin-bottom: 16px;">We are reaching out to share key strategic insights and upcoming consultancy modules designed specifically for leaders in your industry.</p>
-          <p style="margin-bottom: 20px;">Please let us know a convenient time to connect for a brief introduction.</p>
-          <p style="margin: 0;">Sincerely,<br/><strong>Edgevest Advisory Services</strong></p>
-        `;
+        subjEl.value = "Executive Update - Edgevest Consultancy";
+        visualEl.innerHTML =
+          '<p style="margin-bottom:16px">Dear {name},</p>' +
+          '<p style="margin-bottom:16px">I hope this message finds you well at {company}.</p>' +
+          '<p style="margin:0">Sincerely,<br><strong>Edgevest Advisory Services</strong></p>';
       } else if (type === "newsletter") {
-        subjEl.value = "Edgevest Quarterly Newsletter & Special Industry Brief";
-        visualEl.innerHTML = `
-          <h2 style="color: #8c6543; margin-top: 0;">Quarterly Professional Briefing</h2>
-          <p style="margin-bottom: 16px;">Dear {name},</p>
-          <p style="margin-bottom: 16px;">Welcome to the latest edition of Edgevest Professional Insights for {company}.</p>
-          <ul style="margin-bottom: 20px; padding-left: 20px;">
-            <li style="margin-bottom: 8px;"><strong>Executive Leadership Trends 2026:</strong> Adapting to rapid growth.</li>
-            <li style="margin-bottom: 8px;"><strong>Financial Compliance Workshops:</strong> Registrations now open.</li>
-            <li style="margin-bottom: 8px;"><strong>Special Offers:</strong> Corporate group rates for early registrants.</li>
-          </ul>
-          <p style="margin: 0;">Warm regards,<br/><strong>The Edgevest Team</strong></p>
-        `;
+        subjEl.value = "Edgevest Quarterly Newsletter";
+        visualEl.innerHTML =
+          '<h2 style="color:#8c6543;margin-top:0">Quarterly Professional Briefing</h2>' +
+          '<p style="margin-bottom:16px">Dear {name},</p>' +
+          '<p style="margin:0">Warm regards,<br><strong>The Edgevest Team</strong></p>';
       }
       syncVisualToHtml();
     }
 
     function toggleTemplateTab(tab) {
-      const visPane = document.getElementById("template-visual-pane");
-      const prevPane = document.getElementById("template-preview-pane");
-
-      const visBtn = document.getElementById("tab-btn-visual");
-      const prevBtn = document.getElementById("tab-btn-preview");
+      var visPane = document.getElementById("template-visual-pane");
+      var prevPane = document.getElementById("template-preview-pane");
+      var visBtn = document.getElementById("tab-btn-visual");
+      var prevBtn = document.getElementById("tab-btn-preview");
 
       if (tab === "visual" || tab === "editor") {
         if (visPane) visPane.classList.remove("hidden");
         if (prevPane) prevPane.classList.add("hidden");
-
         if (visBtn) visBtn.className = "py-2 px-3.5 bg-[#261c17] border border-[#8c6543] font-bold text-xs text-[#e2b871] rounded-xl flex items-center transition shadow-sm";
         if (prevBtn) prevBtn.className = "py-2 px-3.5 bg-[#140f0c] border border-[#3d2d20] hover:border-[#8c6543] font-medium text-xs text-[#a8988a] hover:text-slate-200 rounded-xl flex items-center transition";
       } else {
         syncVisualToHtml();
         if (visPane) visPane.classList.add("hidden");
         if (prevPane) prevPane.classList.remove("hidden");
-
         if (prevBtn) prevBtn.className = "py-2 px-3.5 bg-[#261c17] border border-[#8c6543] font-bold text-xs text-[#e2b871] rounded-xl flex items-center transition shadow-sm";
         if (visBtn) visBtn.className = "py-2 px-3.5 bg-[#140f0c] border border-[#3d2d20] hover:border-[#8c6543] font-medium text-xs text-[#a8988a] hover:text-slate-200 rounded-xl flex items-center transition";
         updatePreview();
       }
     }
 
-    // ==========================================
-    // LOG INSPECTOR & LOG EDITOR LOGIC
-    // ==========================================
-    let cachedLogsList = [];
-    let activeLogFilterLevel = 'all';
-
     function setLogFilter(level) {
       activeLogFilterLevel = level;
-      ['all', 'info', 'error', 'warning'].forEach(l => {
-        const btn = document.getElementById(`log-filter-${l}`);
-        if (btn) {
-          if (l === level) {
-            btn.className = "px-3 py-1 rounded-lg bg-[#261c17] text-[#e2b871] font-bold border border-[#8c6543] transition";
-          } else {
-            btn.className = "px-3 py-1 rounded-lg bg-[#140f0c] text-[#a8988a] hover:text-white border border-[#3d2d20] transition";
-          }
-        }
+      ["all", "info", "error", "warning"].forEach(function (l) {
+        var btn = document.getElementById("log-filter-" + l);
+        if (!btn) return;
+        btn.className = l === level
+          ? "px-3 py-1 rounded-lg bg-[#261c17] text-[#e2b871] font-bold border border-[#8c6543] transition"
+          : "px-3 py-1 rounded-lg bg-[#140f0c] text-[#a8988a] hover:text-white border border-[#3d2d20] transition";
       });
       renderLogConsole();
     }
@@ -1862,96 +1840,69 @@ jane@company.org, Jane Smith, Globex Inc</textarea>
     }
 
     function renderLogConsole() {
-      const consoleDiv = document.getElementById("sse-log-console");
+      var consoleDiv = document.getElementById("sse-log-console");
       if (!consoleDiv) return;
-
-      const searchQuery = (document.getElementById("log-search-input")?.value || "").toLowerCase();
-
+      var searchQuery = ((document.getElementById("log-search-input") || {}).value || "").toLowerCase();
       if (!cachedLogsList || cachedLogsList.length === 0) {
         consoleDiv.innerHTML = '<div class="text-[#8c7868] italic p-2">[Console] Ready. No log records found.</div>';
         return;
       }
-
       consoleDiv.innerHTML = "";
-
-      cachedLogsList.forEach((logItem, index) => {
-        const level = logItem.level || "info";
-        const msg = logItem.message || "";
-        const note = logItem.note || "";
-        const time = logItem.time || "";
-
-        // Level Filter
-        if (activeLogFilterLevel !== 'all' && level !== activeLogFilterLevel) {
-          return;
-        }
-
-        // Search Filter
+      cachedLogsList.forEach(function (logItem, index) {
+        var level = logItem.level || "info";
+        var msg = logItem.message || "";
+        var note = logItem.note || "";
+        var time = logItem.time || "";
+        if (activeLogFilterLevel !== "all" && level !== activeLogFilterLevel) return;
         if (searchQuery) {
-          const matchMsg = msg.toLowerCase().includes(searchQuery);
-          const matchNote = note.toLowerCase().includes(searchQuery);
-          const matchTime = time.toLowerCase().includes(searchQuery);
-          if (!matchMsg && !matchNote && !matchTime) return;
+          if (msg.toLowerCase().indexOf(searchQuery) < 0 &&
+              note.toLowerCase().indexOf(searchQuery) < 0 &&
+              time.toLowerCase().indexOf(searchQuery) < 0) return;
         }
-
-        const logCard = document.createElement("div");
-        logCard.className = "group bg-[#18120e] hover:bg-[#211813] border border-[#2e241c] rounded-lg p-2.5 flex items-start justify-between gap-3 transition";
-
-        let badgeHtml = '<span class="px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-[#2d5a4c]/40 text-[#63b39b] border border-[#2d5a4c]">INFO</span>';
-        if (level === "error") {
-          badgeHtml = '<span class="px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-rose-950/60 text-rose-400 border border-rose-800/60">ERROR</span>';
-        } else if (level === "warning") {
-          badgeHtml = '<span class="px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-amber-950/60 text-amber-300 border border-amber-800/60">WARN</span>';
-        }
-
-        logCard.innerHTML = `
-          <div class="space-y-1 flex-1">
-            <div class="flex items-center space-x-2">
-              <span class="text-[#8c7868] text-[10px] font-mono">[${time}]</span>
-              ${badgeHtml}
-              <span class="text-[#e0d4c8] font-mono text-xs">${msg}</span>
-            </div>
-            ${note ? `<div class="text-xs text-[#e2b871] bg-[#261c14] border-l-2 border-[#e2b871] pl-2 py-0.5 rounded-r mt-1 font-sans"><strong>Note:</strong> ${note}</div>` : ''}
-          </div>
-          <div class="opacity-0 group-hover:opacity-100 flex items-center space-x-1 shrink-0 transition">
-            <button type="button" onclick="editLogEntry(${index})" class="p-1 hover:bg-[#3d2d20] text-[#e2b871] rounded transition" title="Edit / Annotate Log Entry"><i class="fa-solid fa-pen-to-square"></i></button>
-            <button type="button" onclick="deleteLogEntry(${index})" class="p-1 hover:bg-rose-950 text-rose-400 rounded transition" title="Delete Log Line"><i class="fa-solid fa-trash-can"></i></button>
-          </div>
-        `;
+        var logCard = document.createElement("div");
+        logCard.className = "group bg-[#18120e] border border-[#2e241c] rounded-lg p-2.5 flex items-start justify-between gap-3";
+        var badgeHtml = '<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-[#2d5a4c]/40 text-[#63b39b]">INFO</span>';
+        if (level === "error") badgeHtml = '<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-rose-950/60 text-rose-400">ERROR</span>';
+        else if (level === "warning") badgeHtml = '<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-950/60 text-amber-300">WARN</span>';
+        logCard.innerHTML =
+          '<div class="space-y-1 flex-1"><div class="flex items-center space-x-2">' +
+          '<span class="text-[#8c7868] text-[10px] font-mono">[' + escapeHtml(time) + "]</span>" + badgeHtml +
+          '<span class="text-[#e0d4c8] font-mono text-xs">' + escapeHtml(msg) + "</span></div>" +
+          (note ? '<div class="text-xs text-[#e2b871]"><strong>Note:</strong> ' + escapeHtml(note) + "</div>" : "") +
+          "</div>" +
+          '<div class="flex items-center space-x-1">' +
+          '<button type="button" onclick="editLogEntry(' + index + ')" class="p-1 text-[#e2b871]"><i class="fa-solid fa-pen-to-square"></i></button>' +
+          '<button type="button" onclick="deleteLogEntry(' + index + ')" class="p-1 text-rose-400"><i class="fa-solid fa-trash-can"></i></button>' +
+          "</div>";
         consoleDiv.appendChild(logCard);
       });
-
-      const autoScroll = document.getElementById("log-autoscroll-toggle")?.checked;
-      if (autoScroll) {
-        consoleDiv.scrollTop = consoleDiv.scrollHeight;
-      }
+      var autoScroll = document.getElementById("log-autoscroll-toggle");
+      if (autoScroll && autoScroll.checked) consoleDiv.scrollTop = consoleDiv.scrollHeight;
     }
 
-    // Modal Control & Log Actions
     function openAddLogModal() {
-      document.getElementById("log-modal").classList.remove("hidden");
+      var m = document.getElementById("log-modal");
+      if (m) m.classList.remove("hidden");
     }
     function closeAddLogModal() {
-      document.getElementById("log-modal").classList.add("hidden");
+      var m = document.getElementById("log-modal");
+      if (m) m.classList.add("hidden");
     }
 
     async function saveCustomLog() {
-      const message = document.getElementById("new-log-msg").value;
-      const level = document.getElementById("new-log-level").value;
-      const note = document.getElementById("new-log-note").value;
-
+      var message = (document.getElementById("new-log-msg") || {}).value;
+      var level = (document.getElementById("new-log-level") || {}).value || "info";
+      var note = (document.getElementById("new-log-note") || {}).value || "";
       if (!message) return alert("Log message is required.");
-
       try {
-        const res = await fetch("/api/campaign/log/add", {
+        var res = await authenticatedFetch("/api/campaign/log/add", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ message, level, note })
+          body: JSON.stringify({ message: message, level: level, note: note })
         });
-        const data = await res.json();
+        var data = await res.json();
         if (data.success) {
           closeAddLogModal();
-          document.getElementById("new-log-msg").value = "";
-          document.getElementById("new-log-note").value = "";
           fetchStatusOnce();
         }
       } catch (err) {
@@ -1960,20 +1911,19 @@ jane@company.org, Jane Smith, Globex Inc</textarea>
     }
 
     async function editLogEntry(index) {
-      const current = cachedLogsList[index];
+      var current = cachedLogsList[index];
       if (!current) return;
-      const newMsg = prompt("Edit Log Message:", current.message || "");
+      var newMsg = prompt("Edit Log Message:", current.message || "");
       if (newMsg === null) return;
-      const newNote = prompt("Add Operational Admin Note:", current.note || "");
+      var newNote = prompt("Add Operational Admin Note:", current.note || "");
       if (newNote === null) return;
-
       try {
-        const res = await fetch("/api/campaign/log/edit", {
+        var res = await authenticatedFetch("/api/campaign/log/edit", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ index, message: newMsg, note: newNote })
+          body: JSON.stringify({ index: index, message: newMsg, note: newNote })
         });
-        const data = await res.json();
+        var data = await res.json();
         if (data.success) fetchStatusOnce();
       } catch (err) {
         alert("Failed to update log: " + err.message);
@@ -1981,25 +1931,25 @@ jane@company.org, Jane Smith, Globex Inc</textarea>
     }
 
     async function deleteLogEntry(index) {
-      if (!confirm("Are you sure you want to remove this log line?")) return;
+      if (!confirm("Remove this log line?")) return;
       try {
-        const res = await fetch("/api/campaign/log/delete", {
+        var res = await authenticatedFetch("/api/campaign/log/delete", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ index })
+          body: JSON.stringify({ index: index })
         });
-        const data = await res.json();
+        var data = await res.json();
         if (data.success) fetchStatusOnce();
       } catch (err) {
-        alert("Failed to delete log entry: " + err.message);
+        alert("Failed to delete log: " + err.message);
       }
     }
 
     async function clearLogConsoleServer() {
-      if (!confirm("Clear all logs from the console?")) return;
+      if (!confirm("Clear all logs?")) return;
       try {
-        const res = await fetch("/api/campaign/log/clear", { method: "POST" });
-        const data = await res.json();
+        var res = await authenticatedFetch("/api/campaign/log/clear", { method: "POST" });
+        var data = await res.json();
         if (data.success) fetchStatusOnce();
       } catch (err) {
         alert("Failed to clear logs: " + err.message);
@@ -2007,32 +1957,31 @@ jane@company.org, Jane Smith, Globex Inc</textarea>
     }
 
     function copyAllLogsToClipboard() {
-      if (!cachedLogsList || cachedLogsList.length === 0) return alert("No logs to copy.");
-      let text = "EDGEVEST CAMPAIGN EXECUTION LOGS\n----------------------------------\n";
-      cachedLogsList.forEach((l, i) => {
-        text += `[${i+1}] [${l.time}] [${(l.level || "INFO").toUpperCase()}] ${l.message}`;
-        if (l.note) text += ` (Note: ${l.note})`;
+      if (!cachedLogsList || !cachedLogsList.length) return alert("No logs to copy.");
+      var text = "EDGEVEST CAMPAIGN LOGS\n----------------------------------\n";
+      cachedLogsList.forEach(function (l, i) {
+        text += "[" + (i + 1) + "] [" + (l.time || "") + "] [" + (l.level || "INFO").toUpperCase() + "] " + (l.message || "");
+        if (l.note) text += " (Note: " + l.note + ")";
         text += "\n";
       });
-      navigator.clipboard.writeText(text).then(() => {
-        alert("All logs successfully copied to clipboard!");
+      navigator.clipboard.writeText(text).then(function () {
+        alert("Logs copied to clipboard!");
       });
     }
 
     async function fetchStatusOnce() {
       try {
-        const res = await fetch("/api/campaign/status");
-        const data = await res.json();
+        var res = await authenticatedFetch("/api/campaign/status");
+        var data = await res.json();
         if (data.logs) {
           cachedLogsList = data.logs;
           renderLogConsole();
         }
       } catch (err) {
-        console.error("Error fetching status logs:", err);
+        console.error(err);
       }
     }
   </script>
-
   <!-- ADD / EDIT CUSTOM LOG MODAL -->
   <div id="log-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
     <div class="glass-panel max-w-md w-full rounded-2xl border border-[#8c6543]/50 shadow-2xl p-6 relative">
