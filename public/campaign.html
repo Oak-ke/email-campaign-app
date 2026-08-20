@@ -216,95 +216,7 @@ jane@company.org, Jane Smith, Globex Inc</textarea>
       </div>
     </section>
 
-    <!-- STEP 2: TEMPLATE & PERSONALIZATION (EDGEVEST BRANDING & BOOKMAN FONT) -->
-    <section id="step-content-2" class="glass-panel rounded-2xl shadow-2xl p-6 sm:p-8 hidden">
-      <div class="border-b border-[#2e241c] pb-5 mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h2 class="text-xl font-bold text-white flex items-center tracking-tight">
-            <div class="w-8 h-8 rounded-lg bg-[#8c6543]/20 border border-[#8c6543]/40 text-[#e2b871] flex items-center justify-center mr-3 text-sm">
-              <i class="fa-solid fa-users"></i>
-            </div>
-            Add Campaign Recipients
-          </h2>
-          <p class="text-sm text-[#a8988a] mt-1 pl-11">Upload a CSV file or paste recipient list (email, name, company).</p>
-        </div>
-        <button type="button" id="btn-sample-data" class="self-start sm:self-auto text-xs bg-[#1a1410] hover:bg-[#261c17] text-[#e0d4c8] font-semibold px-4 py-2 rounded-xl border border-[#3d2d20] shadow-sm transition flex items-center">
-          <i class="fa-solid fa-wand-magic-sparkles mr-1.5 text-[#e2b871]"></i> Load Edgevest Demo List
-        </button>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <!-- Paste / Text Upload -->
-        <div>
-          <label class="block text-xs font-semibold uppercase tracking-wider text-[#d1c4b8] mb-2">Paste CSV or Raw List (email, name, company)</label>
-          <textarea id="raw-recipients-input" rows="7" placeholder="tina@example.com, Tina Kurunga, Edgevest Training&#10;john@example.com, John Doe, Acme Corp&#10;jane@company.org, Jane Smith, Globex" class="w-full glass-input rounded-xl font-mono text-xs p-3.5 leading-relaxed">tina@example.com, Tina Kurunga, Edgevest Training
-john@example.com, John Doe, Acme Corp
-jane@company.org, Jane Smith, Globex Inc</textarea>
-          <div class="mt-3">
-            <button type="button" id="btn-parse-text" class="px-4 py-2 bg-[#1a1410] hover:bg-[#261c17] text-white text-xs font-bold rounded-xl border border-[#3d2d20] transition shadow-sm">
-              <i class="fa-solid fa-list-check mr-1.5 text-[#e2b871]"></i> Parse & Validate List
-            </button>
-          </div>
-        </div>
-
-        <!-- CSV File Drag & Drop -->
-        <div>
-          <label class="block text-xs font-semibold uppercase tracking-wider text-[#d1c4b8] mb-2">Upload CSV or Excel File (.csv, .xlsx, .xls)</label>
-          <div class="border-2 border-dashed border-[#3d2d20] hover:border-[#c5a059] bg-[#120e0c]/60 rounded-xl p-6 text-center transition cursor-pointer group flex flex-col items-center justify-center min-h-[170px]" id="csv-dropzone">
-            <div class="w-12 h-12 rounded-full bg-[#1a1410] border border-[#3d2d20] flex items-center justify-center text-[#a8988a] group-hover:text-[#e2b871] group-hover:scale-110 transition-all mb-3">
-              <i class="fa-solid fa-file-csv text-2xl"></i>
-            </div>
-            <p class="text-xs sm:text-sm font-semibold text-[#f7f4ee]">Drag & drop CSV or Excel file here</p>
-            <p class="text-[11px] text-[#8c7868] mt-1 mb-3">Supported: .csv, .xlsx, .xls, .txt (Headers: email, name, company)</p>
-            <button type="button" id="btn-browse-csv" class="px-4 py-2 bg-[#261c17] hover:bg-[#32241d] border border-[#8c6543] text-[#e2b871] text-xs font-bold rounded-xl transition shadow-sm">
-              <i class="fa-solid fa-folder-open mr-1.5"></i> Browse File (CSV / Excel)
-            </button>
-            <input type="file" id="csv-file-input" accept=".csv,.txt,.tsv,.xlsx,.xls" class="hidden" />
-          </div>
-          <div id="csv-file-name" class="mt-2 text-xs font-semibold text-[#e2b871] hidden"></div>
-        </div>
-      </div>
-
-      <!-- Validated Recipients Table -->
-      <div class="mt-8">
-        <div class="flex justify-between items-center mb-3">
-          <h3 class="text-sm font-bold text-[#e0d4c8] uppercase tracking-wider">Validated List Summary</h3>
-          <div class="text-xs space-x-3">
-            <span class="inline-flex items-center px-2.5 py-1 rounded-full bg-[#1a2e26] text-[#63b39b] border border-[#2d5a4c] font-semibold" id="count-valid">Valid: 0</span>
-            <span class="inline-flex items-center px-2.5 py-1 rounded-full bg-rose-950/80 text-rose-400 border border-rose-800/60 font-semibold" id="count-invalid">Invalid: 0</span>
-          </div>
-        </div>
-        <div class="max-h-60 overflow-y-auto border border-[#2e241c] rounded-xl bg-[#120e0c]/80">
-          <table class="min-w-full divide-y divide-[#2e241c] text-xs">
-            <thead class="bg-[#18120e] sticky top-0 backdrop-blur-md">
-              <tr>
-                <th class="px-4 py-2.5 text-left font-bold text-[#a8988a] uppercase tracking-wider">#</th>
-                <th class="px-4 py-2.5 text-left font-bold text-[#a8988a] uppercase tracking-wider">Email</th>
-                <th class="px-4 py-2.5 text-left font-bold text-[#a8988a] uppercase tracking-wider">Name</th>
-                <th class="px-4 py-2.5 text-left font-bold text-[#a8988a] uppercase tracking-wider">Company</th>
-                <th class="px-4 py-2.5 text-left font-bold text-[#a8988a] uppercase tracking-wider">Status</th>
-              </tr>
-            </thead>
-            <tbody id="recipients-table-body" class="divide-y divide-[#2e241c]/60">
-              <tr>
-                <td colspan="5" class="px-4 py-8 text-center text-[#8c7868] text-xs">No recipients added yet. Upload a CSV or parse the list above.</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <div class="mt-8 flex items-center justify-between border-t border-[#2e241c] pt-6">
-        <button type="button" onclick="goToStep(1)" class="px-5 py-2.5 border border-[#3d2d20] hover:border-[#8c6543] rounded-xl text-[#d1c4b8] font-semibold hover:bg-[#1a1410] transition text-sm">
-          <i class="fa-solid fa-arrow-left mr-2 text-xs"></i> Back
-        </button>
-        <button type="button" onclick="goToStep(2)" class="px-6 py-2.5 bg-gradient-to-r from-[#8c6543] via-[#785338] to-[#5c3d28] hover:from-[#9e7854] hover:to-[#6d4c2d] text-white font-semibold rounded-xl shadow-lg shadow-[#8c6543]/20 active:scale-[0.98] transition flex items-center text-sm border border-[#c5a059]/30">
-          Next: Template <i class="fa-solid fa-arrow-right ml-2 text-xs"></i>
-        </button>
-      </div>
-    </section>
-
-    <!-- STEP 2: TEMPLATE & PERSONALIZATION (EDGEVEST BRANDING & BOOKMAN FONT) -->
+   <!-- STEP 2: TEMPLATE & PERSONALIZATION (EDGEVEST BRANDING & BOOKMAN FONT) -->
     <section id="step-content-2" class="glass-panel rounded-2xl shadow-2xl p-6 sm:p-8 hidden">
       <div class="border-b border-[#2e241c] pb-5 mb-6 flex items-center justify-between">
         <div>
@@ -906,176 +818,171 @@ jane@company.org, Jane Smith, Globex Inc</textarea>
     }
 
     function handleCSVFile(file) {
-  const fileNameDiv = document.getElementById("csv-file-name");
-  if (!file) return;
+      if (!file) return;
 
-  const lower = (file.name || "").toLowerCase();
-  if (lower.endsWith(".xlsx") || lower.endsWith(".xls")) {
-    alert("Please save Excel as CSV (.csv) and upload that file. .xlsx is not supported.");
-    return;
-  }
+      const lower = (file.name || "").toLowerCase();
+      if (lower.endsWith(".xlsx") || lower.endsWith(".xls")) {
+        alert("Please export Excel as CSV (File → Save As → CSV) and upload the .csv file.");
+        return;
+      }
 
-  if (fileNameDiv) {
-    fileNameDiv.innerText = "Selected File: " + file.name + " (" + (file.size / 1024).toFixed(1) + " KB)";
-    fileNameDiv.classList.remove("hidden");
-  }
+      const fileNameDiv = document.getElementById("csv-file-name");
+      if (fileNameDiv) {
+        fileNameDiv.innerText = "Selected File: " + file.name + " (" + (file.size / 1024).toFixed(1) + " KB)";
+        fileNameDiv.classList.remove("hidden");
+      }
 
-  const reader = new FileReader();
-  reader.onerror = function () {
-    alert("Could not read that file.");
-  };
-  reader.onload = function (evt) {
-    var text = evt.target.result || "";
-    if (text.charCodeAt(0) === 0xfeff) text = text.slice(1);
-    document.getElementById("raw-recipients-input").value = text;
-    parseRecipientText();
-  };
-  reader.readAsText(file);
-}
+      const reader = new FileReader();
+      reader.onerror = function () {
+        alert("Could not read that file.");
+      };
+      reader.onload = function (evt) {
+        let text = evt.target.result || "";
+        if (text.charCodeAt(0) === 0xfeff) text = text.slice(1); // strip Excel BOM
+        const input = document.getElementById("raw-recipients-input");
+        if (input) input.value = text;
+        parseRecipientText();
+      };
+      reader.readAsText(file);
+    }
 
-function splitCsvLine(line) {
-  var result = [];
-  var cur = "";
-  var inQuotes = false;
-  for (var i = 0; i < line.length; i++) {
-    var c = line[i];
-    if (c === '"') {
-      inQuotes = !inQuotes;
-    } else if ((c === "," || c === ";" || c === "\t") && !inQuotes) {
+    function splitCsvLine(line) {
+      const result = [];
+      let cur = "";
+      let inQuotes = false;
+      for (let i = 0; i < line.length; i++) {
+        const c = line[i];
+        if (c === '"') {
+          inQuotes = !inQuotes;
+        } else if ((c === "," || c === ";" || c === "\t") && !inQuotes) {
+          result.push(cur.trim());
+          cur = "";
+        } else {
+          cur += c;
+        }
+      }
       result.push(cur.trim());
-      cur = "";
-    } else {
-      cur += c;
-    }
-  }
-  result.push(cur.trim());
-  return result.map(function (s) {
-    return s.replace(/^"|"$/g, "").trim();
-  });
-}
-
-function looksLikeHeader(parts) {
-  var joined = parts.join(" ").toLowerCase();
-  return (
-    joined.indexOf("email") !== -1 ||
-    joined.indexOf("e-mail") !== -1 ||
-    (joined.indexOf("name") !== -1 && parts.length >= 2 && parts[0].indexOf("@") === -1)
-  );
-}
-
-function mapHeaderIndexes(headers) {
-  var h = headers.map(function (x) {
-    return x.toLowerCase();
-  });
-  function find() {
-    var keys = Array.prototype.slice.call(arguments);
-    for (var k = 0; k < keys.length; k++) {
-      var i = h.findIndex(function (x) {
-        return x === keys[k] || x.indexOf(keys[k]) !== -1;
-      });
-      if (i >= 0) return i;
-    }
-    return -1;
-  }
-  return {
-    email: find("email", "e-mail", "mail"),
-    name: find("name", "full name", "fullname", "contact"),
-    company: find("company", "organisation", "organization", "org"),
-  };
-}
-
-async function parseRecipientText() {
-  var text = (document.getElementById("raw-recipients-input") && document.getElementById("raw-recipients-input").value) || "";
-  var lines = text.split(/\r?\n/).map(function (l) { return l.trim(); }).filter(Boolean);
-  var raw = [];
-
-  if (lines.length === 0) {
-    alert("No recipient lines found.");
-    return;
-  }
-
-  var start = 0;
-  var idx = { email: 0, name: 1, company: 2 };
-  var firstParts = splitCsvLine(lines[0]);
-
-  if (looksLikeHeader(firstParts)) {
-    idx = mapHeaderIndexes(firstParts);
-    if (idx.email < 0) idx.email = 0;
-    start = 1;
-  }
-
-  for (var i = start; i < lines.length; i++) {
-    var parts = splitCsvLine(lines[i]);
-    if (!parts.length) continue;
-    var email = (parts[idx.email] || parts[0] || "").trim();
-    if (!email) continue;
-    var name = (idx.name >= 0 && parts[idx.name] ? parts[idx.name] : "") || parts[1] || email.split("@")[0];
-    var company = (idx.company >= 0 && parts[idx.company] ? parts[idx.company] : "") || parts[2] || "Valued Client";
-    raw.push({ email: email, name: name, company: company });
-  }
-
-  if (raw.length === 0) {
-    alert("No valid rows found. Use columns: email, name, company.");
-    return;
-  }
-
-  try {
-    var res = await authenticatedFetch("/api/recipients/validate", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ recipients: raw }),
-    });
-
-    if (res.status === 401) {
-      alert("Please sign in first, then upload the CSV again.");
-      return;
+      return result.map((s) => s.replace(/^"|"$/g, "").trim());
     }
 
-    var data = await res.json();
-    validatedRecipients = data.valid_recipients || [];
-
-    document.getElementById("count-valid").innerText = "Valid: " + (data.valid_count || 0);
-    document.getElementById("count-invalid").innerText = "Invalid: " + (data.invalid_count || 0);
-
-    var tbody = document.getElementById("recipients-table-body");
-    tbody.innerHTML = "";
-
-    (data.valid_recipients || []).forEach(function (r, i) {
-      var tr = document.createElement("tr");
-      tr.className = "hover:bg-[#1a1410] transition-colors";
-      tr.innerHTML =
-        '<td class="px-4 py-2.5 text-xs text-[#8c7868] font-mono">' + (i + 1) + "</td>" +
-        '<td class="px-4 py-2.5 font-mono text-xs text-[#f7f4ee]">' + r.email + "</td>" +
-        '<td class="px-4 py-2.5 text-xs text-[#d1c4b8]">' + r.name + "</td>" +
-        '<td class="px-4 py-2.5 text-xs text-[#a8988a]">' + (r.company || "-") + "</td>" +
-        '<td class="px-4 py-2.5 text-xs text-[#63b39b] font-bold">Valid</td>';
-      tbody.appendChild(tr);
-    });
-
-    (data.invalid_recipients || []).forEach(function (r) {
-      var tr = document.createElement("tr");
-      tr.className = "bg-rose-950/20";
-      tr.innerHTML =
-        '<td class="px-4 py-2.5 text-xs text-rose-500">!</td>' +
-        '<td class="px-4 py-2.5 font-mono text-xs text-rose-400">' + (r.email || "") + "</td>" +
-        '<td class="px-4 py-2.5 text-xs">' + (r.name || "-") + "</td>" +
-        '<td class="px-4 py-2.5 text-xs">-</td>' +
-        '<td class="px-4 py-2.5 text-xs text-rose-400">' + (r.error || "Invalid") + "</td>";
-      tbody.appendChild(tr);
-    });
-
-    if (!validatedRecipients.length) {
-      alert("File read, but no valid emails. Check headers and addresses.");
+    function looksLikeHeader(parts) {
+      const j = parts.join(" ").toLowerCase();
+      return j.includes("email") || j.includes("e-mail") ||
+        (j.includes("name") && parts.length >= 2 && !String(parts[0]).includes("@"));
     }
-  } catch (err) {
-    console.error(err);
-    alert("Recipient validation failed: " + err.message);
-  }
-}
 
-    // Template Helpers
-    function insertTag(tag) {
-      insertTagToVisual(tag);
+    function mapHeaderIndexes(headers) {
+      const h = headers.map((x) => x.toLowerCase());
+      const find = (...keys) => {
+        for (const k of keys) {
+          const i = h.findIndex((x) => x === k || x.includes(k));
+          if (i >= 0) return i;
+        }
+        return -1;
+      };
+      return {
+        email: find("email", "e-mail", "mail"),
+        name: find("name", "full name", "fullname"),
+        company: find("company", "organisation", "organization", "org"),
+      };
+    }
+
+    async function parseRecipientText() {
+      const input = document.getElementById("raw-recipients-input");
+      const text = (input && input.value) || "";
+      const lines = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+      const raw = [];
+
+      if (!lines.length) {
+        alert("No recipient lines found.");
+        return;
+      }
+
+      let start = 0;
+      let idx = { email: 0, name: 1, company: 2 };
+      const firstParts = splitCsvLine(lines[0]);
+      if (looksLikeHeader(firstParts)) {
+        idx = mapHeaderIndexes(firstParts);
+        if (idx.email < 0) idx.email = 0;
+        start = 1;
+      }
+
+      for (let i = start; i < lines.length; i++) {
+        const parts = splitCsvLine(lines[i]);
+        if (!parts.length) continue;
+        const email = (parts[idx.email] || parts[0] || "").trim();
+        if (!email) continue;
+        const name = (idx.name >= 0 && parts[idx.name]) || parts[1] || email.split("@")[0];
+        const company = (idx.company >= 0 && parts[idx.company]) || parts[2] || "Valued Client";
+        raw.push({ email, name, company });
+      }
+
+      if (!raw.length) {
+        alert("No rows found. Use columns: email, name, company");
+        return;
+      }
+
+      try {
+        const res = await authenticatedFetch("/api/recipients/validate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ recipients: raw }),
+        });
+
+        if (res.status === 401) {
+          alert("Please sign in first, then upload the CSV again.");
+          return;
+        }
+        if (!res.ok) {
+          let errBody = {};
+          try { errBody = await res.json(); } catch (e) {}
+          alert(errBody.error || ("Validation failed (HTTP " + res.status + ")"));
+          return;
+        }
+
+        const data = await res.json();
+        validatedRecipients = data.valid_recipients || [];
+
+        const cv = document.getElementById("count-valid");
+        const ci = document.getElementById("count-invalid");
+        if (cv) cv.innerText = "Valid: " + (data.valid_count || 0);
+        if (ci) ci.innerText = "Invalid: " + (data.invalid_count || 0);
+
+        const tbody = document.getElementById("recipients-table-body");
+        if (!tbody) return;
+        tbody.innerHTML = "";
+
+        (data.valid_recipients || []).forEach((r, i) => {
+          const tr = document.createElement("tr");
+          tr.className = "hover:bg-[#1a1410] transition-colors";
+          tr.innerHTML =
+            '<td class="px-4 py-2.5 text-xs text-[#8c7868] font-mono">' + (i + 1) + "</td>" +
+            '<td class="px-4 py-2.5 font-mono text-xs text-[#f7f4ee]">' + r.email + "</td>" +
+            '<td class="px-4 py-2.5 text-xs text-[#d1c4b8]">' + (r.name || "") + "</td>" +
+            '<td class="px-4 py-2.5 text-xs text-[#a8988a]">' + (r.company || "-") + "</td>" +
+            '<td class="px-4 py-2.5 text-xs text-[#63b39b] font-bold">Valid</td>';
+          tbody.appendChild(tr);
+        });
+
+        (data.invalid_recipients || []).forEach((r) => {
+          const tr = document.createElement("tr");
+          tr.className = "bg-rose-950/20";
+          tr.innerHTML =
+            '<td class="px-4 py-2.5 text-xs text-rose-500">!</td>' +
+            '<td class="px-4 py-2.5 font-mono text-xs text-rose-400">' + (r.email || "") + "</td>" +
+            '<td class="px-4 py-2.5 text-xs">' + (r.name || "-") + "</td>" +
+            '<td class="px-4 py-2.5 text-xs">-</td>' +
+            '<td class="px-4 py-2.5 text-xs text-rose-400">' + (r.error || "Invalid") + "</td>';
+          tbody.appendChild(tr);
+        });
+
+        if (!validatedRecipients.length) {
+          alert("No valid emails. Check that the email column is correct.");
+        }
+      } catch (err) {
+        console.error(err);
+        alert("Recipient validation failed: " + (err.message || String(err)));
+      }
     }
 
     function updatePreview() {
@@ -1757,101 +1664,84 @@ async function parseRecipientText() {
       syncVisualToHtml();
     }
 
-    function syncVisualToHtml() {
-      const visualContent = document.getElementById("visual-editor-content").innerHTML;
-      const fullHtml = `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
+        function syncVisualToHtml() {
+      const visualEl = document.getElementById("visual-editor-content");
+      const visualContent = visualEl ? visualEl.innerHTML : "";
+
+      const fullHtml = `<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Edgevest</title>
-  <!--[if mso]>
-  <style type="text/css">
-    body, table, td, h1, h2, h3, p, a, span, div { font-family: 'Bookman Old Style', Bookman, Georgia, serif !important; }
-  </style>
-  <![endif]-->
-  <style type="text/css">
-    body { margin: 0; padding: 0; min-width: 100%; background-color: #f3f4f6; font-family: 'Bookman Old Style', Bookman, 'URW Bookman L', Georgia, serif; }
-    table { border-collapse: collapse; }
-    a { color: #ffffff; text-decoration: underline; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Edgevest</title>
+<style>
+  body, table, td, a { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
+  table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
+  img { border: 0; height: auto; line-height: 100%; outline: none; text-decoration: none; }
+  body { margin: 0; padding: 0; width: 100% !important; background-color: #f4f2ee; font-family: 'Segoe UI', Helvetica, Arial, sans-serif; }
+  a { color: #b8860b; }
+  .wrapper { width: 100%; background-color: #f4f2ee; padding: 32px 0; }
+  .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; }
+  .gold-rule { height: 4px; line-height: 4px; font-size: 4px; background: linear-gradient(90deg,#b8860b,#d4af5a); }
+  .brand-tag { font-family: 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: #b8860b; }
+  .footer-text { font-size: 12px; line-height: 1.7; color: #9a9a9a; }
+  .footer-link { color: #b8860b; text-decoration: none; }
+  .body-content-inner { font-size: 15px; line-height: 1.7; color: #4a4a4a; }
+  .body-content-inner p { margin: 0 0 16px 0; }
+</style>
 </head>
-<body bgcolor="#f3f4f6" style="margin: 0; padding: 20px 0; background-color: #f3f4f6; font-family: 'Bookman Old Style', Bookman, 'URW Bookman L', Georgia, serif; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%;">
+<body>
+<div class="wrapper">
+  <table role="presentation" class="container" width="600" cellpadding="0" cellspacing="0" border="0" align="center">
 
-  <!-- Outer Wrapper Table -->
-  <table border="0" cellpadding="0" cellspacing="0" width="100%" bgcolor="#f3f4f6" style="background-color: #f3f4f6; table-layout: fixed; width: 100%;">
+    <!-- HEADER -->
     <tr>
-      <td align="left" style="padding: 10px 10px 20px 10px;">
-        
-        <!-- Main Email Container Table (600px wide) -->
-        <!--[if (gte mso 9)|(IE)]>
-        <table align="left" border="0" cellspacing="0" cellpadding="0" width="600">
-        <tr>
-        <td align="left" valign="top" width="600">
-        <![endif]-->
-        <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px; width: 100%; background-color: #ffffff; border: 1px solid #e5e7eb; border-radius: 4px; overflow: hidden; font-family: 'Bookman Old Style', Bookman, 'URW Bookman L', Georgia, serif; margin: 0;" align="left" bgcolor="#ffffff">
-          
-          <!-- HEADER ROW -->
-          <tr>
-            <td align="left" bgcolor="#000000" style="background-color: #000000; padding: 24px 20px; text-align: left; font-family: 'Bookman Old Style', Bookman, 'URW Bookman L', Georgia, serif; color: #ffffff;">
-              <table border="0" cellpadding="0" cellspacing="0" width="100%">
-                <tr>
-                  <!-- Top Left Logo Cell -->
-                  <td valign="top" width="56" style="padding-right: 14px;">
-                    <table border="0" cellpadding="0" cellspacing="0" bgcolor="#ffffff" style="background-color: #ffffff; border-radius: 8px; border: 1px solid #e2b871; padding: 2px;">
-                      <tr>
-                        <td align="center" valign="middle" width="48" height="48">
-                          <img src="cid:edgevest_emblem" alt="Edgevest" width="44" height="44" style="display: block; width: 44px; height: 44px; object-fit: contain; border-radius: 6px; border: 0;" onerror="this.onerror=null; this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMjAgMTIwIiB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIj4KICA8ZGVmcz4KICAgIDxsaW5lYXJHcmFkaWVudCBpZD0iZ29sZEdyYWQiIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjEwMCUiPgogICAgICA8c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjZDRhZjM3IiAvPgogICAgICA8c3RvcCBvZmZzZXQ9IjMwJSIgc3RvcC1jb2xvcj0iI2YzZTVhYiIgLz4KICAgICAgPHN0b3Agb2Zmc2V0PSI1NSUiIHN0b3AtY29sb3I9IiNjNWEwNTkiIC8+CiAgICAgIDxzdG9wIG9mZnNldD0iODAlIiBzdG9wLWNvbG9yPSIjOGM2NTQzIiAvPgogICAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiM1YTNkMjQiIC8+CiAgICA8L2xpbmVhckdyYWRpZW50PgogICAgPGZpbHRlciBpZD0iZ29sZEdsb3ciIHg9Ii0xMCUiIHk9Ii0xMCUiIHdpZHRoPSIxMjAlIiBoZWlnaHQ9IjEyMCUiPgogICAgICA8ZmVEcm9wU2hhZG93IGR4PSIwIiBkeT0iMSIgc3RkRGV2aWF0aW9uPSIxLjUiIGZsb29kLWNvbG9yPSIjMDAwMDAwIiBmbG9vZC1vcGFjaXR5PSIwLjI1Ii8+CiAgICA8L2ZpbHRlcj4KICA8L2RlZnM+CgogIDwhLS0gQmFja2dyb3VuZCBjb250YWluZXIgb3B0aW9uYWwgLS0+CiAgPHJlY3Qgd2lkdGg9IjEyMCIgaGVpZ2h0PSIxMjAiIHJ4PSIxNiIgZmlsbD0iI2ZjZmFmNyIgLz4KCiAgPCEtLSBFbWJsZW0gR3JvdXAgLS0+CiAgPGcgZmlsdGVyPSJ1cmwoI2dvbGRHbG93KSI+CiAgICA8IS0tIE91dGVyIEFyYyAtLT4KICAgIDxwYXRoIGQ9Ik0gNjAgMTQgQyAzMyAxNCAxNCAzMyAxNCA2MCBDIDE0IDg3IDMzIDEwNiA2MCAxMDYgQyA4MiAxMDYgMTAwIDkwIDEwNCA2OCBDIDEwNCA2NSAxMDAgNjQgOTcgNjYgQyA5MiA4MiA3OCA5NSA2MCA5NSBDIDQwIDk1IDI1IDgwIDI1IDYwIEMgMjUgNDAgNDAgMjUgNjAgMjUgQyA3NSAyNSA4OCAzNSA5MiA0OSBDIDk0IDUyIDk4IDUxIDk5IDQ4IEMgOTUgMzAgNzkgMTQgNjAgMTQgWiIgZmlsbD0idXJsKCNnb2xkR3JhZCkiIC8+CgogICAgPCEtLSBNaWRkbGUgQXJjIC0tPgogICAgPHBhdGggZD0iTSA2MCAyOSBDIDQyIDI5IDI4IDQyIDI4IDYwIEMgMjggNzggNDIgOTEgNjAgOTEgQyA3NCA5MSA4NiA4MSA4OSA2NyBDIDkwIDY0IDg1IDYzIDgzIDY1IEMgNzkgNzQgNzAgODEgNjAgODEgQyA0OCA4MSAzOCA3MSAzOCA2MCBDIDM4IDQ5IDQ4IDM5IDYwIDM5IEMgNzAgMzkgNzkgNDYgODIgNTYgQyA4NCA1OSA4OCA1OCA4OSA1NSBDIDg2IDQxIDc0IDI5IDYwIDI5IFoiIGZpbGw9InVybCgjZ29sZEdyYWQpIiAvPgoKICAgIDwhLS0gQ2VudGVyICdlJyBIb29rIC0tPgogICAgPHBhdGggZD0iTSA2MCA0NCBDIDUxIDQ0IDQ0IDUxIDQ0IDYwIEMgNDQgNjkgNTEgNzYgNjAgNzYgQyA2OCA3NiA3NSA3MCA3NyA2MiBMIDU4IDYyIEMgNTUgNjIgNTUgNTcgNTggNTcgTCA4MyA1NyBDIDg1IDU3IDg2IDU1IDg1IDUzIEMgODEgNDcgNzIgNDQgNjAgNDQgWiIgZmlsbD0idXJsKCNnb2xkR3JhZCkiIC8+CiAgPC9nPgo8L3N2Zz4K';" />
-                        </td>
-                      </tr>
-                    </table>
-                  </td>
-                  <!-- Title & Contact Info Cell -->
-                  <td valign="top" align="left">
-                    <h1 style="font-family: 'Bookman Old Style', Bookman, 'URW Bookman L', Georgia, serif; font-size: 22px; font-weight: bold; margin: 0 0 2px 0; padding: 0; color: #ffffff !important; text-align: left; line-height: 1.2;">Edgevest</h1>
-                    <p style="font-family: 'Bookman Old Style', Bookman, 'URW Bookman L', Georgia, serif; font-size: 13px; margin: 0 0 6px 0; padding: 0; color: #d1d5db !important; text-align: left; line-height: 1.3;">Professional Training and Development</p>
-                    
-                    <div style="font-size: 11px; color: #e5e7eb; border-top: 1px solid #333333; padding-top: 6px; margin-top: 6px; font-family: 'Bookman Old Style', Bookman, 'URW Bookman L', Georgia, serif;">
-                      <p style="font-family: 'Bookman Old Style', Bookman, 'URW Bookman L', Georgia, serif; font-size: 11px; margin: 0 0 2px 0; padding: 0; color: #ffffff !important; text-align: left; line-height: 1.4;">
-                        <strong>Phone:</strong> +254758314887 &nbsp;|&nbsp; <strong>Email:</strong> <a href="mailto:Trainings@edgevest.co.ke" style="color: #ffffff !important; text-decoration: underline;">Trainings@edgevest.co.ke</a>
-                      </p>
-                      <p style="font-family: 'Bookman Old Style', Bookman, 'URW Bookman L', Georgia, serif; font-size: 11px; margin: 0; padding: 0; color: #d1d5db !important; text-align: left; line-height: 1.4;">
-                        Grace land court Block C, J6 Opp K.U School of Law, Parklands
-                      </p>
-                    </div>
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-
-          <!-- BODY ROW -->
-          <tr>
-            <td align="left" bgcolor="#ffffff" style="background-color: #ffffff; padding: 32px 28px; font-family: 'Bookman Old Style', Bookman, 'URW Bookman L', Georgia, serif; font-size: 14px; color: #1a1a1a; line-height: 1.65; text-align: left;">
-              <div class="body-content-inner" style="font-family: 'Bookman Old Style', Bookman, 'URW Bookman L', Georgia, serif; color: #1a1a1a;">
-${visualContent}
-              </div>
-            </td>
-          </tr>
-
-        </table>
-        <!--[if (gte mso 9)|(IE)]>
-        </td>
-        </tr>
-        </table>
-        <![endif]-->
-
+      <td style="padding: 32px 40px 24px 40px;" align="center">
+        <img src="https://edgevest.co.ke/images/logo.png" alt="Edgevest — Your Training Partner" width="180" style="display:block; margin: 0 auto 6px auto;">
+        <div class="brand-tag">Training &amp; Consultancy</div>
       </td>
     </tr>
-  </table>
+    <tr><td class="gold-rule">&nbsp;</td></tr>
 
+    <!-- BODY (user-editable middle) -->
+    <tr>
+      <td style="padding: 36px 40px 32px 40px;" class="body-content-inner">
+        ${visualContent}
+      </td>
+    </tr>
+
+    <tr><td class="gold-rule">&nbsp;</td></tr>
+
+    <!-- FOOTER -->
+    <tr>
+      <td style="padding: 32px 40px 12px 40px;" align="center">
+        <img src="https://edgevest.co.ke/images/logo.png" alt="Edgevest" width="120" style="display:block; margin: 0 auto 12px auto;">
+        <p class="footer-text" style="margin: 0 0 4px 0;">Grace Land Court, Block C, J6, Opp. K.U School of Law, Parklands, Nairobi</p>
+        <p class="footer-text" style="margin: 0 0 4px 0;">
+          <a class="footer-link" href="tel:+254758314887">+254 758 314 887</a> &nbsp;|&nbsp;
+          <a class="footer-link" href="mailto:trainings@edgevest.co.ke">trainings@edgevest.co.ke</a> &nbsp;|&nbsp;
+          <a class="footer-link" href="https://edgevest.co.ke">www.edgevest.co.ke</a>
+        </p>
+        <p class="footer-text" style="margin: 12px 0 0 0;">NITA/TRN/2675 &nbsp;·&nbsp; SR/eGP/2026/59082</p>
+      </td>
+    </tr>
+    <tr>
+      <td style="padding: 0 40px 32px 40px;" align="center">
+        <p class="footer-text" style="margin:0;">You're receiving this because you're part of the Edgevest network.<br>
+        <a class="footer-link" href="/unsubscribe?email={email}">Unsubscribe</a> &nbsp;·&nbsp;
+        <a class="footer-link" href="https://edgevest.co.ke">Update preferences</a></p>
+      </td>
+    </tr>
+
+  </table>
+</div>
 </body>
 </html>`;
 
-      document.getElementById("email-body-html").value = fullHtml;
-      updatePreview();
+      const bodyField = document.getElementById("email-body-html");
+      if (bodyField) bodyField.value = fullHtml;
+      if (typeof updatePreview === "function") updatePreview();
     }
-
     function syncHtmlToVisual() {
       const rawHtml = document.getElementById("email-body-html").value;
       const parser = new DOMParser();
