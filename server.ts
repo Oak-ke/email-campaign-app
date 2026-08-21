@@ -1,5 +1,7 @@
 import express from "express";
 import path from "path";
+import rateLimit from 'express-rate-limit';
+import * as lockfile from 'proper-lockfile';
 import { createServer as createViteServer } from "vite";
 import fs from "fs";
 import nodemailer from "nodemailer";
@@ -112,7 +114,30 @@ function addSuppression(email: string, reason: string = "User unsubscribed"): bo
   return true;
 }
 
-// Edgevest Email Renderer (Header + Footer + Middle User Body matching Bookman & Black/Gold theme)
+// ===== ADDED: Token verification helper =====
+function verifyUnsubscribeToken(email: string, token: string): { valid: boolean; isExpired?: boolean } {
+  try {
+    const decoded = Buffer.from(token, 'base64url').toString('utf-8');
+    const [tokenEmail, timestamp] = decoded.split(':');
+    if (tokenEmail !== email) return { valid: false };
+    const age = Date.now() - parseInt(timestamp, 10);
+    if (age > 604800000) return { valid: false, isExpired: true }; // 7 days
+    return { valid: true };
+  } catch {
+    return { valid: false };
+  }
+}
+// ===== END ADDED =====
+
+// ===== ADDED: Rate limiter for unsubscribe endpoints =====
+const unsubscribeLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 20, // limit each IP to 20 requests per window
+  message: "Too many unsubscribe requests, please try again later.",
+});
+// ===== END ADDED =====
+
+// Edgevest Email Renderer (Light theme – Header + Footer + Middle User Body)
 function renderEdgevestEmailHTML(
   userBodyHtml: string,
   recipient: { email: string; name?: string; company?: string },
@@ -137,21 +162,17 @@ function renderEdgevestEmailHTML(
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Edgevest Training &amp; Consultancy</title>
-  <!--[if mso]>
   <style type="text/css">
-    body, table, td, h1, h2, h3, p, a, span, div { font-family: 'Bookman Old Style', Bookman, Georgia, serif !important; }
-  </style>
-  <![endif]-->
-  <style type="text/css">
-    body { margin: 0; padding: 0; min-width: 100%; background-color: #f3f4f6; font-family: 'Bookman Old Style', Bookman, 'URW Bookman L', Georgia, serif; }
+    body { margin: 0; padding: 0; min-width: 100%; background-color: #f5f3f0; font-family: Georgia, 'Times New Roman', serif; }
     table { border-collapse: collapse; }
-    a { color: #ffffff; text-decoration: underline; }
+    a { color: #c5a059; text-decoration: underline; }
+    h1, h2, h3, .georgia { font-family: Georgia, 'Times New Roman', serif; }
   </style>
 </head>
-<body bgcolor="#f3f4f6" style="margin: 0; padding: 20px 0; background-color: #f3f4f6; font-family: 'Bookman Old Style', Bookman, 'URW Bookman L', Georgia, serif; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%;">
+<body bgcolor="#f5f3f0" style="margin: 0; padding: 20px 0; background-color: #f5f3f0; font-family: Georgia, 'Times New Roman', serif; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%;">
 
   <!-- Outer Wrapper Table -->
-  <table border="0" cellpadding="0" cellspacing="0" width="100%" bgcolor="#f3f4f6" style="background-color: #f3f4f6; table-layout: fixed; width: 100%;">
+  <table border="0" cellpadding="0" cellspacing="0" width="100%" bgcolor="#f5f3f0" style="background-color: #f5f3f0; table-layout: fixed; width: 100%;">
     <tr>
       <td align="center" style="padding: 10px 10px 20px 10px;">
         
@@ -161,34 +182,34 @@ function renderEdgevestEmailHTML(
         <tr>
         <td align="center" valign="top" width="600">
         <![endif]-->
-        <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px; width: 100%; background-color: #ffffff; border: 1px solid #e5e7eb; border-radius: 4px; overflow: hidden; font-family: 'Bookman Old Style', Bookman, 'URW Bookman L', Georgia, serif; margin: 0 auto;" align="center" bgcolor="#ffffff">
+        <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px; width: 100%; background-color: #ffffff; border: 1px solid #e8e3dc; border-radius: 8px; overflow: hidden; font-family: Georgia, 'Times New Roman', serif; margin: 0 auto;" align="center" bgcolor="#ffffff">
           
-          <!-- HEADER ROW -->
+          <!-- HEADER ROW – Light theme -->
           <tr>
-            <td align="left" bgcolor="#000000" style="background-color: #000000; padding: 24px 24px; text-align: left; font-family: 'Bookman Old Style', Bookman, 'URW Bookman L', Georgia, serif; color: #ffffff; border-bottom: 3px solid #c5a059;">
+            <td align="left" bgcolor="#ffffff" style="background-color: #ffffff; padding: 20px 24px; text-align: left; border-bottom: 3px solid #c5a059; font-family: Georgia, 'Times New Roman', serif;">
               <table border="0" cellpadding="0" cellspacing="0" width="100%">
                 <tr>
-                  <!-- Top Left Logo Cell -->
-                  <td valign="top" width="56" style="padding-right: 14px;">
-                    <table border="0" cellpadding="0" cellspacing="0" bgcolor="#ffffff" style="background-color: #ffffff; border-radius: 8px; border: 1px solid #e2b871; padding: 2px;">
+                  <!-- Logo Cell -->
+                  <td valign="middle" width="60" style="padding-right: 16px;">
+                    <table border="0" cellpadding="0" cellspacing="0" bgcolor="#ffffff" style="background-color: #ffffff; border-radius: 6px; border: 1px solid #e8e3dc; padding: 2px;">
                       <tr>
                         <td align="center" valign="middle" width="48" height="48">
-                          <img src="cid:edgevest_emblem" alt="Edgevest" width="44" height="44" style="display: block; width: 44px; height: 44px; object-fit: contain; border-radius: 6px; border: 0;" onerror="this.onerror=null; this.src='https://raw.githubusercontent.com/Oak-ke/email-campaign-app/main/public/assets/edgevest_logo.svg';" />
+                          <img src="cid:edgevest_emblem" alt="Edgevest" width="44" height="44" style="display: block; width: 44px; height: 44px; object-fit: contain; border-radius: 4px; border: 0;" onerror="this.onerror=null; this.src='https://raw.githubusercontent.com/Oak-ke/email-campaign-app/main/public/assets/edgevest_logo.svg';" />
                         </td>
                       </tr>
                     </table>
                   </td>
-                  <!-- Title & Contact Info Cell -->
-                  <td valign="top" align="left">
-                    <h1 style="font-family: 'Bookman Old Style', Bookman, 'URW Bookman L', Georgia, serif; font-size: 22px; font-weight: bold; margin: 0 0 2px 0; padding: 0; color: #ffffff !important; text-align: left; line-height: 1.2;">Edgevest</h1>
-                    <p style="font-family: 'Bookman Old Style', Bookman, 'URW Bookman L', Georgia, serif; font-size: 13px; margin: 0 0 6px 0; padding: 0; color: #d1d5db !important; text-align: left; line-height: 1.3;">Professional Training and Development</p>
+                  <!-- Title & Contact Info -->
+                  <td valign="middle" align="left">
+                    <h1 style="font-family: Georgia, 'Times New Roman', serif; font-size: 24px; font-weight: bold; margin: 0 0 2px 0; padding: 0; color: #4a3a2a !important; text-align: left; line-height: 1.2;">Edgevest</h1>
+                    <p style="font-family: Georgia, 'Times New Roman', serif; font-size: 14px; margin: 0 0 6px 0; padding: 0; color: #6b5a4a !important; text-align: left; line-height: 1.3;">Professional Training and Development</p>
                     
-                    <div style="font-size: 11px; color: #e5e7eb; border-top: 1px solid #333333; padding-top: 6px; margin-top: 6px; font-family: 'Bookman Old Style', Bookman, 'URW Bookman L', Georgia, serif;">
-                      <p style="font-family: 'Bookman Old Style', Bookman, 'URW Bookman L', Georgia, serif; font-size: 11px; margin: 0 0 2px 0; padding: 0; color: #ffffff !important; text-align: left; line-height: 1.4;">
-                        <strong>Phone:</strong> +254758314887 &nbsp;|&nbsp; <strong>Email:</strong> <a href="mailto:Trainings@edgevest.co.ke" style="color: #ffffff !important; text-decoration: underline;">Trainings@edgevest.co.ke</a>
+                    <div style="font-size: 12px; color: #6b5a4a; border-top: 1px solid #e8e3dc; padding-top: 6px; margin-top: 4px; font-family: Georgia, 'Times New Roman', serif;">
+                      <p style="font-family: Georgia, 'Times New Roman', serif; font-size: 12px; margin: 0 0 2px 0; padding: 0; color: #4a3a2a !important; text-align: left; line-height: 1.4;">
+                        <strong>Phone:</strong> +254 758 314 887 &nbsp;|&nbsp; <strong>Email:</strong> <a href="mailto:trainings@edgevest.co.ke" style="color: #c5a059; text-decoration: underline;">trainings@edgevest.co.ke</a>
                       </p>
-                      <p style="font-family: 'Bookman Old Style', Bookman, 'URW Bookman L', Georgia, serif; font-size: 11px; margin: 0; padding: 0; color: #d1d5db !important; text-align: left; line-height: 1.4;">
-                        Grace land court Block C, J6 Opp K.U School of Law, Parklands
+                      <p style="font-family: Georgia, 'Times New Roman', serif; font-size: 12px; margin: 0; padding: 0; color: #6b5a4a !important; text-align: left; line-height: 1.4;">
+                        Grace Land Court, Block C, J6, Opp. K.U School of Law, Parklands, Nairobi
                       </p>
                     </div>
                   </td>
@@ -199,30 +220,30 @@ function renderEdgevestEmailHTML(
 
           <!-- BODY ROW -->
           <tr>
-            <td align="left" bgcolor="#ffffff" style="background-color: #ffffff; padding: 32px 28px; font-family: 'Bookman Old Style', Bookman, 'URW Bookman L', Georgia, serif; font-size: 14px; color: #1a1a1a; line-height: 1.65; text-align: left;">
-              <div class="body-content-inner" style="font-family: 'Bookman Old Style', Bookman, 'URW Bookman L', Georgia, serif; color: #1a1a1a;">
+            <td align="left" bgcolor="#ffffff" style="background-color: #ffffff; padding: 32px 28px; font-family: Georgia, 'Times New Roman', serif; font-size: 15px; color: #1a1a1a; line-height: 1.65; text-align: left;">
+              <div class="body-content-inner" style="font-family: Georgia, 'Times New Roman', serif; color: #1a1a1a;">
                 ${bodyContent}
               </div>
             </td>
           </tr>
 
-          <!-- FOOTER ROW -->
+          <!-- FOOTER ROW – Light theme -->
           <tr>
-            <td align="center" bgcolor="#000000" style="background-color: #000000; padding: 24px 24px; text-align: center; font-family: 'Bookman Old Style', Bookman, 'URW Bookman L', Georgia, serif; color: #a8988a; border-top: 2px solid #c5a059;">
-              <div style="font-size: 14px; font-weight: bold; color: #ffffff; margin-bottom: 6px;">
+            <td align="center" bgcolor="#ffffff" style="background-color: #ffffff; padding: 24px 24px; text-align: center; border-top: 3px solid #c5a059; font-family: Georgia, 'Times New Roman', serif; color: #4a3a2a;">
+              <div style="font-size: 16px; font-weight: bold; color: #4a3a2a; margin-bottom: 6px; font-family: Georgia, 'Times New Roman', serif;">
                 Edgevest Training &amp; Consultancy
               </div>
-              <div style="font-size: 11px; color: #d1d5db; margin-bottom: 10px; line-height: 1.5;">
+              <div style="font-size: 13px; color: #6b5a4a; margin-bottom: 10px; line-height: 1.5; font-family: Georgia, 'Times New Roman', serif;">
                 Grace Land Court, Block C, J6, Opp. K.U School of Law, Parklands, Nairobi<br/>
-                Phone: <a href="tel:+254758314887" style="color: #e2b871; text-decoration: none;">+254 758 314 887</a> &bull; 
-                Email: <a href="mailto:trainings@edgevest.co.ke" style="color: #e2b871; text-decoration: none;">trainings@edgevest.co.ke</a> &bull;
-                Web: <a href="https://www.edgevest.co.ke" target="_blank" style="color: #e2b871; text-decoration: none;">www.edgevest.co.ke</a>
+                Phone: <a href="tel:+254758314887" style="color: #c5a059; text-decoration: none;">+254 758 314 887</a> &bull; 
+                Email: <a href="mailto:trainings@edgevest.co.ke" style="color: #c5a059; text-decoration: none;">trainings@edgevest.co.ke</a> &bull;
+                Web: <a href="https://www.edgevest.co.ke" target="_blank" style="color: #c5a059; text-decoration: none;">www.edgevest.co.ke</a>
               </div>
-              <div style="font-size: 10px; color: #8c7868; padding-top: 8px; border-top: 1px solid #222222; margin-top: 8px;">
+              <div style="font-size: 11px; color: #9a8a7a; padding-top: 8px; border-top: 1px solid #e8e3dc; margin-top: 8px; font-family: Georgia, 'Times New Roman', serif;">
                 NITA/TRN/2675 &nbsp;&bull;&nbsp; SR/eGP/2026/59082
               </div>
-              <div style="margin-top: 12px; font-size: 11px; color: #6b7280;">
-                <a href="${unsubscribeUrl}" target="_blank" style="color: #e2b871; text-decoration: underline; font-weight: bold;">
+              <div style="margin-top: 14px; font-size: 12px; color: #6b5a4a; font-family: Georgia, 'Times New Roman', serif;">
+                <a href="${unsubscribeUrl}" target="_blank" style="color: #c5a059; text-decoration: underline; font-weight: bold;">
                   Unsubscribe from future emails
                 </a>
               </div>
@@ -251,13 +272,10 @@ async function startServer() {
 
   function getBaseUrl(req?: express.Request): string {
     if (req) {
-      // 1. Origin header (sent by browsers on POST / API requests)
       const origin = req.headers.origin;
       if (origin && typeof origin === "string" && !origin.includes("localhost") && !origin.includes("127.0.0.1")) {
         return origin.replace(/\/+$/, "");
       }
-
-      // 2. Referer header
       const referer = req.headers.referer;
       if (referer && typeof referer === "string") {
         try {
@@ -267,8 +285,6 @@ async function startServer() {
           }
         } catch (e) {}
       }
-
-      // 3. X-Forwarded-Host & X-Forwarded-Proto headers
       const rawForwardedHost = req.headers["x-forwarded-host"];
       const forwardedHost = Array.isArray(rawForwardedHost) ? rawForwardedHost[0] : rawForwardedHost;
       if (forwardedHost && typeof forwardedHost === "string" && !forwardedHost.includes("localhost") && !forwardedHost.includes("127.0.0.1")) {
@@ -276,19 +292,15 @@ async function startServer() {
         const proto = (Array.isArray(rawForwardedProto) ? rawForwardedProto[0] : rawForwardedProto) || "https";
         return `${proto}://${forwardedHost}`.replace(/\/+$/, "");
       }
-
-      // 4. Host header from req
       const host = req.get("host");
       if (host && !host.includes("localhost") && !host.includes("127.0.0.1")) {
         const proto = req.protocol || "https";
         return `${proto}://${host}`.replace(/\/+$/, "");
       }
     }
-
     if (process.env.APP_URL) {
       return process.env.APP_URL.replace(/\/+$/, "");
     }
-
     const port = process.env.PORT || 3000;
     return `http://localhost:${port}`;
   }
@@ -297,21 +309,19 @@ async function startServer() {
   app.use(express.urlencoded({ extended: true }));
   app.use(cookieParser("edgevest_cookie_secret_2026"));
 
-  // Configure Session middleware
   app.use(
     session({
       secret: process.env.SESSION_SECRET || "edgevest_smtp_auth_session_secret_2026",
       resave: false,
       saveUninitialized: false,
       cookie: {
-        secure: false, // Ensures compatibility with HTTP local dev & Cloud Run proxy
+        secure: false,
         httpOnly: true,
-        maxAge: 24 * 60 * 60 * 1000 // 24 hours
+        maxAge: 24 * 60 * 60 * 1000
       }
     })
   );
 
-  // In-memory campaign state
   let currentCampaign: {
     status: string;
     total: number;
@@ -335,8 +345,8 @@ async function startServer() {
     failed: 0,
     skipped: 0,
     currentIndex: 0,
-    logs: [] as any[],
-    recipients: [] as any[],
+    logs: [],
+    recipients: [],
     timer: null,
     smtp: null,
     template: null,
@@ -346,7 +356,6 @@ async function startServer() {
     baseUrl: ""
   };
 
-  // Auth Guard Middleware
   const requireAuth = (req: express.Request, res: express.Response, next: express.NextFunction) => {
     if (req.session && req.session.smtp && req.session.smtp.host && req.session.smtp.username) {
       return next();
@@ -358,12 +367,10 @@ async function startServer() {
     });
   };
 
-  // Health API
   app.get("/api/health", (req, res) => {
     res.json({ status: "online", service: "Edgevest Bulk Email Campaign Server" });
   });
 
-  // Auth Status Check Endpoint
   app.get("/api/auth/check", (req, res) => {
     res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
     if (req.session && req.session.smtp && req.session.smtp.host) {
@@ -377,7 +384,6 @@ async function startServer() {
     return res.status(200).json({ authenticated: false, smtp: null });
   });
 
-  // SMTP Verification & Verification Helper
   async function testSmtpConnection(config: {
     host: string;
     port: number | string;
@@ -464,7 +470,6 @@ async function startServer() {
     return { success: true, elapsed, debugLogs, resolvedIps, transporter };
   }
 
-  // SMTP Login Endpoint
   app.post("/api/auth/smtp-login", async (req, res) => {
     const { host, port, username, password, from_email, from_name, use_ssl, use_tls } = req.body || {};
 
@@ -556,7 +561,6 @@ async function startServer() {
     }
   });
 
-  // Logout Endpoint
   app.post("/api/auth/logout", (req, res) => {
     res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
     if (req.session) {
@@ -571,7 +575,6 @@ async function startServer() {
     }
   });
 
-  // Verify SMTP Endpoint (Public / Pre-Check or Settings update)
   app.post("/api/smtp/verify", async (req, res) => {
     const { host, port, username, password, use_ssl, use_tls } = req.body || {};
     if (!host || !port || !username || !password) {
@@ -593,17 +596,34 @@ async function startServer() {
     }
   });
 
-  // Unsubscribe Endpoints
-  app.get("/api/unsubscribe", (req, res) => {
-    const email = (req.query.email as string || "").trim();
-    if (email) {
-      addSuppression(email, "Unsubscribed via email link");
+  // ===== MODIFIED: GET /api/unsubscribe with token verification and rate limiting =====
+  app.get("/api/unsubscribe", unsubscribeLimiter, (req, res) => {
+    const email = (req.query.email as string || "").trim().toLowerCase();
+    const token = (req.query.token as string || "").trim();
+
+    if (!email || !token) {
+      return res.status(400).send("Missing email or token.");
     }
-    // Redirect to clean Unsubscribe confirmation page
+
+    const verification = verifyUnsubscribeToken(email, token);
+    if (!verification.valid) {
+      const msg = verification.isExpired
+        ? "This unsubscribe link has expired. Please contact support to be removed."
+        : "Invalid unsubscribe link.";
+      return res.status(400).send(msg);
+    }
+
+    if (isEmailSuppressed(email)) {
+      return res.redirect(`/unsubscribe.html?email=${encodeURIComponent(email)}&status=already`);
+    }
+
+    addSuppression(email, "Unsubscribed via email link");
     return res.redirect(`/unsubscribe.html?email=${encodeURIComponent(email)}&status=success`);
   });
+  // ===== END MODIFIED =====
 
-  app.post("/api/unsubscribe", (req, res) => {
+  // ===== MODIFIED: POST /api/unsubscribe with rate limiting =====
+  app.post("/api/unsubscribe", unsubscribeLimiter, (req, res) => {
     const { email, reason } = req.body || {};
     if (!email || !email.trim()) {
       return res.status(400).json({ success: false, error: "Email address is required." });
@@ -614,6 +634,7 @@ async function startServer() {
       message: `Email ${email} has been added to the suppression list.`
     });
   });
+  // ===== END MODIFIED =====
 
   app.get("/api/suppressions", requireAuth, (req, res) => {
     const suppressions = loadSuppressions();
@@ -624,7 +645,6 @@ async function startServer() {
     });
   });
 
-  // Recipients Validation Endpoint
   app.post("/api/recipients/validate", requireAuth, (req, res) => {
     const raw = req.body?.recipients || [];
     const valid: any[] = [];
@@ -653,7 +673,6 @@ async function startServer() {
     });
   });
 
-  // Start Campaign Endpoint (Protected, uses session SMTP as source of truth)
   app.post("/api/campaign/start", requireAuth, async (req, res) => {
     const { recipients, template, settings } = req.body || {};
     const smtp = req.session.smtp;
@@ -755,7 +774,6 @@ async function startServer() {
       const rec = currentCampaign.recipients[idx];
       const displayIndex = idx + 1;
 
-      // Check if recipient is on the Suppression List!
       if (isEmailSuppressed(rec.email)) {
         currentCampaign.skipped++;
         currentCampaign.recipients[idx].status = "skipped";
@@ -769,14 +787,12 @@ async function startServer() {
         continue;
       }
 
-      // Render standardized Edgevest HTML email with header, footer & unsubscribe token link
-      const emailHtml = renderEdgevestEmailHTML(
-        template?.body_html || "",
-        rec,
-        baseUrl
-      );
+      let emailHtml = template?.body_html || "";
+      emailHtml = emailHtml
+        .replace(/\{name\}/gi, rec.name || rec.email.split("@")[0])
+        .replace(/\{email\}/gi, rec.email)
+        .replace(/\{company\}/gi, rec.company || "Valued Client");
 
-      // Personalize Subject Line
       let personalizedSubject = (template?.subject || "Edgevest Update")
         .replace(/\{name\}/gi, rec.name || rec.email.split("@")[0])
         .replace(/\{email\}/gi, rec.email)
@@ -801,12 +817,22 @@ async function startServer() {
             };
           });
 
+          // ===== ADDED: Generate token for List-Unsubscribe header =====
+          const token = Buffer.from(`${rec.email}:${Date.now()}`).toString('base64url');
+          // ===== END ADDED =====
+
           const info = await transporter.sendMail({
             from: `"${fromName}" <${fromEmail}>`,
             to: rec.email,
             subject: personalizedSubject,
             html: emailHtml,
-            attachments: userAttachments
+            attachments: userAttachments,
+            // ===== ADDED: List-Unsubscribe headers =====
+            headers: {
+              'List-Unsubscribe': `<${baseUrl}/api/unsubscribe?email=${encodeURIComponent(rec.email)}&token=${token}>`,
+              'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click'
+            }
+            // ===== END ADDED =====
           });
 
           currentCampaign.sent++;
@@ -826,7 +852,6 @@ async function startServer() {
           });
         }
       } else {
-        // Simulation mode
         currentCampaign.sent++;
         currentCampaign.recipients[idx].status = "sent";
         currentCampaign.logs.push({
@@ -855,7 +880,6 @@ async function startServer() {
     currentCampaign.isProcessing = false;
   }
 
-  // Control Endpoints
   app.post("/api/campaign/pause", requireAuth, (req, res) => {
     if (currentCampaign.status === "running") {
       currentCampaign.status = "paused";
@@ -879,7 +903,6 @@ async function startServer() {
     res.json({ success: true, message: "Campaign cancelled." });
   });
 
-  // Log Management API Endpoints
   app.post("/api/campaign/log/add", requireAuth, (req, res) => {
     const { message, level, note } = req.body || {};
     if (!message) return res.status(400).json({ success: false, error: "Message required." });
@@ -1020,13 +1043,11 @@ async function startServer() {
     }
   });
 
-  // Serve static assets explicitly
   app.use(express.static(path.join(process.cwd(), "public")));
   app.use("/public", express.static(path.join(process.cwd(), "public")));
   app.use("/assets", express.static(path.join(process.cwd(), "assets")));
   app.use("/assets", express.static(path.join(process.cwd(), "public", "assets")));
 
-  // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
       server: { middlewareMode: true },
