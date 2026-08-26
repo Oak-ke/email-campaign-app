@@ -1,15 +1,25 @@
 import express from "express";
 import path from "path";
-import rateLimit from 'express-rate-limit';
-import * as lockfile from 'proper-lockfile';
-import { createServer as createViteServer } from "vite";
+import rateLimit from "express-rate-limit";
+import * as lockfile from "proper-lockfile";
 import fs from "fs";
+import crypto from "crypto";
 import nodemailer from "nodemailer";
 import dns from "dns";
 import session from "express-session";
 import cookieParser from "cookie-parser";
 
-// Augment express-session types
+/** Normalize fancy punctuation that breaks strict mail servers */
+function sanitizeEmailText(s: string): string {
+  return String(s || "")
+    .replace(/[\u2018\u2019\u201A\u201B]/g, "'")
+    .replace(/[\u201C\u201D\u201E\u201F]/g, '"')
+    .replace(/[\u2013\u2014]/g, "-")
+    .replace(/\u2026/g, "...")
+    .replace(/\u00A0/g, " ")
+    .replace(/\uFEFF/g, "");
+}
+
 declare module "express-session" {
   interface SessionData {
     smtp?: {
@@ -25,37 +35,26 @@ declare module "express-session" {
   }
 }
 
-// Force Node to prioritize IPv4 DNS lookups to avoid ENETUNREACH on IPv6 addresses
 if (dns.setDefaultResultOrder) {
   dns.setDefaultResultOrder("ipv4first");
 }
 
-// Custom lookup function for Nodemailer to guarantee strictly IPv4 resolution
 const forceIPv4CustomLookup = (hostname: string, options: any, callback: any) => {
   if (typeof options === "function") {
     callback = options;
     options = {};
   }
   options = options || {};
-
-  if (!hostname) {
-    return callback(new Error("Hostname missing"));
-  }
-
+  if (!hostname) return callback(new Error("Hostname missing"));
   if (/^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/.test(hostname)) {
     if (options.all) return callback(null, [{ address: hostname, family: 4 }]);
     return callback(null, hostname, 4);
   }
-
   dns.lookup(hostname, { ...options, family: 4 }, (err, address, family) => {
-    if (!err && address) {
-      return callback(null, address, family);
-    }
+    if (!err && address) return callback(null, address, family);
     dns.resolve4(hostname, (resErr, addrs) => {
       if (!resErr && addrs && addrs.length > 0) {
-        if (options.all) {
-          return callback(null, addrs.map(a => ({ address: a, family: 4 })));
-        }
+        if (options.all) return callback(null, addrs.map((a) => ({ address: a, family: 4 })));
         return callback(null, addrs[0], 4);
       }
       callback(err || resErr);
@@ -63,9 +62,9 @@ const forceIPv4CustomLookup = (hostname: string, options: any, callback: any) =>
   });
 };
 
-// Ensure data directory and suppression list persistence
 const DATA_DIR = path.join(process.cwd(), "data");
 const SUPPRESSIONS_FILE = path.join(DATA_DIR, "suppressions.json");
+const UNSUBSCRIBE_TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
 if (!fs.existsSync(DATA_DIR)) {
   fs.mkdirSync(DATA_DIR, { recursive: true });
@@ -74,8 +73,7 @@ if (!fs.existsSync(DATA_DIR)) {
 function loadSuppressions(): Array<{ email: string; date: string; reason: string }> {
   try {
     if (fs.existsSync(SUPPRESSIONS_FILE)) {
-      const data = fs.readFileSync(SUPPRESSIONS_FILE, "utf-8");
-      return JSON.parse(data) || [];
+      return JSON.parse(fs.readFileSync(SUPPRESSIONS_FILE, "utf-8")) || [];
     }
   } catch (e) {
     console.error("Error loading suppressions:", e);
@@ -94,173 +92,185 @@ function saveSuppressions(suppressions: Array<{ email: string; date: string; rea
 function isEmailSuppressed(email: string): boolean {
   if (!email) return false;
   const cleanEmail = email.trim().toLowerCase();
-  const suppressions = loadSuppressions();
-  return suppressions.some(item => item.email.trim().toLowerCase() === cleanEmail);
+  return loadSuppressions().some((item) => item.email.trim().toLowerCase() === cleanEmail);
 }
 
-function addSuppression(email: string, reason: string = "User unsubscribed"): boolean {
+function getUnsubscribeSecret(): string {
+  return (
+    process.env.UNSUBSCRIBE_SECRET ||
+    process.env.SESSION_SECRET ||
+    "edgevest_smtp_auth_session_secret_2026"
+  );
+}
+
+function createUnsubscribeToken(email: string, issuedAtMs: number = Date.now()): string {
+  const clean = (email || "").trim().toLowerCase();
+  const payload = `${clean}|${issuedAtMs}`;
+  const payloadB64 = Buffer.from(payload, "utf8").toString("base64url");
+  const sig = crypto.createHmac("sha256", getUnsubscribeSecret()).update(payload).digest("base64url");
+  return `${payloadB64}.${sig}`;
+}
+
+function timingSafeEqualStr(a: string, b: string): boolean {
+  const ba = Buffer.from(a);
+  const bb = Buffer.from(b);
+  if (ba.length !== bb.length) return false;
+  return crypto.timingSafeEqual(ba, bb);
+}
+
+function verifyUnsubscribeToken(
+  email: string,
+  token: string
+): { valid: boolean; isExpired?: boolean; reason?: string } {
+  try {
+    const cleanEmail = (email || "").trim().toLowerCase();
+    const raw = (token || "").trim();
+    if (!cleanEmail || !raw) return { valid: false, reason: "missing" };
+
+    if (raw.includes(".")) {
+      const [payloadB64, sig] = raw.split(".");
+      if (!payloadB64 || !sig) return { valid: false, reason: "malformed" };
+      const payload = Buffer.from(payloadB64, "base64url").toString("utf8");
+      const expectedSig = crypto
+        .createHmac("sha256", getUnsubscribeSecret())
+        .update(payload)
+        .digest("base64url");
+      if (!timingSafeEqualStr(sig, expectedSig)) return { valid: false, reason: "bad_signature" };
+      const [tokenEmail, tsStr] = payload.split("|");
+      if (!tokenEmail || tokenEmail !== cleanEmail) return { valid: false, reason: "email_mismatch" };
+      const issuedAt = parseInt(tsStr, 10);
+      if (!Number.isFinite(issuedAt)) return { valid: false, reason: "bad_ts" };
+      if (Date.now() - issuedAt > UNSUBSCRIBE_TOKEN_TTL_MS) return { valid: false, isExpired: true };
+      if (issuedAt > Date.now() + 60_000) return { valid: false, reason: "future_ts" };
+      return { valid: true };
+    }
+
+    if (process.env.ALLOW_LEGACY_UNSUB_TOKENS === "true") {
+      const decoded = Buffer.from(raw, "base64url").toString("utf8");
+      const [tokenEmail, tsStr] = decoded.split(":");
+      if (tokenEmail !== cleanEmail) return { valid: false };
+      const age = Date.now() - parseInt(tsStr, 10);
+      if (age > UNSUBSCRIBE_TOKEN_TTL_MS) return { valid: false, isExpired: true };
+      return { valid: true };
+    }
+
+    return { valid: false, reason: "unsupported_format" };
+  } catch {
+    return { valid: false, reason: "error" };
+  }
+}
+
+async function addSuppression(email: string, reason: string = "User unsubscribed"): Promise<boolean> {
   if (!email) return false;
   const cleanEmail = email.trim().toLowerCase();
-  const suppressions = loadSuppressions();
-  if (suppressions.some(item => item.email.trim().toLowerCase() === cleanEmail)) {
-    return true; // Already suppressed
-  }
-  suppressions.push({
-    email: cleanEmail,
-    date: new Date().toISOString(),
-    reason
-  });
-  saveSuppressions(suppressions);
-  return true;
-}
+  if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+  if (!fs.existsSync(SUPPRESSIONS_FILE)) fs.writeFileSync(SUPPRESSIONS_FILE, "[]", "utf-8");
 
-// ===== ADDED: Token verification helper =====
-function verifyUnsubscribeToken(email: string, token: string): { valid: boolean; isExpired?: boolean } {
+  let release: (() => Promise<void>) | undefined;
   try {
-    const decoded = Buffer.from(token, 'base64url').toString('utf-8');
-    const [tokenEmail, timestamp] = decoded.split(':');
-    if (tokenEmail !== email) return { valid: false };
-    const age = Date.now() - parseInt(timestamp, 10);
-    if (age > 604800000) return { valid: false, isExpired: true }; // 7 days
-    return { valid: true };
-  } catch {
-    return { valid: false };
+    release = await lockfile.lock(SUPPRESSIONS_FILE, {
+      retries: { retries: 5, minTimeout: 50, maxTimeout: 200 },
+    });
+    const suppressions = loadSuppressions();
+    if (suppressions.some((item) => item.email.trim().toLowerCase() === cleanEmail)) return true;
+    suppressions.push({ email: cleanEmail, date: new Date().toISOString(), reason });
+    saveSuppressions(suppressions);
+    return true;
+  } catch (e) {
+    console.error("addSuppression error:", e);
+    const suppressions = loadSuppressions();
+    if (!suppressions.some((item) => item.email.trim().toLowerCase() === cleanEmail)) {
+      suppressions.push({ email: cleanEmail, date: new Date().toISOString(), reason });
+      saveSuppressions(suppressions);
+    }
+    return true;
+  } finally {
+    if (release) {
+      try {
+        await release();
+      } catch (_) {}
+    }
   }
 }
-// ===== END ADDED =====
 
-// ===== ADDED: Rate limiter for unsubscribe endpoints =====
 const unsubscribeLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 20, // limit each IP to 20 requests per window
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
   message: "Too many unsubscribe requests, please try again later.",
 });
-// ===== END ADDED =====
 
-// Edgevest Email Renderer (Light theme – Header + Footer + Middle User Body)
 function renderEdgevestEmailHTML(
   userBodyHtml: string,
   recipient: { email: string; name?: string; company?: string },
   baseUrl: string
 ): string {
   const cleanEmail = (recipient.email || "").trim();
-  const cleanName = (recipient.name || cleanEmail.split("@")[0] || "Valued Client").trim();
-  const cleanCompany = (recipient.company || "Valued Organization").trim();
+  const cleanName = sanitizeEmailText(
+    (recipient.name || cleanEmail.split("@")[0] || "Valued Client").trim()
+  );
+  const cleanCompany = sanitizeEmailText((recipient.company || "Valued Organization").trim());
 
-  const token = Buffer.from(`${cleanEmail}:${Date.now()}`).toString("base64url");
-  const unsubscribeUrl = `${baseUrl}/api/unsubscribe?email=${encodeURIComponent(cleanEmail)}&token=${token}`;
+  const token = createUnsubscribeToken(cleanEmail);
+  const unsubscribeUrl = `${baseUrl.replace(/\/+$/, "")}/api/unsubscribe?email=${encodeURIComponent(cleanEmail)}&token=${encodeURIComponent(token)}`;
 
-  let bodyContent = userBodyHtml || "<p style='margin-bottom: 16px;'>Dear {name},</p><p style='margin-bottom: 16px;'>We are excited to invite you to our upcoming professional training session with Edgevest Training & Consultancy.</p>";
+  let bodyContent =
+    userBodyHtml ||
+    "<p style='margin-bottom: 16px;'>Dear {name},</p><p style='margin-bottom: 16px;'>We are excited to invite you to our upcoming professional training session with Edgevest Training & Consultancy.</p>";
   bodyContent = bodyContent
     .replace(/\{name\}/gi, cleanName)
     .replace(/\{email\}/gi, cleanEmail)
     .replace(/\{company\}/gi, cleanCompany);
+  bodyContent = sanitizeEmailText(bodyContent);
 
   return `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Edgevest Training &amp; Consultancy</title>
   <style type="text/css">
     body { margin: 0; padding: 0; min-width: 100%; background-color: #f5f3f0; font-family: Georgia, 'Times New Roman', serif; }
     table { border-collapse: collapse; }
     a { color: #c5a059; text-decoration: underline; }
-    h1, h2, h3, .georgia { font-family: Georgia, 'Times New Roman', serif; }
   </style>
 </head>
-<body bgcolor="#f5f3f0" style="margin: 0; padding: 20px 0; background-color: #f5f3f0; font-family: Georgia, 'Times New Roman', serif; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%;">
-
-  <!-- Outer Wrapper Table -->
-  <table border="0" cellpadding="0" cellspacing="0" width="100%" bgcolor="#f5f3f0" style="background-color: #f5f3f0; table-layout: fixed; width: 100%;">
+<body bgcolor="#f5f3f0" style="margin: 0; padding: 20px 0; background-color: #f5f3f0; font-family: Georgia, 'Times New Roman', serif;">
+  <table border="0" cellpadding="0" cellspacing="0" width="100%" bgcolor="#f5f3f0" style="background-color: #f5f3f0; width: 100%;">
     <tr>
-      <td align="center" style="padding: 10px 10px 20px 10px;">
-        
-        <!-- Main Email Container Table (600px wide) -->
-        <!--[if (gte mso 9)|(IE)]>
-        <table align="center" border="0" cellspacing="0" cellpadding="0" width="600">
-        <tr>
-        <td align="center" valign="top" width="600">
-        <![endif]-->
-        <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px; width: 100%; background-color: #ffffff; border: 1px solid #e8e3dc; border-radius: 8px; overflow: hidden; font-family: Georgia, 'Times New Roman', serif; margin: 0 auto;" align="center" bgcolor="#ffffff">
-          
-          <!-- HEADER ROW – Light theme -->
+      <td align="center" style="padding: 10px;">
+        <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px; background-color: #ffffff; border: 1px solid #e8e3dc; border-radius: 8px; margin: 0 auto;" align="center" bgcolor="#ffffff">
           <tr>
-            <td align="left" bgcolor="#ffffff" style="background-color: #ffffff; padding: 20px 24px; text-align: left; border-bottom: 3px solid #c5a059; font-family: Georgia, 'Times New Roman', serif;">
-              <table border="0" cellpadding="0" cellspacing="0" width="100%">
-                <tr>
-                  <!-- Logo Cell -->
-                  <td valign="middle" width="60" style="padding-right: 16px;">
-                    <table border="0" cellpadding="0" cellspacing="0" bgcolor="#ffffff" style="background-color: #ffffff; border-radius: 6px; border: 1px solid #e8e3dc; padding: 2px;">
-                      <tr>
-                        <td align="center" valign="middle" width="48" height="48">
-                          <img src="cid:edgevest_emblem" alt="Edgevest" width="44" height="44" style="display: block; width: 44px; height: 44px; object-fit: contain; border-radius: 4px; border: 0;" onerror="this.onerror=null; this.src='https://raw.githubusercontent.com/Oak-ke/email-campaign-app/main/public/assets/edgevest_logo.svg';" />
-                        </td>
-                      </tr>
-                    </table>
-                  </td>
-                  <!-- Title & Contact Info -->
-                  <td valign="middle" align="left">
-                    <h1 style="font-family: Georgia, 'Times New Roman', serif; font-size: 24px; font-weight: bold; margin: 0 0 2px 0; padding: 0; color: #4a3a2a !important; text-align: left; line-height: 1.2;">Edgevest</h1>
-                    <p style="font-family: Georgia, 'Times New Roman', serif; font-size: 14px; margin: 0 0 6px 0; padding: 0; color: #6b5a4a !important; text-align: left; line-height: 1.3;">Professional Training and Development</p>
-                    
-                    <div style="font-size: 12px; color: #6b5a4a; border-top: 1px solid #e8e3dc; padding-top: 6px; margin-top: 4px; font-family: Georgia, 'Times New Roman', serif;">
-                      <p style="font-family: Georgia, 'Times New Roman', serif; font-size: 12px; margin: 0 0 2px 0; padding: 0; color: #4a3a2a !important; text-align: left; line-height: 1.4;">
-                        <strong>Phone:</strong> +254 758 314 887 &nbsp;|&nbsp; <strong>Email:</strong> <a href="mailto:trainings@edgevest.co.ke" style="color: #c5a059; text-decoration: underline;">trainings@edgevest.co.ke</a>
-                      </p>
-                      <p style="font-family: Georgia, 'Times New Roman', serif; font-size: 12px; margin: 0; padding: 0; color: #6b5a4a !important; text-align: left; line-height: 1.4;">
-                        Grace Land Court, Block C, J6, Opp. K.U School of Law, Parklands, Nairobi
-                      </p>
-                    </div>
-                  </td>
-                </tr>
-              </table>
+            <td align="left" bgcolor="#ffffff" style="padding: 20px 24px; border-bottom: 3px solid #c5a059;">
+              <h1 style="font-family: Georgia, serif; font-size: 24px; margin: 0; color: #4a3a2a;">Edgevest</h1>
+              <p style="font-size: 14px; margin: 4px 0 0; color: #6b5a4a;">Professional Training and Development</p>
             </td>
           </tr>
-
-          <!-- BODY ROW -->
           <tr>
-            <td align="left" bgcolor="#ffffff" style="background-color: #ffffff; padding: 32px 28px; font-family: Georgia, 'Times New Roman', serif; font-size: 15px; color: #1a1a1a; line-height: 1.65; text-align: left;">
-              <div class="body-content-inner" style="font-family: Georgia, 'Times New Roman', serif; color: #1a1a1a;">
-                ${bodyContent}
-              </div>
+            <td align="left" bgcolor="#ffffff" style="padding: 32px 28px; font-size: 15px; color: #1a1a1a; line-height: 1.65;">
+              <div>${bodyContent}</div>
             </td>
           </tr>
-
-          <!-- FOOTER ROW – Light theme -->
           <tr>
-            <td align="center" bgcolor="#ffffff" style="background-color: #ffffff; padding: 24px 24px; text-align: center; border-top: 3px solid #c5a059; font-family: Georgia, 'Times New Roman', serif; color: #4a3a2a;">
-              <div style="font-size: 16px; font-weight: bold; color: #4a3a2a; margin-bottom: 6px; font-family: Georgia, 'Times New Roman', serif;">
-                Edgevest Training &amp; Consultancy
-              </div>
-              <div style="font-size: 13px; color: #6b5a4a; margin-bottom: 10px; line-height: 1.5; font-family: Georgia, 'Times New Roman', serif;">
+            <td align="center" bgcolor="#ffffff" style="padding: 24px; border-top: 3px solid #c5a059; color: #4a3a2a;">
+              <div style="font-size: 16px; font-weight: bold; margin-bottom: 6px;">Edgevest Training &amp; Consultancy</div>
+              <div style="font-size: 13px; color: #6b5a4a; margin-bottom: 10px; line-height: 1.5;">
                 Grace Land Court, Block C, J6, Opp. K.U School of Law, Parklands, Nairobi<br/>
-                Phone: <a href="tel:+254758314887" style="color: #c5a059; text-decoration: none;">+254 758 314 887</a> &bull; 
-                Email: <a href="mailto:trainings@edgevest.co.ke" style="color: #c5a059; text-decoration: none;">trainings@edgevest.co.ke</a> &bull;
-                Web: <a href="https://www.edgevest.co.ke" target="_blank" style="color: #c5a059; text-decoration: none;">www.edgevest.co.ke</a>
+                Phone: <a href="tel:+254758314887" style="color: #c5a059; text-decoration: none;">+254 758 314 887</a> &bull;
+                Email: <a href="mailto:trainings@edgevest.co.ke" style="color: #c5a059; text-decoration: none;">trainings@edgevest.co.ke</a>
               </div>
-              <div style="font-size: 11px; color: #9a8a7a; padding-top: 8px; border-top: 1px solid #e8e3dc; margin-top: 8px; font-family: Georgia, 'Times New Roman', serif;">
-                NITA/TRN/2675 &nbsp;&bull;&nbsp; SR/eGP/2026/59082
-              </div>
-              <div style="margin-top: 14px; font-size: 12px; color: #6b5a4a; font-family: Georgia, 'Times New Roman', serif;">
-                <a href="${unsubscribeUrl}" target="_blank" style="color: #c5a059; text-decoration: underline; font-weight: bold;">
-                  Unsubscribe from future emails
-                </a>
+              <div style="font-size: 11px; color: #9a8a7a; padding-top: 8px; border-top: 1px solid #e8e3dc;">NITA/TRN/2675 &bull; SR/eGP/2026/59082</div>
+              <div style="margin-top: 14px; font-size: 12px;">
+                <a href="${unsubscribeUrl}" target="_blank" style="color: #c5a059; text-decoration: underline; font-weight: bold;">Unsubscribe from future emails</a>
               </div>
             </td>
           </tr>
-
         </table>
-        <!--[if (gte mso 9)|(IE)]>
-        </td>
-        </tr>
-        </table>
-        <![endif]-->
-
       </td>
     </tr>
   </table>
-
 </body>
 </html>`;
 }
@@ -287,38 +297,29 @@ async function startServer() {
       }
       const rawForwardedHost = req.headers["x-forwarded-host"];
       const forwardedHost = Array.isArray(rawForwardedHost) ? rawForwardedHost[0] : rawForwardedHost;
-      if (forwardedHost && typeof forwardedHost === "string" && !forwardedHost.includes("localhost") && !forwardedHost.includes("127.0.0.1")) {
+      if (forwardedHost && typeof forwardedHost === "string" && !forwardedHost.includes("localhost")) {
         const rawForwardedProto = req.headers["x-forwarded-proto"];
         const proto = (Array.isArray(rawForwardedProto) ? rawForwardedProto[0] : rawForwardedProto) || "https";
         return `${proto}://${forwardedHost}`.replace(/\/+$/, "");
       }
       const host = req.get("host");
       if (host && !host.includes("localhost") && !host.includes("127.0.0.1")) {
-        const proto = req.protocol || "https";
-        return `${proto}://${host}`.replace(/\/+$/, "");
+        return `${req.protocol || "https"}://${host}`.replace(/\/+$/, "");
       }
     }
-    if (process.env.APP_URL) {
-      return process.env.APP_URL.replace(/\/+$/, "");
-    }
-    const port = process.env.PORT || 3000;
-    return `http://localhost:${port}`;
+    if (process.env.APP_URL) return process.env.APP_URL.replace(/\/+$/, "");
+    return `http://localhost:${process.env.PORT || 3000}`;
   }
 
   app.use(express.json({ limit: "10mb" }));
   app.use(express.urlencoded({ extended: true }));
   app.use(cookieParser("edgevest_cookie_secret_2026"));
-
   app.use(
     session({
       secret: process.env.SESSION_SECRET || "edgevest_smtp_auth_session_secret_2026",
       resave: false,
       saveUninitialized: false,
-      cookie: {
-        secure: false,
-        httpOnly: true,
-        maxAge: 24 * 60 * 60 * 1000
-      }
+      cookie: { secure: false, httpOnly: true, maxAge: 24 * 60 * 60 * 1000 },
     })
   );
 
@@ -353,32 +354,62 @@ async function startServer() {
     settings: null,
     transporter: null,
     isProcessing: false,
-    baseUrl: ""
+    baseUrl: "",
   };
 
   const requireAuth = (req: express.Request, res: express.Response, next: express.NextFunction) => {
-    if (req.session && req.session.smtp && req.session.smtp.host && req.session.smtp.username) {
-      return next();
-    }
+    if (req.session?.smtp?.host && req.session?.smtp?.username) return next();
     return res.status(401).json({
       success: false,
       authenticated: false,
-      error: "Authentication required. Please log in with valid SMTP server credentials."
+      error: "Authentication required. Please log in with valid SMTP server credentials.",
     });
   };
 
-  app.get("/api/health", (req, res) => {
+  function parseUnsubEmailToken(req: express.Request) {
+    const q = req.query || {};
+    const b = (req.body || {}) as Record<string, unknown>;
+    const email = String(b.email ?? q.email ?? "")
+      .trim()
+      .toLowerCase();
+    const token = String(b.token ?? q.token ?? "").trim();
+    const reason = String(b.reason ?? "User unsubscribed").trim() || "User unsubscribed";
+    return { email, token, reason };
+  }
+
+  async function processUnsubscribe(email: string, token: string, reason: string) {
+    if (!email || !token) {
+      return { ok: false as const, status: 400, message: "Missing email or token." };
+    }
+    const verification = verifyUnsubscribeToken(email, token);
+    if (!verification.valid) {
+      return {
+        ok: false as const,
+        status: 400,
+        message: verification.isExpired
+          ? "This unsubscribe link has expired. Please contact support to be removed."
+          : "Invalid unsubscribe link.",
+      };
+    }
+    if (isEmailSuppressed(email)) {
+      return { ok: true as const, status: 200, message: "Already unsubscribed.", already: true };
+    }
+    await addSuppression(email, reason);
+    return { ok: true as const, status: 200, message: "Unsubscribed successfully.", already: false };
+  }
+
+  app.get("/api/health", (_req, res) => {
     res.json({ status: "online", service: "Edgevest Bulk Email Campaign Server" });
   });
 
   app.get("/api/auth/check", (req, res) => {
     res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
-    if (req.session && req.session.smtp && req.session.smtp.host) {
+    if (req.session?.smtp?.host) {
       const { host, port, username, from_email, from_name, use_ssl, use_tls } = req.session.smtp;
       return res.status(200).json({
         authenticated: true,
         user: username,
-        smtp: { host, port, username, from_email, from_name, use_ssl, use_tls }
+        smtp: { host, port, username, from_email, from_name, use_ssl, use_tls },
       });
     }
     return res.status(200).json({ authenticated: false, smtp: null });
@@ -396,49 +427,44 @@ async function startServer() {
     const portNum = parseInt(String(port), 10) || 587;
     const cleanHost = (host || "").trim();
     const cleanUser = (username || "").trim();
-    const isOffice365 = cleanHost.toLowerCase().includes("office365") || cleanHost.toLowerCase().includes("outlook");
+    const isOffice365 =
+      cleanHost.toLowerCase().includes("office365") || cleanHost.toLowerCase().includes("outlook");
     const isSecure = use_ssl || portNum === 465;
-
     const debugLogs: string[] = [];
-
     const customLogger = {
       level: () => "trace",
       trace: (entry: any, ...args: any[]) => {
-        const msg = typeof entry === "string" ? entry : (entry?.msg || JSON.stringify(entry));
-        debugLogs.push(`[TRACE] ${msg} ${args.map(a => typeof a === "object" ? JSON.stringify(a) : String(a)).join(" ")}`.trim());
+        const msg = typeof entry === "string" ? entry : entry?.msg || JSON.stringify(entry);
+        debugLogs.push(
+          `[TRACE] ${msg} ${args.map((a) => (typeof a === "object" ? JSON.stringify(a) : String(a))).join(" ")}`.trim()
+        );
       },
       debug: (entry: any, ...args: any[]) => {
-        const msg = typeof entry === "string" ? entry : (entry?.msg || JSON.stringify(entry));
-        debugLogs.push(`[DEBUG] ${msg} ${args.map(a => typeof a === "object" ? JSON.stringify(a) : String(a)).join(" ")}`.trim());
+        const msg = typeof entry === "string" ? entry : entry?.msg || JSON.stringify(entry);
+        debugLogs.push(
+          `[DEBUG] ${msg} ${args.map((a) => (typeof a === "object" ? JSON.stringify(a) : String(a))).join(" ")}`.trim()
+        );
       },
       info: (entry: any, ...args: any[]) => {
-        const msg = typeof entry === "string" ? entry : (entry?.msg || JSON.stringify(entry));
-        debugLogs.push(`[INFO] ${msg} ${args.map(a => typeof a === "object" ? JSON.stringify(a) : String(a)).join(" ")}`.trim());
+        const msg = typeof entry === "string" ? entry : entry?.msg || JSON.stringify(entry);
+        debugLogs.push(
+          `[INFO] ${msg} ${args.map((a) => (typeof a === "object" ? JSON.stringify(a) : String(a))).join(" ")}`.trim()
+        );
       },
       warn: (entry: any, ...args: any[]) => {
-        const msg = typeof entry === "string" ? entry : (entry?.msg || JSON.stringify(entry));
-        debugLogs.push(`[WARN] ${msg} ${args.map(a => typeof a === "object" ? JSON.stringify(a) : String(a)).join(" ")}`.trim());
+        const msg = typeof entry === "string" ? entry : entry?.msg || JSON.stringify(entry);
+        debugLogs.push(
+          `[WARN] ${msg} ${args.map((a) => (typeof a === "object" ? JSON.stringify(a) : String(a))).join(" ")}`.trim()
+        );
       },
       error: (entry: any, ...args: any[]) => {
-        const msg = typeof entry === "string" ? entry : (entry?.msg || JSON.stringify(entry));
-        debugLogs.push(`[ERROR] ${msg} ${args.map(a => typeof a === "object" ? JSON.stringify(a) : String(a)).join(" ")}`.trim());
-      }
+        const msg = typeof entry === "string" ? entry : entry?.msg || JSON.stringify(entry);
+        debugLogs.push(
+          `[ERROR] ${msg} ${args.map((a) => (typeof a === "object" ? JSON.stringify(a) : String(a))).join(" ")}`.trim()
+        );
+      },
     };
-
-    debugLogs.push(`[INIT] Testing SMTP connection to ${cleanHost}:${portNum} for user: ${cleanUser}`);
-
-    let resolvedIps: string[] = [];
-    try {
-      resolvedIps = await new Promise((resolve) => {
-        dns.resolve4(cleanHost, (err, addrs) => resolve(err ? [] : addrs));
-      });
-      if (resolvedIps.length > 0) {
-        debugLogs.push(`[DNS SUCCESS] "${cleanHost}" resolved to IPv4: [${resolvedIps.join(", ")}]`);
-      }
-    } catch (dnsErr: any) {
-      debugLogs.push(`[DNS WARN] DNS lookup note: ${dnsErr.message}`);
-    }
-
+    debugLogs.push(`[INIT] Testing SMTP ${cleanHost}:${portNum} user ${cleanUser}`);
     const transporter = nodemailer.createTransport({
       host: cleanHost,
       port: portNum,
@@ -452,120 +478,76 @@ async function startServer() {
       tls: { rejectUnauthorized: false, servername: cleanHost },
       connectionTimeout: 15000,
       greetingTimeout: 15000,
-      socketTimeout: 15000
+      socketTimeout: 15000,
     } as any);
-
     const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => {
-        reject(new Error(`Connection Timeout: Socket connection timed out after 15000ms trying to reach ${cleanHost}:${portNum}`));
-      }, 16000);
+      setTimeout(
+        () => reject(new Error(`Connection Timeout after 15000ms to ${cleanHost}:${portNum}`)),
+        16000
+      );
     });
-
     const startTime = Date.now();
     await Promise.race([transporter.verify(), timeoutPromise]);
-    const elapsed = Date.now() - startTime;
-
-    debugLogs.push(`[SUCCESS] Connection & Authentication verified in ${elapsed}ms!`);
-
-    return { success: true, elapsed, debugLogs, resolvedIps, transporter };
+    debugLogs.push(`[SUCCESS] Verified in ${Date.now() - startTime}ms`);
+    return { success: true, elapsed: Date.now() - startTime, debugLogs, transporter };
   }
 
   app.post("/api/auth/smtp-login", async (req, res) => {
     const { host, port, username, password, from_email, from_name, use_ssl, use_tls } = req.body || {};
-
-    if (!host || !host.trim()) {
-      return res.status(400).json({ success: false, error: "SMTP Hostname is required (e.g. outlook.office365.com)." });
-    }
-    if (!port) {
-      return res.status(400).json({ success: false, error: "SMTP Port is required (e.g. 587 or 465)." });
-    }
-    if (!username || !username.trim()) {
-      return res.status(400).json({ success: false, error: "SMTP Username / Email is required." });
-    }
-    if (!password || !password.trim()) {
-      return res.status(400).json({ success: false, error: "SMTP Password is required for authentication." });
-    }
-
+    if (!host?.trim()) return res.status(400).json({ success: false, error: "SMTP Hostname is required." });
+    if (!port) return res.status(400).json({ success: false, error: "SMTP Port is required." });
+    if (!username?.trim()) return res.status(400).json({ success: false, error: "SMTP Username is required." });
+    if (!password?.trim()) return res.status(400).json({ success: false, error: "SMTP Password is required." });
     try {
       const result = await testSmtpConnection({ host, port, username, password, use_ssl, use_tls });
-
       if (result.success) {
         req.session.smtp = {
           host: host.trim(),
-          port: parseInt(port, 10) || 587,
+          port: parseInt(String(port), 10) || 587,
           username: username.trim(),
-          password: password,
+          password,
           from_email: (from_email || username).trim(),
           from_name: (from_name || "Edgevest Team").trim(),
           use_ssl: !!use_ssl,
-          use_tls: !!use_tls
+          use_tls: !!use_tls,
         };
-
         return req.session.save((err) => {
-          if (err) {
-            return res.status(500).json({ success: false, error: "Failed to save session state." });
-          }
+          if (err) return res.status(500).json({ success: false, error: "Failed to save session." });
           return res.json({
             success: true,
             authenticated: true,
-            message: `SMTP Login Successful! Verified connection to ${host}:${port} as ${username}.`,
-            user: username.trim()
+            message: `SMTP Login Successful! ${host}:${port} as ${username}.`,
+            user: username.trim(),
           });
         });
       }
     } catch (err: any) {
-      let rawErrorMsg = err.message || String(err);
+      const rawErrorMsg = err.message || String(err);
       const lowerErr = rawErrorMsg.toLowerCase();
       const errCode = (err.code || "").toUpperCase();
-
-      let friendlyError = "";
+      let friendlyError = `SMTP Error: ${rawErrorMsg}`;
       let errorType = "GENERAL_ERROR";
-
-      if (
-        rawErrorMsg.includes("535") ||
-        rawErrorMsg.includes("534") ||
-        rawErrorMsg.includes("530") ||
-        errCode === "EAUTH" ||
-        lowerErr.includes("authentication failed") ||
-        lowerErr.includes("invalid credentials")
-      ) {
+      if (rawErrorMsg.includes("535") || errCode === "EAUTH" || lowerErr.includes("authentication failed")) {
         errorType = "AUTH_FAILED";
-        friendlyError = `Authentication Failed for ${username} on ${host}:${port}.\n\n` +
-          `🔑 Failure Details: The SMTP server was reached, but rejected the username or password.\n\n` +
-          `💡 Troubleshooting:\n` +
-          `1. Double-check password accuracy for ${username}.\n` +
-          `2. For Microsoft 365: Ensure 'Authenticated SMTP' is enabled in M365 Admin Center.\n` +
-          `3. If 2FA is active, generate and use an App Password.`;
-      } else if (
-        errCode === "ETIMEDOUT" ||
-        errCode === "ECONNREFUSED" ||
-        lowerErr.includes("timeout") ||
-        lowerErr.includes("enetunreach")
-      ) {
+        friendlyError = `Authentication Failed for ${username} on ${host}:${port}.`;
+      } else if (errCode === "ETIMEDOUT" || lowerErr.includes("timeout")) {
         errorType = "CONNECTION_TIMEOUT";
-        friendlyError = `Connection Timeout to ${host}:${port}.\n\n` +
-          `⏱️ Failure Details: Could not reach SMTP server within 15 seconds.\n\n` +
-          `💡 Troubleshooting:\n` +
-          `1. Check Host and Port settings (Port 587 with STARTTLS or Port 465 with Direct SSL).\n` +
-          `2. Ensure firewall or cloud provider does not block outbound SMTP ports.`;
-      } else {
-        friendlyError = `SMTP Error: ${rawErrorMsg}`;
+        friendlyError = `Connection Timeout to ${host}:${port}.`;
       }
-
       return res.status(400).json({
         success: false,
         authenticated: false,
         error: friendlyError,
-        error_type: errorType
+        error_type: errorType,
       });
     }
   });
 
   app.post("/api/auth/logout", (req, res) => {
-    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+    res.setHeader("Cache-Control", "no-store");
     if (req.session) {
       delete req.session.smtp;
-      req.session.destroy((err) => {
+      req.session.destroy(() => {
         res.clearCookie("connect.sid", { path: "/" });
         return res.json({ success: true, message: "Logged out successfully." });
       });
@@ -580,69 +562,56 @@ async function startServer() {
     if (!host || !port || !username || !password) {
       return res.status(400).json({ success: false, error: "Missing required SMTP parameters." });
     }
-
     try {
       const result = await testSmtpConnection({ host, port, username, password, use_ssl, use_tls });
-      return res.json({
-        success: true,
-        message: `SMTP Connection & Auth Verified for ${host}:${port}`,
-        logs: result.debugLogs
-      });
+      return res.json({ success: true, message: `Verified ${host}:${port}`, logs: result.debugLogs });
     } catch (err: any) {
-      return res.status(400).json({
-        success: false,
-        error: err.message || "SMTP Verification Failed."
-      });
+      return res.status(400).json({ success: false, error: err.message || "SMTP Verification Failed." });
     }
   });
 
-  // ===== MODIFIED: GET /api/unsubscribe with token verification and rate limiting =====
-  app.get("/api/unsubscribe", unsubscribeLimiter, (req, res) => {
-    const email = (req.query.email as string || "").trim().toLowerCase();
-    const token = (req.query.token as string || "").trim();
-
-    if (!email || !token) {
-      return res.status(400).send("Missing email or token.");
-    }
-
-    const verification = verifyUnsubscribeToken(email, token);
-    if (!verification.valid) {
-      const msg = verification.isExpired
-        ? "This unsubscribe link has expired. Please contact support to be removed."
-        : "Invalid unsubscribe link.";
-      return res.status(400).send(msg);
-    }
-
-    if (isEmailSuppressed(email)) {
-      return res.redirect(`/unsubscribe.html?email=${encodeURIComponent(email)}&status=already`);
-    }
-
-    addSuppression(email, "Unsubscribed via email link");
-    return res.redirect(`/unsubscribe.html?email=${encodeURIComponent(email)}&status=success`);
+  app.get("/api/unsubscribe", unsubscribeLimiter, async (req, res) => {
+    const { email, token } = parseUnsubEmailToken(req);
+    const result = await processUnsubscribe(email, token, "Unsubscribed via email link");
+    if (!result.ok) return res.status(result.status).send(result.message);
+    const status = result.already ? "already" : "success";
+    return res.redirect(
+      `/unsubscribe.html?email=${encodeURIComponent(email)}&token=${encodeURIComponent(token)}&status=${status}`
+    );
   });
-  // ===== END MODIFIED =====
 
-  // ===== MODIFIED: POST /api/unsubscribe with rate limiting =====
-  app.post("/api/unsubscribe", unsubscribeLimiter, (req, res) => {
-    const { email, reason } = req.body || {};
-    if (!email || !email.trim()) {
-      return res.status(400).json({ success: false, error: "Email address is required." });
+  app.post("/api/unsubscribe", unsubscribeLimiter, async (req, res) => {
+    const { email, token, reason } = parseUnsubEmailToken(req);
+    const body = req.body || {};
+    const isOneClick =
+      body["List-Unsubscribe"] === "One-Click" ||
+      (typeof body === "object" &&
+        Object.values(body).some((v) => String(v).includes("List-Unsubscribe=One-Click")));
+
+    const result = await processUnsubscribe(
+      email,
+      token,
+      isOneClick ? "One-click List-Unsubscribe" : reason || "User unsubscribed via form"
+    );
+
+    if (!result.ok) {
+      return res.status(result.status).json({ success: false, error: result.message });
     }
-    addSuppression(email, reason || "User unsubscribed via API");
-    return res.json({
-      success: true,
-      message: `Email ${email} has been added to the suppression list.`
-    });
+    if (isOneClick) return res.status(200).send("OK");
+    return res.json({ success: true, message: result.message, already: !!result.already });
   });
-  // ===== END MODIFIED =====
 
-  app.get("/api/suppressions", requireAuth, (req, res) => {
+  app.get("/api/suppressions", requireAuth, (_req, res) => {
     const suppressions = loadSuppressions();
-    return res.json({
-      success: true,
-      count: suppressions.length,
-      suppressions
-    });
+    return res.json({ success: true, count: suppressions.length, suppressions });
+  });
+
+  app.post("/api/suppressions/add", requireAuth, async (req, res) => {
+    const email = String(req.body?.email || "").trim().toLowerCase();
+    const reason = String(req.body?.reason || "Added by admin").trim();
+    if (!email) return res.status(400).json({ success: false, error: "Email required" });
+    await addSuppression(email, reason);
+    return res.json({ success: true });
   });
 
   app.post("/api/recipients/validate", requireAuth, (req, res) => {
@@ -650,55 +619,61 @@ async function startServer() {
     const valid: any[] = [];
     const invalid: any[] = [];
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
     raw.forEach((r: any) => {
       const email = typeof r === "string" ? r.trim() : (r.email || "").trim();
-      const name = typeof r === "string" ? r.split("@")[0] : (r.name || email.split("@")[0]);
+      const name = typeof r === "string" ? r.split("@")[0] : r.name || email.split("@")[0];
       const company = r.company || "Valued Client";
-
       if (email && emailRegex.test(email)) {
         const suppressed = isEmailSuppressed(email);
-        valid.push({ email, name, company, status: suppressed ? "suppressed" : "valid", is_suppressed: suppressed });
+        valid.push({
+          email,
+          name,
+          company,
+          status: suppressed ? "suppressed" : "valid",
+          is_suppressed: suppressed,
+        });
       } else if (email) {
         invalid.push({ email, name, error: "Invalid email syntax" });
       }
     });
-
     res.json({
       total_submitted: raw.length,
       valid_count: valid.length,
       invalid_count: invalid.length,
       valid_recipients: valid,
-      invalid_recipients: invalid
+      invalid_recipients: invalid,
     });
   });
 
   app.post("/api/campaign/start", requireAuth, async (req, res) => {
     const { recipients, template, settings } = req.body || {};
     const smtp = req.session.smtp;
-
-    if (!smtp || !smtp.host || !smtp.username) {
+    if (!smtp?.host || !smtp?.username) {
       return res.status(401).json({ success: false, error: "SMTP Session expired. Please log in again." });
     }
-
-    if (!recipients || recipients.length === 0) {
+    if (!recipients?.length) {
       return res.status(400).json({ success: false, error: "No campaign recipients provided." });
     }
-
     if (currentCampaign.timer) clearInterval(currentCampaign.timer);
 
     const attachments = template?.attachments || [];
-    const attNames = attachments.map((a: any) => a.name).join(", ");
     const initLogs: any[] = [
-      { time: new Date().toLocaleTimeString(), message: `Campaign initialized for ${recipients.length} recipients.`, level: "info" },
-      { time: new Date().toLocaleTimeString(), message: `[SMTP ENGINE] Configured with server: ${smtp.host}:${smtp.port} (${smtp.from_email || smtp.username})`, level: "info" }
+      {
+        time: new Date().toLocaleTimeString(),
+        message: `Campaign initialized for ${recipients.length} recipients.`,
+        level: "info",
+      },
+      {
+        time: new Date().toLocaleTimeString(),
+        message: `[SMTP] ${smtp.host}:${smtp.port} (${smtp.from_email || smtp.username})`,
+        level: "info",
+      },
     ];
-
-    if (attachments.length > 0) {
+    if (attachments.length) {
       initLogs.push({
         time: new Date().toLocaleTimeString(),
-        message: `Campaign includes ${attachments.length} attachment(s): ${attNames}`,
-        level: "info"
+        message: `Attachments: ${attachments.map((a: any) => a.name).join(", ")}`,
+        level: "info",
       });
     }
 
@@ -706,28 +681,26 @@ async function startServer() {
     try {
       const portNum = parseInt(String(smtp.port), 10) || 587;
       const cleanHost = smtp.host.trim();
-      const cleanUser = smtp.username.trim();
-      const isOffice365 = cleanHost.toLowerCase().includes("office365") || cleanHost.toLowerCase().includes("outlook");
-      const isSecure = smtp.use_ssl || portNum === 465;
-
+      const isOffice365 =
+        cleanHost.toLowerCase().includes("office365") || cleanHost.toLowerCase().includes("outlook");
       transporter = nodemailer.createTransport({
         host: cleanHost,
         port: portNum,
-        secure: isSecure,
+        secure: smtp.use_ssl || portNum === 465,
         requireTLS: portNum === 587 || smtp.use_tls || isOffice365,
         family: 4,
         lookup: forceIPv4CustomLookup,
-        auth: { user: cleanUser, pass: smtp.password },
+        auth: { user: smtp.username.trim(), pass: smtp.password },
         tls: { rejectUnauthorized: false, servername: cleanHost },
         connectionTimeout: 15000,
         greetingTimeout: 15000,
-        socketTimeout: 15000
+        socketTimeout: 15000,
       } as any);
     } catch (e: any) {
       initLogs.push({
         time: new Date().toLocaleTimeString(),
-        message: `Transporter Initialization Error: ${e.message}`,
-        level: "error"
+        message: `Transporter error: ${e.message}`,
+        level: "error",
       });
     }
 
@@ -745,31 +718,30 @@ async function startServer() {
       settings,
       transporter,
       isProcessing: false,
-      baseUrl: getBaseUrl(req)
+      baseUrl: getBaseUrl(req),
     };
 
     runCampaignQueue(req);
-
     res.json({ success: true, message: "Campaign started successfully.", total: recipients.length });
   });
 
   async function runCampaignQueue(req?: express.Request) {
     if (currentCampaign.isProcessing) return;
     currentCampaign.isProcessing = true;
-
     const { smtp, template, settings, transporter } = currentCampaign;
-    const speed = Math.max(parseInt(settings?.max_per_minute || "30"), 1);
+    const speed = Math.max(parseInt(settings?.max_per_minute || "30", 10), 1);
     const intervalMs = Math.max(Math.floor(60000 / speed), 300);
     const attachments = template?.attachments || [];
     const fromEmail = (smtp?.from_email || smtp?.username || "trainings@edgevest.co.ke").trim();
-    const fromName = (smtp?.from_name || "Edgevest Team").trim();
+    const fromName = sanitizeEmailText((smtp?.from_name || "Edgevest Team").trim());
+    const baseUrl = (
+      currentCampaign.baseUrl ||
+      getBaseUrl(req) ||
+      process.env.APP_URL ||
+      `http://localhost:${process.env.PORT || 3000}`
+    ).replace(/\/+$/, "");
 
-    const baseUrl = currentCampaign.baseUrl || getBaseUrl(req);
-
-    while (
-      currentCampaign.status === "running" &&
-      currentCampaign.currentIndex < currentCampaign.total
-    ) {
+    while (currentCampaign.status === "running" && currentCampaign.currentIndex < currentCampaign.total) {
       const idx = currentCampaign.currentIndex;
       const rec = currentCampaign.recipients[idx];
       const displayIndex = idx + 1;
@@ -779,76 +751,94 @@ async function startServer() {
         currentCampaign.recipients[idx].status = "skipped";
         currentCampaign.logs.push({
           time: new Date().toLocaleTimeString(),
-          message: `[SKIPPED] Recipient ${rec.email} is on the suppression list (unsubscribed).`,
-          level: "warning"
+          message: `[SKIPPED] ${rec.email} is suppressed.`,
+          level: "warning",
         });
         currentCampaign.currentIndex++;
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise((r) => setTimeout(r, 100));
         continue;
       }
 
+      const displayName = sanitizeEmailText(rec.name || rec.email.split("@")[0] || "Valued Client");
+      const displayCompany = sanitizeEmailText(rec.company || "Valued Client");
+
       let emailHtml = template?.body_html || "";
       emailHtml = emailHtml
-        .replace(/\{name\}/gi, rec.name || rec.email.split("@")[0])
-        .replace(/\{email\}/gi, rec.email)
-        .replace(/\{company\}/gi, rec.company || "Valued Client");
+        .replace(/\{name\}/gi, displayName)
+        .replace(/\{company\}/gi, displayCompany);
+
+      const token = createUnsubscribeToken(rec.email);
+      const unsubUrl = `${baseUrl}/api/unsubscribe?email=${encodeURIComponent(rec.email)}&token=${encodeURIComponent(token)}`;
+
+      if (typeof renderEdgevestEmailHTML === "function" && !String(emailHtml).includes("<!DOCTYPE")) {
+        emailHtml = renderEdgevestEmailHTML(emailHtml, rec, baseUrl);
+      } else {
+        emailHtml = emailHtml.split("__UNSUBSCRIBE_URL__").join(unsubUrl);
+        emailHtml = emailHtml.replace(
+          /href=["']\/unsubscribe\?email=[^"']*["']/gi,
+          `href="${unsubUrl}"`
+        );
+        emailHtml = emailHtml.replace(
+          /href=["']\/api\/unsubscribe\?email=[^"']*["']/gi,
+          `href="${unsubUrl}"`
+        );
+        emailHtml = emailHtml.replace(/\{email\}/gi, rec.email);
+      }
 
       let personalizedSubject = (template?.subject || "Edgevest Update")
-        .replace(/\{name\}/gi, rec.name || rec.email.split("@")[0])
+        .replace(/\{name\}/gi, displayName)
         .replace(/\{email\}/gi, rec.email)
-        .replace(/\{company\}/gi, rec.company || "Valued Client");
+        .replace(/\{company\}/gi, displayCompany);
+
+      personalizedSubject = sanitizeEmailText(personalizedSubject);
+      emailHtml = sanitizeEmailText(emailHtml);
 
       if (transporter) {
         try {
           const userAttachments = attachments.map((att: any) => {
-            let filename = att.name || "attachment.pdf";
-            filename = filename
-              .replace(/\{name\}/gi, rec.name || rec.email.split("@")[0])
-              .replace(/\{email\}/gi, rec.email)
-              .replace(/\{company\}/gi, rec.company || "Valued Client");
+            let filename = sanitizeEmailText(
+              (att.name || "attachment.pdf")
+                .replace(/\{name\}/gi, displayName)
+                .replace(/\{email\}/gi, rec.email)
+                .replace(/\{company\}/gi, displayCompany)
+            );
+            filename = filename.replace(/[^\w.\- ()\[\]]+/g, "_");
 
             let contentStr = att.data || "";
             if (typeof contentStr === "string" && contentStr.includes(";base64,")) {
               contentStr = contentStr.split(";base64,")[1];
             }
-            return {
-              filename: filename,
-              content: Buffer.from(contentStr, "base64")
-            };
+            return { filename, content: Buffer.from(contentStr, "base64") };
           });
-
-          // ===== ADDED: Generate token for List-Unsubscribe header =====
-          const token = Buffer.from(`${rec.email}:${Date.now()}`).toString('base64url');
-          // ===== END ADDED =====
 
           const info = await transporter.sendMail({
             from: `"${fromName}" <${fromEmail}>`,
             to: rec.email,
             subject: personalizedSubject,
             html: emailHtml,
+            encoding: "utf-8",
+            textEncoding: "quoted-printable",
             attachments: userAttachments,
-            // ===== ADDED: List-Unsubscribe headers =====
             headers: {
-              'List-Unsubscribe': `<${baseUrl}/api/unsubscribe?email=${encodeURIComponent(rec.email)}&token=${token}>`,
-              'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click'
-            }
-            // ===== END ADDED =====
+              "List-Unsubscribe": `<${unsubUrl}>`,
+              "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+            },
           });
 
           currentCampaign.sent++;
           currentCampaign.recipients[idx].status = "sent";
           currentCampaign.logs.push({
             time: new Date().toLocaleTimeString(),
-            message: `[SUCCESS ${displayIndex}/${currentCampaign.total}] Dispatched to ${rec.email} (MessageID: ${info.messageId})`,
-            level: "success"
+            message: `[SUCCESS ${displayIndex}/${currentCampaign.total}] ${rec.email} (${info.messageId})`,
+            level: "success",
           });
         } catch (sendErr: any) {
           currentCampaign.failed++;
           currentCampaign.recipients[idx].status = "failed";
           currentCampaign.logs.push({
             time: new Date().toLocaleTimeString(),
-            message: `[FAILED ${displayIndex}/${currentCampaign.total}] Delivery to ${rec.email} failed: ${sendErr.message}`,
-            level: "error"
+            message: `[FAILED ${displayIndex}/${currentCampaign.total}] ${rec.email}: ${sendErr.message}`,
+            level: "error",
           });
         }
       } else {
@@ -856,15 +846,14 @@ async function startServer() {
         currentCampaign.recipients[idx].status = "sent";
         currentCampaign.logs.push({
           time: new Date().toLocaleTimeString(),
-          message: `[SIMULATION ${displayIndex}/${currentCampaign.total}] Simulated send to ${rec.email}`,
-          level: "info"
+          message: `[SIMULATION ${displayIndex}/${currentCampaign.total}] ${rec.email}`,
+          level: "info",
         });
       }
 
       currentCampaign.currentIndex++;
-
       if (currentCampaign.currentIndex < currentCampaign.total && currentCampaign.status === "running") {
-        await new Promise(resolve => setTimeout(resolve, intervalMs));
+        await new Promise((r) => setTimeout(r, intervalMs));
       }
     }
 
@@ -872,18 +861,21 @@ async function startServer() {
       currentCampaign.status = "completed";
       currentCampaign.logs.push({
         time: new Date().toLocaleTimeString(),
-        message: `Campaign Finished! Total: ${currentCampaign.total} | Sent: ${currentCampaign.sent} | Skipped: ${currentCampaign.skipped} | Failed: ${currentCampaign.failed}`,
-        level: "info"
+        message: `Finished. Sent ${currentCampaign.sent} | Skipped ${currentCampaign.skipped} | Failed ${currentCampaign.failed}`,
+        level: "info",
       });
     }
-
     currentCampaign.isProcessing = false;
   }
 
-  app.post("/api/campaign/pause", requireAuth, (req, res) => {
+  app.post("/api/campaign/pause", requireAuth, (_req, res) => {
     if (currentCampaign.status === "running") {
       currentCampaign.status = "paused";
-      currentCampaign.logs.push({ time: new Date().toLocaleTimeString(), message: "Campaign paused by operator.", level: "warning" });
+      currentCampaign.logs.push({
+        time: new Date().toLocaleTimeString(),
+        message: "Paused.",
+        level: "warning",
+      });
     }
     res.json({ success: true, status: currentCampaign.status });
   });
@@ -891,15 +883,23 @@ async function startServer() {
   app.post("/api/campaign/resume", requireAuth, (req, res) => {
     if (currentCampaign.status === "paused") {
       currentCampaign.status = "running";
-      currentCampaign.logs.push({ time: new Date().toLocaleTimeString(), message: "Campaign resumed by operator.", level: "info" });
+      currentCampaign.logs.push({
+        time: new Date().toLocaleTimeString(),
+        message: "Resumed.",
+        level: "info",
+      });
       runCampaignQueue(req);
     }
     res.json({ success: true, status: currentCampaign.status });
   });
 
-  app.post("/api/campaign/cancel", requireAuth, (req, res) => {
+  app.post("/api/campaign/cancel", requireAuth, (_req, res) => {
     currentCampaign.status = "cancelled";
-    currentCampaign.logs.push({ time: new Date().toLocaleTimeString(), message: "Campaign cancelled.", level: "warning" });
+    currentCampaign.logs.push({
+      time: new Date().toLocaleTimeString(),
+      message: "Cancelled.",
+      level: "warning",
+    });
     res.json({ success: true, message: "Campaign cancelled." });
   });
 
@@ -907,11 +907,11 @@ async function startServer() {
     const { message, level, note } = req.body || {};
     if (!message) return res.status(400).json({ success: false, error: "Message required." });
     const logItem = {
-      id: "log_" + Date.now() + "_" + Math.random().toString(36).substring(2, 5),
+      id: "log_" + Date.now(),
       time: new Date().toLocaleTimeString(),
       message,
       level: level || "info",
-      note: note || ""
+      note: note || "",
     };
     currentCampaign.logs.push(logItem);
     res.json({ success: true, log: logItem });
@@ -937,9 +937,11 @@ async function startServer() {
     res.json({ success: true, removed });
   });
 
-  app.post("/api/campaign/log/clear", requireAuth, (req, res) => {
-    currentCampaign.logs = [{ time: new Date().toLocaleTimeString(), message: "Log console cleared by operator.", level: "info" }];
-    res.json({ success: true, message: "Logs cleared." });
+  app.post("/api/campaign/log/clear", requireAuth, (_req, res) => {
+    currentCampaign.logs = [
+      { time: new Date().toLocaleTimeString(), message: "Log console cleared.", level: "info" },
+    ];
+    res.json({ success: true });
   });
 
   app.get("/api/campaign/logs/export", requireAuth, (req, res) => {
@@ -949,29 +951,20 @@ async function startServer() {
       res.setHeader("Content-Disposition", 'attachment; filename="edgevest_campaign_logs.json"');
       return res.send(JSON.stringify(currentCampaign.logs, null, 2));
     }
-
-    let textOutput = `========================================================\n`;
-    textOutput += `EDGEVEST EMAIL CAMPAIGN MANAGER - EXECUTION LOG REPORT\n`;
-    textOutput += `Generated: ${new Date().toLocaleString()}\n`;
-    textOutput += `Status: ${currentCampaign.status.toUpperCase()} | Sent: ${currentCampaign.sent} | Skipped: ${currentCampaign.skipped} | Failed: ${currentCampaign.failed} | Total: ${currentCampaign.total}\n`;
-    textOutput += `========================================================\n\n`;
-
+    let textOutput = `EDGEVEST CAMPAIGN LOG\nStatus: ${currentCampaign.status}\n\n`;
     currentCampaign.logs.forEach((log: any, idx: number) => {
-      textOutput += `[${idx + 1}] [${log.time}] [${(log.level || "INFO").toUpperCase()}] ${log.message}`;
-      if (log.note) textOutput += ` (Note: ${log.note})`;
-      textOutput += `\n`;
+      textOutput += `[${idx + 1}] [${log.time}] ${log.message}\n`;
     });
-
     res.setHeader("Content-Type", "text/plain");
     res.setHeader("Content-Disposition", 'attachment; filename="edgevest_campaign_logs.log"');
     res.send(textOutput);
   });
 
-  app.get("/api/campaign/status", requireAuth, (req, res) => {
-    const progress_percent = currentCampaign.total > 0
-      ? Math.round((currentCampaign.currentIndex / currentCampaign.total) * 100)
-      : 0;
-
+  app.get("/api/campaign/status", requireAuth, (_req, res) => {
+    const progress_percent =
+      currentCampaign.total > 0
+        ? Math.round((currentCampaign.currentIndex / currentCampaign.total) * 100)
+        : 0;
     res.json({
       status: currentCampaign.status,
       total: currentCampaign.total,
@@ -981,7 +974,7 @@ async function startServer() {
       current_index: currentCampaign.currentIndex,
       progress_percent,
       logs: currentCampaign.logs.slice(-50),
-      recipients_summary: currentCampaign.recipients
+      recipients_summary: currentCampaign.recipients,
     });
   });
 
@@ -989,58 +982,38 @@ async function startServer() {
     res.setHeader("Content-Type", "text/event-stream");
     res.setHeader("Cache-Control", "no-cache");
     res.setHeader("Connection", "keep-alive");
-
     const sendUpdate = () => {
-      const progress_percent = currentCampaign.total > 0
-        ? Math.round((currentCampaign.currentIndex / currentCampaign.total) * 100)
-        : 0;
-      const payload = {
-        type: "progress",
-        data: {
-          status: currentCampaign.status,
-          total: currentCampaign.total,
-          sent: currentCampaign.sent,
-          skipped: currentCampaign.skipped,
-          failed: currentCampaign.failed,
-          current_index: currentCampaign.currentIndex,
-          progress_percent,
-          logs: currentCampaign.logs
-        }
-      };
-      res.write(`data: ${JSON.stringify(payload)}\n\n`);
-
+      const progress_percent =
+        currentCampaign.total > 0
+          ? Math.round((currentCampaign.currentIndex / currentCampaign.total) * 100)
+          : 0;
+      res.write(
+        `data: ${JSON.stringify({
+          type: "progress",
+          data: {
+            status: currentCampaign.status,
+            total: currentCampaign.total,
+            sent: currentCampaign.sent,
+            skipped: currentCampaign.skipped,
+            failed: currentCampaign.failed,
+            current_index: currentCampaign.currentIndex,
+            progress_percent,
+            logs: currentCampaign.logs,
+          },
+        })}\n\n`
+      );
       if (
         currentCampaign.status === "completed" ||
         currentCampaign.status === "cancelled" ||
-        currentCampaign.status === "failed" ||
-        (currentCampaign.total > 0 && currentCampaign.currentIndex >= currentCampaign.total && currentCampaign.status !== "running")
+        currentCampaign.status === "failed"
       ) {
         clearInterval(interval);
         res.end();
       }
     };
-
     const interval = setInterval(sendUpdate, 1000);
     sendUpdate();
-
-    req.on("close", () => {
-      clearInterval(interval);
-    });
-  });
-
-  app.get("/api/download-file/:filename", (req, res) => {
-    const fn = req.params.filename;
-    const allowed = ["app.py", "config.py", "passenger_wsgi.py", "requirements.txt", ".env.example", "public/campaign.html", "public/index.html", "public/login.html"];
-    if (!allowed.includes(fn)) {
-      return res.status(400).send("Invalid file.");
-    }
-    const targetFn = fn === "public/index.html" ? "public/campaign.html" : fn;
-    const filePath = path.join(process.cwd(), targetFn);
-    if (fs.existsSync(filePath)) {
-      res.download(filePath);
-    } else {
-      res.status(404).send("File not found.");
-    }
+    req.on("close", () => clearInterval(interval));
   });
 
   app.use(express.static(path.join(process.cwd(), "public")));
@@ -1048,19 +1021,18 @@ async function startServer() {
   app.use("/assets", express.static(path.join(process.cwd(), "assets")));
   app.use("/assets", express.static(path.join(process.cwd(), "public", "assets")));
 
+  // ========== MODIFIED PART ==========
+  // Vite is now dynamically imported ONLY in development
   if (process.env.NODE_ENV !== "production") {
-    const vite = await createViteServer({
-      server: { middlewareMode: true },
-      appType: "spa",
-    });
+    const { createServer: createViteServer } = await import('vite');
+    const vite = await createViteServer({ server: { middlewareMode: true }, appType: "spa" });
     app.use(vite.middlewares);
   } else {
     const distPath = path.join(process.cwd(), "dist");
     app.use(express.static(distPath));
-    app.get("*", (req, res) => {
-      res.sendFile(path.join(distPath, "index.html"));
-    });
+    app.get("*", (_req, res) => res.sendFile(path.join(distPath, "index.html")));
   }
+  // ===================================
 
   app.listen(PORT, "0.0.0.0", () => {
     console.log(`Campaign App running on http://localhost:${PORT}`);
