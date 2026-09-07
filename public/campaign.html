@@ -432,7 +432,7 @@ jane@company.org, Jane Smith, Globex Inc</textarea>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
           <label class="block text-xs font-semibold uppercase tracking-wider text-[#8c7868] mb-2">Max Emails Per Minute *</label>
-          <input type="number" id="max-per-minute" value="30" min="1" max="300" class="w-full glass-input rounded-xl px-4 py-2.5 text-sm" />
+          <input type="number" id="max-per-minute" value="15" min="1" max="60" class="w-full glass-input rounded-xl px-4 py-2.5 text-sm" />
           <p class="text-xs text-[#8c7868] mt-1">Recommended: 20-40 per minute for shared SMTP. Delay per email will be auto-calculated.</p>
         </div>
         <div>
@@ -1200,8 +1200,9 @@ jane@company.org, Jane Smith, Globex Inc</textarea>
           attachments: campaignAttachments
         },
         settings: {
-          max_per_minute: maxEl ? maxEl.value : "30"
-        }
+         max_per_minute: maxEl ? maxEl.value : "15",
+         max_retries: document.getElementById("max-retries")?.value || "2"
+        } 
       };
 
       try {
