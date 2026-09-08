@@ -365,7 +365,7 @@ async function startServer() {
     socketTimeout: 60000,
     pool: true,
     maxConnections: 1,          // one connection at a time (safer for shared hosts)
-    maxMessages: 40,            // force new connection after ~40 messages
+    maxMessages: 300,            // force new connection after ~40 messages
     rateDelta: 1000,
     rateLimit: 20,              // soft internal rate (will still be paced by intervalMs)
   } as any);
@@ -874,7 +874,7 @@ if (isEmailSuppressed(rec.email)) {
           // Refresh transporter every 40 successful sends or on retry
           const shouldRefresh =
             attempts > 0 ||
-            (currentCampaign.sent > 0 && currentCampaign.sent % 40 === 0);
+            (currentCampaign.sent > 0 && currentCampaign.sent % 300 === 0);
 
           if (shouldRefresh) {
             try {
@@ -949,13 +949,16 @@ if (isEmailSuppressed(rec.email)) {
             msg.includes("throttl");
 
           if (isRateLimit) {
+            const waitMs = 60000; // wait 60 seconds
             currentCampaign.logs.push({
-              time: new Date().toLocaleTimeString(),
-              message: `[RATE-LIMIT] ${rec.email}: ${sendErr.message}. Pausing campaign so you can resume later.`,
-              level: "error",
+                time: new Date().toLocaleTimeString(),
+                message: `[RATE-LIMIT] ${rec.email}: ${sendErr.message}. Waiting ${waitMs/1000}s then retrying.`,
+                level: "warning"
             });
-            currentCampaign.status = "paused";
-            break; // exit retry loop
+            await new Promise(r => setTimeout(r, waitMs));
+            // do not pause; just retry the same email after waiting
+            attempts--; // so that retry count doesn't increment
+            continue;   // go back to the start of the retry loop
           }
 
           if (attempts <= maxRetries) {
