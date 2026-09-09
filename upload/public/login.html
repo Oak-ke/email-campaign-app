@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Edgevest Campaign Manager - SMTP Login</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: #0d0b0a;
+      color: #f7f4ee;
+    }
+    .glass-panel {
+      background: rgba(26, 20, 16, 0.92);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(163, 120, 84, 0.3);
+    }
+    .glass-input {
+      background: rgba(18, 14, 11, 0.85);
+      border: 1px solid rgba(163, 120, 84, 0.3);
+      color: #f7f4ee;
+    }
+    .glass-input:focus {
+      border-color: #c5a059;
+      box-shadow: 0 0 0 2px rgba(197, 160, 89, 0.25);
+      outline: none;
+    }
+  </style>
+</head>
+<body class="bg-[#0d0b0a] text-[#f7f4ee] min-h-screen flex items-center justify-center p-4 selection:bg-[#8c6543] selection:text-white">
+
+  <div class="max-w-xl w-full">
+    <!-- Brand Header Logo -->
+    <div class="text-center mb-8">
+      <div class="inline-flex h-16 w-16 p-2 rounded-2xl bg-[#faf8f5] items-center justify-center shadow-xl shadow-[#8c6543]/20 ring-1 ring-[#e2b871]/50 mb-4">
+        <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMjAgMTIwIiB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIj4KICA8ZGVmcz4KICAgIDxsaW5lYXJHcmFkaWVudCBpZD0iZ29sZEdyYWQiIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjEwMCUiPgogICAgICA8c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjZDRhZjM3IiAvPgogICAgICA8c3RvcCBvZmZzZXQ9IjMwJSIgc3RvcC1jb2xvcj0iI2YzZTVhYiIgLz4KICAgICAgPHN0b3Agb2Zmc2V0PSI1NSUiIHN0b3AtY29sb3I9IiNjNWEwNTkiIC8+CiAgICAgIDxzdG9wIG9mZnNldD0iODAlIiBzdG9wLWNvbG9yPSIjOGM2NTQzIiAvPgogICAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiM1YTNkMjQiIC8+CiAgICA8L2xpbmVhckdyYWRpZW50PgogICAgPGZpbHRlciBpZD0iZ29sZEdsb3ciIHg9Ii0xMCUiIHk9Ii0xMCUiIHdpZHRoPSIxMjAlIiBoZWlnaHQ9IjEyMCUiPgogICAgICA8ZmVEcm9wU2hhZG93IGR4PSIwIiBkeT0iMSIgc3RkRGV2aWF0aW9uPSIxLjUiIGZsb29kLWNvbG9yPSIjMDAwMDAwIiBmbG9vZC1vcGFjaXR5PSIwLjI1Ii8+CiAgICA8L2ZpbHRlcj4KICA8L2RlZnM+CgogIDwhLS0gQmFja2dyb3VuZCBjb250YWluZXIgb3B0aW9uYWwgLS0+CiAgPHJlY3Qgd2lkdGg9IjEyMCIgaGVpZ2h0PSIxMjAiIHJ4PSIxNiIgZmlsbD0iI2ZjZmFmNyIgLz4KCiAgPCEtLSBFbWJsZW0gR3JvdXAgLS0+CiAgPGcgZmlsdGVyPSJ1cmwoI2dvbGRHbG93KSI+CiAgICA8IS0tIE91dGVyIEFyYyAtLT4KICAgIDxwYXRoIGQ9Ik0gNjAgMTQgQyAzMyAxNCAxNCAzMyAxNCA2MCBDIDE0IDg3IDMzIDEwNiA2MCAxMDYgQyA4MiAxMDYgMTAwIDkwIDEwNCA2OCBDIDEwNCA2NSAxMDAgNjQgOTcgNjYgQyA5MiA4MiA3OCA5NSA2MCA5NSBDIDQwIDk1IDI1IDgwIDI1IDYwIEMgMjUgNDAgNDAgMjUgNjAgMjUgQyA3NSAyNSA4OCAzNSA5MiA0OSBDIDk0IDUyIDk4IDUxIDk5IDQ4IEMgOTUgMzAgNzkgMTQgNjAgMTQgWiIgZmlsbD0idXJsKCNnb2xkR3JhZCkiIC8+CgogICAgPCEtLSBNaWRkbGUgQXJjIC0tPgogICAgPHBhdGggZD0iTSA2MCAyOSBDIDQyIDI5IDI4IDQyIDI4IDYwIEMgMjggNzggNDIgOTEgNjAgOTEgQyA3NCA5MSA4NiA4MSA4OSA2NyBDIDkwIDY0IDg1IDYzIDgzIDY1IEMgNzkgNzQgNzAgODEgNjAgODEgQyA0OCA4MSAzOCA3MSAzOCA2MCBDIDM4IDQ5IDQ4IDM5IDYwIDM5IEMgNzAgMzkgNzkgNDYgODIgNTYgQyA4NCA1OSA4OCA1OCA4OSA1NSBDIDg2IDQxIDc0IDI5IDYwIDI5IFoiIGZpbGw9InVybCgjZ29sZEdyYWQpIiAvPgoKICAgIDwhLS0gQ2VudGVyICdlJyBIb29rIC0tPgogICAgPHBhdGggZD0iTSA2MCA0NCBDIDUxIDQ0IDQ0IDUxIDQ0IDYwIEMgNDQgNjkgN1EgNzYgNjAgNzYgQyA2OCA3NiA3NSA3MCA3NyA2MiBMIDU4IDYyIEMgNTUgNjIgNTUgNTcgNTggNTcgTCA4MyA1NyBDIDg1IDU3IDg2IDU1IDg1IDUzIEMgODEgNDcgNzIgNDQgNjAgNDQgWiIgZmlsbD0idXJsKCNnb2xkR3JhZCkiIC8+CiAgPC9nPgo8L3N2Zz4K" alt="Edgevest Logo" class="h-12 w-12 object-contain" onerror="this.onerror=null; this.src='assets/edgevest_emblem.jpg';" />
+      </div>
+      <h1 class="text-2xl font-bold text-white tracking-tight">EDGEVEST CAMPAIGN MANAGER</h1>
+      <p class="text-sm text-[#e2b871] font-semibold mt-1">SMTP Credentials Login &amp; Authentication</p>
+      <p class="text-xs text-[#a8988a] mt-1">Authenticate with your enterprise SMTP server to access campaign tools</p>
+    </div>
+
+    <!-- Login Glass Panel Card -->
+    <div class="glass-panel rounded-2xl p-6 sm:p-8 shadow-2xl">
+      <!-- Server Configuration Badge -->
+      <div class="flex items-center justify-between p-3.5 mb-6 bg-[#18120e] border border-[#3d2d20] rounded-xl text-xs">
+        <div class="flex items-center space-x-3">
+          <div class="w-9 h-9 rounded-xl bg-[#261c17] border border-[#8c6543]/60 flex items-center justify-center text-[#e2b871] shadow-inner">
+            <i class="fa-solid fa-server text-sm"></i>
+          </div>
+          <div>
+            <div class="font-bold text-white text-sm">Outlook 365 (587)</div>
+            <div class="text-[11px] text-[#a8988a] font-mono mt-0.5">outlook.office365.com &bull; Port 587 (STARTTLS)</div>
+          </div>
+        </div>
+        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold bg-[#1a2e26] text-[#63b39b] border border-[#2d5a4c]">
+          <span class="w-1.5 h-1.5 mr-1.5 rounded-full bg-[#34d399] animate-pulse"></span> Pre-configured
+        </span>
+      </div>
+
+      <!-- Login Form -->
+      <form id="login-form" class="space-y-5">
+        <!-- Hidden Server Settings -->
+        <input type="hidden" id="login-host" value="outlook.office365.com" />
+        <input type="hidden" id="login-port" value="587" />
+
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-[#d1c4b8] mb-1.5">
+            <i class="fa-solid fa-envelope mr-1.5 text-[#e2b871]"></i> Email Address *
+          </label>
+          <input type="email" id="login-user" value="trainings@edgevest.co.ke" required placeholder="trainings@edgevest.co.ke" class="w-full glass-input rounded-xl px-4 py-3 text-sm" />
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-[#d1c4b8] mb-1.5">
+            <i class="fa-solid fa-key mr-1.5 text-[#e2b871]"></i> App Password *
+          </label>
+          <input type="password" id="login-pass" value="" required placeholder="Enter App Password" class="w-full glass-input rounded-xl px-4 py-3 text-sm" />
+          <p class="text-[11px] text-[#8c7868] mt-1.5 leading-normal">
+            Enter your Microsoft 365 account App Password.
+          </p>
+        </div>
+
+        <!-- Alert Notification Box -->
+        <div id="login-alert" class="hidden p-4 rounded-xl text-xs font-medium leading-relaxed mt-4"></div>
+
+        <button type="submit" id="btn-login-submit" class="w-full mt-6 py-3.5 bg-gradient-to-r from-[#8c6543] to-[#c5a059] hover:from-[#a37854] hover:to-[#d4af37] text-white font-bold text-sm rounded-xl shadow-lg transition flex items-center justify-center">
+          <i class="fa-solid fa-lock mr-2"></i> Log In &amp; Verify Connection
+        </button>
+      </form>
+    </div>
+
+    <p class="text-center text-xs text-[#8c7868] mt-6">
+      &copy; 2026 Edgevest Training &amp; Consultancy &bull; Enterprise Mail System
+    </p>
+  </div>
+
+  <script>
+    // Check if already logged in on page load
+    async function checkAuth() {
+      try {
+        const res = await fetch('/api/auth/check', { cache: 'no-store' });
+        const data = await res.json();
+        if (data.authenticated) {
+          window.location.href = '/campaign.html';
+        }
+      } catch (err) {
+        console.error('Auth check error:', err);
+      }
+    }
+
+    checkAuth();
+
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const btn = document.getElementById('btn-login-submit');
+      const alertEl = document.getElementById('login-alert');
+
+      alertEl.className = 'hidden';
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Verifying Credentials...';
+
+      const emailVal = (document.getElementById('login-user')?.value || '').trim();
+      const passVal = (document.getElementById('login-pass')?.value || '').trim();
+
+      const payload = {
+        host: 'outlook.office365.com',
+        port: 587,
+        username: emailVal,
+        password: passVal,
+        from_email: emailVal,
+        from_name: 'Edgevest Team',
+        use_tls: true,
+        use_ssl: false
+      };
+
+      try {
+        const res = await fetch('/api/auth/smtp-login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+
+        if (res.ok && data.success) {
+          alertEl.className = 'p-4 rounded-xl text-xs font-semibold bg-[#1a2e26] text-[#63b39b] border border-[#2d5a4c] block mt-4';
+          alertEl.innerHTML = '<i class="fa-solid fa-check-circle mr-2"></i> SMTP Authentication Successful! Redirecting...';
+          setTimeout(() => {
+            window.location.href = '/campaign.html';
+          }, 800);
+        } else {
+          btn.disabled = false;
+          btn.innerHTML = '<i class="fa-solid fa-lock mr-2"></i> Log In &amp; Verify Connection';
+          alertEl.className = 'p-4 rounded-xl text-xs font-medium bg-[#36171a] text-[#f87171] border border-[#7f1d1d] block mt-4 whitespace-pre-wrap';
+          alertEl.innerHTML = '<i class="fa-solid fa-triangle-exclamation mr-1.5 text-rose-400"></i> ' + (data.error || 'SMTP Authentication Failed.');
+        }
+      } catch (err) {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-lock mr-2"></i> Log In &amp; Verify Connection';
+        alertEl.className = 'p-4 rounded-xl text-xs font-medium bg-[#36171a] text-[#f87171] border border-[#7f1d1d] block mt-4';
+        alertEl.innerHTML = '<i class="fa-solid fa-circle-xmark mr-1.5"></i> Network error connecting to backend server.';
+      }
+    });
+  </script>
+</body>
+</html>
