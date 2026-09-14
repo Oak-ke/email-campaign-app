@@ -828,7 +828,10 @@ async function startServer() {
           emailHtml = renderEdgevestEmailHTML(emailHtml, rec, baseUrl);
         } else {
           emailHtml = emailHtml.split("__UNSUBSCRIBE_URL__").join(unsubUrl);
-          emailHtml = emailHtml.replace(/\{email\}/gi, rec.email);
+          emailHtml = emailHtml
+            .replace(/\{name\}/gi, displayName)
+            .replace(/\{email\}/gi, rec.email)
+            .replace(/\{company\}/gi, displayCompany);
         }
 
         let personalizedSubject = sanitizeEmailText((template?.subject || "Edgevest Update").replace(/\{name\}/gi, displayName));
